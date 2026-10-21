@@ -208,15 +208,48 @@ def nb8_protocol(Xtr, ytr, Xte, yte, seed):
     return y_f[val_pos], pred, val_pos
 
 
+class _LearningRateLog(tf.keras.callbacks.Callback):
+    def __init__(self):
+        super().__init__()
+        self.rates = []
+
+    def on_epoch_begin(self, epoch, logs=None):
+        self.rates.append(float(np.asarray(self.model.optimizer.learning_rate)))
+
+
 def train_internal(X, y, seed, dropouts=DROPOUT_BASE, patience=PATIENCE_BASE, augment_rng=None):
-    """One run whose callbacks monitor an internal 15% validation part of the training rows, never the test set. With
-    augment_rng, the noisy copies are made from the fitting part only, so no copy of a validation molecule is trained on."""
-    X, y = np.asarray(X), np.asarray(y)
+    """One run that never looks at the test set, in two stages.
+    1) The network is trained on 85% of the training rows while the original callbacks (ReduceLROnPlateau,
+       EarlyStopping) monitor the other 15%; this fixes the number of epochs (the best validation epoch) and records the
+       learning-rate schedule. With augment_rng, the noisy copies are made from the 85% only, so no copy of a
+       validation molecule is trained on.
+    2) The network is trained again from the same initialization on all training rows (augmented the same way) for that
+       number of epochs, replaying the recorded learning rates. The final model therefore uses every training molecule,
+       as the original protocol did, so that a difference with the original is due to the monitoring set and not to
+       training on fewer molecules."""
+    X, y = np.asarray(X, dtype=np.float32), np.asarray(y, dtype=np.float32)
     fit_pos, val_pos = split_indices(len(y))
     X_fit, y_fit = X[fit_pos], y[fit_pos]
+    X_all, y_all = X, y
     if augment_rng is not None:
         X_fit, y_fit, _ = augment(X_fit, y_fit, augment_rng)
-    return train_dnn(X_fit, y_fit, X[val_pos], y[val_pos], seed, dropouts, patience)
+        X_all, y_all, _ = augment(X, y, augment_rng)
+
+    tf.keras.utils.set_random_seed(int(seed))
+    model = build_dnn(X.shape[1], dropouts)
+    lr_log = _LearningRateLog()
+    history = model.fit(X_fit, y_fit, validation_data=(X[val_pos], y[val_pos]), batch_size=BATCH_SIZE, epochs=EPOCHS,
+                        shuffle=True, verbose=0,
+                        callbacks=[lr_log, ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=20, min_lr=0.000001),
+                                   EarlyStopping(monitor='val_loss', patience=patience, restore_best_weights=True)])
+    n_epochs = int(np.argmin(history.history['val_loss'])) + 1
+    rates = lr_log.rates[:n_epochs]
+
+    tf.keras.utils.set_random_seed(int(seed))
+    final = build_dnn(X.shape[1], dropouts)
+    final.fit(X_all, y_all, batch_size=BATCH_SIZE, epochs=n_epochs, shuffle=True, verbose=0,
+              callbacks=[tf.keras.callbacks.LearningRateScheduler(lambda epoch, lr: rates[epoch])])
+    return final
 
 
 def ensemble_predict_internal(X, y, X_eval, seed, augment=False):
