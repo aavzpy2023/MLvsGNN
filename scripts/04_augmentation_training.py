@@ -21,7 +21,7 @@ from sklearn.linear_model import RidgeCV
 from sklearn.base import clone
 from xgboost import XGBRegressor
 
-from sklearn.model_selection import GroupKFold, train_test_split
+from sklearn.model_selection import GroupKFold, KFold, train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error
 from sklearn.inspection import permutation_importance
 
@@ -49,11 +49,14 @@ logger = logging.getLogger(__name__)
 # Every model of this step is fitted and evaluated single-threaded: a multi-threaded RandomForest.predict() sums the trees
 # in a thread-dependent order, which changes the last bits of the predictions between runs. Parallelism is applied
 # across independent tasks instead (features in the permutation importance, runs in the ensemble), which cannot change results.
-STACK_MEMBERS = [
-    ('rf', RandomForestRegressor(n_estimators=N_ESTIMATORS, random_state=RANDOM_STATE, n_jobs=1)),
-    ('xgb', XGBRegressor(n_estimators=N_ESTIMATORS, random_state=RANDOM_STATE, n_jobs=1, verbosity=0)),
-    ('svm', SVR(kernel='rbf', C=10, gamma='scale', epsilon=0.1)),
-]
+_BASE_ESTIMATORS = {
+    'RF': ('rf', RandomForestRegressor(n_estimators=N_ESTIMATORS, random_state=RANDOM_STATE, n_jobs=1)),
+    'XGB': ('xgb', XGBRegressor(n_estimators=N_ESTIMATORS, random_state=RANDOM_STATE, n_jobs=1, verbosity=0)),
+    'SVM': ('svm', SVR(kernel='rbf', C=10, gamma='scale', epsilon=0.1)),
+}
+STACK_MEMBERS = [_BASE_ESTIMATORS[name] for name in DEPLOYED_ARCHITECTURE]
+# Members whose seed changes between the runs of the ensemble (SVR is deterministic)
+SEEDED_MEMBERS = [n for n, _ in STACK_MEMBERS if n in ('rf', 'xgb')]
 
 # =========================================================
 # MOLECULAR REPRESENTATIONS
@@ -111,29 +114,59 @@ def build_model(groups=None, X=None, y=None):
 IMPORTANCE_TOL = 1e-9
 
 
-def select_features_by_permutation_importance(X, y, model, n_repeats=5):
-    """
-    Computes permutation feature importance on the training split.
-    Retains features whose mean importance is positive beyond floating-point noise (> IMPORTANCE_TOL).
-    """
-    logger.info("Fitting model for Permutation Importance calculation...")
-    model.fit(X, y)
-    logger.info(f"Computing Permutation Importance (n_repeats={n_repeats}, n_jobs={N_JOBS})...")
-
-    # Core acceleration: N_JOBS is injected into the permutation calculation
+def _fit_and_permute(model, X_fit, y_fit, X_eval, y_eval, n_repeats):
+    """Fits a clone of `model` on (X_fit, y_fit) and returns the mean permutation importance measured on (X_eval, y_eval)."""
+    fitted = clone(model)
+    fitted.fit(X_fit, y_fit)
     result = permutation_importance(
-        model, X, y,
+        fitted, X_eval, y_eval,
         scoring='neg_mean_squared_error',
         n_repeats=n_repeats,
         random_state=RANDOM_STATE,
         n_jobs=N_JOBS,
     )
-    mask = result.importances_mean > IMPORTANCE_TOL
-    n_selected = mask.sum()
-    n_zero = int((np.abs(result.importances_mean) <= IMPORTANCE_TOL).sum())
-    logger.info(f"Features selected (importance > {IMPORTANCE_TOL:g}): {n_selected}/{X.shape[1]} "
+    return result.importances_mean
+
+
+def _importances_to_mask(importances, label):
+    """Keeps features whose importance exceeds IMPORTANCE_TOL and logs how many were kept."""
+    mask = importances > IMPORTANCE_TOL
+    n_zero = int((np.abs(importances) <= IMPORTANCE_TOL).sum())
+    logger.info(f"[{label}] Features selected (importance > {IMPORTANCE_TOL:g}): {int(mask.sum())}/{len(mask)} "
                 f"({n_zero} features have a numerically zero importance)")
-    return mask, result
+    return mask
+
+
+def select_features_by_permutation_importance(X, y, model, n_repeats=5):
+    """
+    Out-of-fold permutation feature importance on the development set.
+    For each of PI_CV_FOLDS folds a clone of the model is fitted on the training part and the importance is measured on
+    the held-out part; the fold means are averaged. Retains features whose averaged importance is positive beyond
+    floating-point noise (> IMPORTANCE_TOL).
+    Fitting and permuting on the same data would measure how much the trees memorised each bit, not how much it helps
+    predict unseen molecules, so the importance is always computed on data the fitted model has not seen.
+    Returns (mask, importances).
+    """
+    logger.info(f"Computing out-of-fold Permutation Importance (folds={PI_CV_FOLDS}, n_repeats={n_repeats}, n_jobs={N_JOBS})...")
+    kf = KFold(n_splits=PI_CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
+    fold_importances = [
+        _fit_and_permute(model, X[tr], y[tr], X[va], y[va], n_repeats)
+        for tr, va in kf.split(X)
+    ]
+    importances = np.mean(fold_importances, axis=0)
+    return _importances_to_mask(importances, "out-of-fold"), importances
+
+
+def select_features_leaky(X_dev, y_dev, X_test, y_test, model, n_repeats=5):
+    """
+    DIAGNOSTIC ONLY. Fits on the development set and permutes on the TEST set, which reproduces the selection protocol of
+    the original study. The test labels therefore influence which bits are kept, so any score obtained with this mask is
+    optimistically biased. It exists only to quantify that bias; it must never feed a persisted model.
+    Returns (mask, importances).
+    """
+    logger.info("Computing LEAKY Permutation Importance (fit on dev, permute on test) — diagnostic only...")
+    importances = _fit_and_permute(model, X_dev, y_dev, X_test, y_test, n_repeats)
+    return _importances_to_mask(importances, "leaky"), importances
 
 
 # =========================================================
@@ -197,7 +230,7 @@ def calculate_empirical_bootstrap_pvalue(boot_array, reference_val):
 # =========================================================
 def _fit_predict_run(X_train, y_train, X_test, run, groups=None):
     m = build_model(groups, X_train, y_train)
-    m.set_params(rf__random_state=RANDOM_STATE + run, xgb__random_state=RANDOM_STATE + run)
+    m.set_params(**{f'{n}__random_state': RANDOM_STATE + run for n in SEEDED_MEMBERS})
     m.fit(X_train, y_train)
     pred = m.predict(X_test)
     return pred.flatten() if pred.ndim > 1 else pred
@@ -209,6 +242,18 @@ def ensemble_predict(X_train, y_train, X_test, n_runs=N_ENSEMBLE_RUNS, groups=No
     all_preds = Parallel(n_jobs=max(1, min(n_runs, N_JOBS)))(
         delayed(_fit_predict_run)(X_train, y_train, X_test, run, groups) for run in range(n_runs))
     return np.mean(all_preds, axis=0)
+
+
+def _score_experiment(label, y_test, y_pred, n_features_total, n_features_selected, aug_size, t0):
+    """Computes R2, MAE and bootstrap CI for one experiment, logs them and returns the results entry."""
+    r2 = r2_score(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+    boot_r2s = bootstrap_r2_distribution(y_test, y_pred)
+    _, ci_lo, ci_hi = compute_bootstrap_metrics(boot_r2s)
+    logger.info(f"Results Exp {label} -> R2={r2:.4f} | MAE={mae:.4f} | 95% CI [{ci_lo:.4f}, {ci_hi:.4f}] | "
+                f"Time: {time.time() - t0:.1f}s")
+    return dict(r2=r2, mae=mae, ci_lo=ci_lo, ci_hi=ci_hi, boot_r2s=boot_r2s,
+                n_features_total=n_features_total, n_features_selected=n_features_selected, aug_size=aug_size)
 
 
 # =========================================================
@@ -259,13 +304,24 @@ def export_latex(results_dict, delta_rows=None):
         newcommand(f, "ExpCNoiseLevels", str(NOISE_LEVELS).replace('[', '').replace(']', ''))
         f.write("\n")
 
+        f.write("% --- Diagnostic: Experiments B/C with selection on the test set (leaky, original-study protocol) ---\n")
+        for key in ('Bleaky', 'Cleaky'):
+            r = results_dict[key]
+            newcommand(f, f"Exp{key}RTwoMean", f"{r['r2']:.4f}")
+            newcommand(f, f"Exp{key}Mae", f"{r['mae']:.4f}")
+            newcommand(f, f"Exp{key}RTwoCILow", f"{r['ci_lo']:.4f}")
+            newcommand(f, f"Exp{key}RTwoCIHigh", f"{r['ci_hi']:.4f}")
+            newcommand(f, f"Exp{key}NFeaturesSelected", str(r['n_features_selected']))
+        newcommand(f, "ExpLeakyMaskJaccard", f"{results_dict['leaky_mask_jaccard']:.4f}")
+        f.write("\n")
+
         f.write("% --- Reference Benchmarks ---\n")
         for label, (_, val) in PAPER_R2.items():
             f.write(f"\\providecommand{{\\{label}RTwo}}{{{val:.2f}}}\n")
         f.write("\n")
 
         f.write("% --- Rigorous Statistical Evaluations vs Benchmarks ---\n")
-        for exp_key in ('A', 'B', 'C'):
+        for exp_key in ('A', 'B', 'C', 'Bleaky', 'Cleaky'):
             exp = results_dict[exp_key]
             for paper_key, (_, paper_val) in PAPER_R2.items():
                 is_within_ci = exp['ci_lo'] <= paper_val <= exp['ci_hi']
@@ -302,14 +358,20 @@ def run():
     logger.info("Evaluates classical ML pipeline parity against reported DNN benchmarks")
     logger.info("=" * 80)
     explain("What this step does", """
-        Trains the final predictive model and tests three variants on compounds the model never saw (15% of the data is set
+        Trains the final predictive model and tests variants on compounds the model never saw (15% of the data is set
         aside before anything else happens, so the test is honest):
 
         Exp A - baseline: a stacking ensemble (several different algorithms whose predictions are combined by a final model).
         Exp B - A plus feature selection: keeps only the fingerprint bits that actually help prediction (permutation
-        importance: a bit is useful if randomly scrambling it makes predictions worse).
+        importance: a bit is useful if randomly scrambling it makes predictions worse). The importance is computed out-of-fold
+        inside the development set: each model is scored on molecules it was not fitted on, so a bit is kept only if it helps
+        predict unseen molecules, not if the trees merely memorised it.
         Exp C - B plus data augmentation: adds slightly noisy copies of the training molecules' potencies (Gaussian noise) to
         see whether this makes the model more robust.
+        Exp Bleaky / Exp Cleaky - diagnostics only: the same as B and C, but the bits are selected by permuting on the TEST
+        set, as the original study did. The test molecules then influence the model, so these scores are optimistically
+        biased; comparing them with B and C measures how much of a reported gain can come from that leak. They never feed
+        the saved mask or models.
 
         Metrics: R2 (1 = perfect, 0 = no better than predicting the mean potency) and MAE (average error in pIC50 units;
         0.5 means a typical error of ~3-fold in IC50). The 95% CI comes from bootstrap resampling of the test set: it shows how
@@ -343,17 +405,7 @@ def run():
     logger.info("-" * 80)
     t0 = time.time()
     y_pred_a = ensemble_predict(X_dev, y_dev, X_test)
-    r2_a = r2_score(y_test, y_pred_a)
-    mae_a = mean_absolute_error(y_test, y_pred_a)
-
-    boot_r2s_a = bootstrap_r2_distribution(y_test, y_pred_a)
-    boot_mean_a, ci_lo_a, ci_hi_a = compute_bootstrap_metrics(boot_r2s_a)
-
-    results['A'] = dict(r2=r2_a, mae=mae_a, ci_lo=ci_lo_a, ci_hi=ci_hi_a,
-                        boot_r2s=boot_r2s_a, n_features_total=X_all.shape[1],
-                        n_features_selected=X_all.shape[1], aug_size=len(y_dev))
-    logger.info(
-        f"Results Exp A -> R2={r2_a:.4f} | MAE={mae_a:.4f} | 95% CI [{ci_lo_a:.4f}, {ci_hi_a:.4f}] | Time: {time.time() - t0:.1f}s")
+    results['A'] = _score_experiment('A', y_test, y_pred_a, X_all.shape[1], X_all.shape[1], len(y_dev), t0)
 
     # ──────────────────────────────────────────────────────────────────────────
     # EXPERIMENT B: Permutation Importance Feature Selection
@@ -363,23 +415,13 @@ def run():
     logger.info("-" * 80)
     t0 = time.time()
     pi_model = build_model()
-    mask_b, pi_result = select_features_by_permutation_importance(X_dev, y_dev, pi_model)
+    mask_b, _ = select_features_by_permutation_importance(X_dev, y_dev, pi_model)
 
     X_dev_b = X_dev[:, mask_b]
     X_test_b = X_test[:, mask_b]
 
     y_pred_b = ensemble_predict(X_dev_b, y_dev, X_test_b)
-    r2_b = r2_score(y_test, y_pred_b)
-    mae_b = mean_absolute_error(y_test, y_pred_b)
-
-    boot_r2s_b = bootstrap_r2_distribution(y_test, y_pred_b)
-    boot_mean_b, ci_lo_b, ci_hi_b = compute_bootstrap_metrics(boot_r2s_b)
-
-    results['B'] = dict(r2=r2_b, mae=mae_b, ci_lo=ci_lo_b, ci_hi=ci_hi_b,
-                        boot_r2s=boot_r2s_b, n_features_total=X_all.shape[1],
-                        n_features_selected=int(mask_b.sum()), aug_size=len(y_dev))
-    logger.info(
-        f"Results Exp B -> R2={r2_b:.4f} | MAE={mae_b:.4f} | 95% CI [{ci_lo_b:.4f}, {ci_hi_b:.4f}] | Time: {time.time() - t0:.1f}s")
+    results['B'] = _score_experiment('B', y_test, y_pred_b, X_all.shape[1], int(mask_b.sum()), len(y_dev), t0)
 
     os.makedirs(os.path.dirname(MASK_FILE), exist_ok=True)
     np.save(MASK_FILE, mask_b)
@@ -396,17 +438,36 @@ def run():
     X_aug, y_aug, groups_aug = augment_data(X_dev_b, y_dev)
 
     y_pred_c = ensemble_predict(X_aug, y_aug, X_test_b, groups=groups_aug)
-    r2_c = r2_score(y_test, y_pred_c)
-    mae_c = mean_absolute_error(y_test, y_pred_c)
+    results['C'] = _score_experiment('C', y_test, y_pred_c, X_all.shape[1], int(mask_b.sum()), len(y_aug), t0)
 
-    boot_r2s_c = bootstrap_r2_distribution(y_test, y_pred_c)
-    boot_mean_c, ci_lo_c, ci_hi_c = compute_bootstrap_metrics(boot_r2s_c)
+    # ──────────────────────────────────────────────────────────────────────────
+    # DIAGNOSTIC EXPERIMENTS Bleaky / Cleaky: selection on the TEST set (original-study protocol)
+    # ──────────────────────────────────────────────────────────────────────────
+    logger.info("-" * 80)
+    logger.info("DIAGNOSTIC EXPERIMENTS Bleaky / Cleaky: feature selection on the test set (LEAKY, not for use)")
+    logger.info("-" * 80)
+    t0 = time.time()
+    mask_leaky, _ = select_features_leaky(X_dev, y_dev, X_test, y_test, build_model())
+    union = int((mask_leaky | mask_b).sum())
+    jaccard = float((mask_leaky & mask_b).sum() / union) if union else 1.0
+    results['leaky_mask_jaccard'] = jaccard
+    logger.info(f"Jaccard index between leaky and out-of-fold masks: {jaccard:.4f}")
+    logger.info("The leaky mask is NOT saved to MASK_FILE and does NOT feed any persisted model: "
+                "MASK_FILE, MODEL_FILE and the augmented model are built from the out-of-fold mask (Exp B).")
 
-    results['C'] = dict(r2=r2_c, mae=mae_c, ci_lo=ci_lo_c, ci_hi=ci_hi_c,
-                        boot_r2s=boot_r2s_c, n_features_total=X_all.shape[1],
-                        n_features_selected=int(mask_b.sum()), aug_size=len(y_aug))
-    logger.info(
-        f"Results Exp C -> R2={r2_c:.4f} | MAE={mae_c:.4f} | 95% CI [{ci_lo_c:.4f}, {ci_hi_c:.4f}] | Time: {time.time() - t0:.1f}s")
+    X_dev_bl = X_dev[:, mask_leaky]
+    X_test_bl = X_test[:, mask_leaky]
+    n_sel_leaky = int(mask_leaky.sum())
+
+    y_pred_bleaky = ensemble_predict(X_dev_bl, y_dev, X_test_bl)
+    results['Bleaky'] = _score_experiment('Bleaky', y_test, y_pred_bleaky, X_all.shape[1], n_sel_leaky,
+                                          len(y_dev), t0)
+
+    t0 = time.time()
+    X_aug_l, y_aug_l, groups_aug_l = augment_data(X_dev_bl, y_dev)
+    y_pred_cleaky = ensemble_predict(X_aug_l, y_aug_l, X_test_bl, groups=groups_aug_l)
+    results['Cleaky'] = _score_experiment('Cleaky', y_test, y_pred_cleaky, X_all.shape[1], n_sel_leaky,
+                                          len(y_aug_l), t0)
 
     # ──────────────────────────────────────────────────────────────────────────
     # EXECUTIVE SUMMARY & RIGOROUS HYPOTHESIS TESTING
@@ -415,15 +476,18 @@ def run():
     logger.info("EXECUTIVE SUMMARY — RIGOROUS STATISTICAL AUDIT")
     logger.info("=" * 80)
     explain("How to read the summary", """
-        Each experiment is compared with R2 values reported in the original paper (PAPER_R2). 'NOT significantly different'
+        Each experiment (including the leaky diagnostics Bleaky / Cleaky) is compared with R2 values reported in the
+        original paper (PAPER_R2). 'NOT significantly different'
         means the published value lies inside our 95% CI, i.e. we reproduce it within sampling uncertainty. p_boot is the
         fraction of bootstrap resamples that fall on the other side of the reference value (small = real difference).
 
         The paired delta R2 lines then ask whether adding feature selection (B vs A) or augmentation (C vs B / C vs A) truly
         improved the model. If the CI of a delta includes 0, the improvement cannot be distinguished from noise.
+        The leaky deltas (Bleaky vs A / B, Cleaky vs C) show how much selecting bits on the test set inflates the score.
     """)
 
-    for exp_key, exp_label in [('A', 'Exp A (baseline)'), ('B', 'Exp B (+feat.sel.)'), ('C', 'Exp C (+augment.)')]:
+    for exp_key, exp_label in [('A', 'Exp A (baseline)'), ('B', 'Exp B (+feat.sel.)'), ('C', 'Exp C (+augment.)'),
+                               ('Bleaky', 'Exp Bleaky (leaky, diagnostic)'), ('Cleaky', 'Exp Cleaky (leaky, diagnostic)')]:
         exp = results[exp_key]
         logger.info(
             f"{exp_label}: R2={exp['r2']:.4f} | MAE={exp['mae']:.4f} | 95% CI [{exp['ci_lo']:.4f}, {exp['ci_hi']:.4f}]")
@@ -437,11 +501,12 @@ def run():
 
     # Paired Bootstrap Difference Tests.
     # bootstrap_r2_distribution() uses the same seed for every experiment, so draw i uses
-    # the SAME resampled test indices in A, B and C -> differences are properly paired.
+    # the SAME resampled test indices in every experiment -> differences are properly paired.
     logger.info("-" * 80)
     logger.info("PAIRED BOOTSTRAP DIFFERENCES (delta R2):")
     delta_rows = []
-    for tag, k1, k0 in [('CvsA', 'C', 'A'), ('BvsA', 'B', 'A'), ('CvsB', 'C', 'B')]:
+    for tag, k1, k0 in [('CvsA', 'C', 'A'), ('BvsA', 'B', 'A'), ('CvsB', 'C', 'B'),
+                          ('BleakyvsA', 'Bleaky', 'A'), ('BleakyvsB', 'Bleaky', 'B'), ('CleakyvsC', 'Cleaky', 'C')]:
         diff = results[k1]['boot_r2s'] - results[k0]['boot_r2s']
         d_mean, d_lo, d_hi = compute_bootstrap_metrics(diff)
         d_p = calculate_empirical_bootstrap_pvalue(diff, 0.0)
@@ -475,7 +540,7 @@ def run():
     logger.info(f"Saved augmented model separately to: {aug_model_path}")
 
     csv_data = []
-    for exp_key in ['A', 'B', 'C']:
+    for exp_key in ['A', 'B', 'C', 'Bleaky', 'Cleaky']:
         csv_data.append({
             'Experiment': f'Exp_{exp_key}',
             'R2': results[exp_key]['r2'],
@@ -498,11 +563,12 @@ def run():
         'CI_Upper': d['ci_hi'], 'P_Boot': d['p_boot']} for d in delta_rows])
     df_delta.to_csv(os.path.join(RESULTS_DIR, CSV_04_DELTA_FILE), index=False)
 
-    pd.DataFrame({f'Exp_{k}': results[k]['boot_r2s'] for k in ('A', 'B', 'C')}).to_csv(
+    pd.DataFrame({f'Exp_{k}': results[k]['boot_r2s'] for k in ('A', 'B', 'C', 'Bleaky', 'Cleaky')}).to_csv(
         os.path.join(RESULTS_DIR, CSV_04_BOOT_FILE), index=False)
 
     pd.DataFrame({'y_true': y_test, 'pred_Exp_A': y_pred_a, 'pred_Exp_B': y_pred_b,
-                  'pred_Exp_C': y_pred_c}).to_csv(os.path.join(RESULTS_DIR, CSV_04_PRED_FILE), index=False)
+                  'pred_Exp_C': y_pred_c, 'pred_Exp_Bleaky': y_pred_bleaky,
+                  'pred_Exp_Cleaky': y_pred_cleaky}).to_csv(os.path.join(RESULTS_DIR, CSV_04_PRED_FILE), index=False)
     logger.info(f"Delta R2, bootstrap distributions and test predictions saved to {RESULTS_DIR}")
 
     # Export artifacts

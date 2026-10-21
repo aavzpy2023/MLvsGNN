@@ -33,9 +33,9 @@ logger = logging.getLogger(__name__)
 # =========================================================
 # 1. DYNAMIC DISCOVERY OF THE BEST MODEL
 # =========================================================
-# Architecture of the deployed screening model (STACK_MEMBERS in step 04), evaluated on the Morgan fingerprints it uses.
+# Architecture of the deployed screening model (DEPLOYED_ARCHITECTURE in paths_config, shared with step 04), evaluated on
+# all 2048 Morgan bits: this validates the architecture, not the feature-selected model deployed in step 05.
 DEPLOYED_MODE = 'morgan'
-DEPLOYED_ARCHITECTURE = 'RF+XGB+SVM'
 
 
 # =========================================================
@@ -112,7 +112,7 @@ def main():
         predicting the average potency, negative is worse than that.
     """)
 
-    best_mode, best_architecture = DEPLOYED_MODE, DEPLOYED_ARCHITECTURE
+    best_mode, best_architecture = DEPLOYED_MODE, '+'.join(DEPLOYED_ARCHITECTURE)
     logger.info(f"Deployed model -> representation: '{best_mode}', architecture: '{best_architecture}'")
 
     # 1. Load Data

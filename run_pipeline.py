@@ -11,7 +11,8 @@ Usage (from any directory):
     python run_pipeline.py --no-sensitivity   # skip the with-extreme-values re-run (steps S01, S02, 10)
     python run_pipeline.py --no-scaffold      # skip the scaffold-split re-run (steps SC01, SC09, 13)
     python run_pipeline.py --strict           # error (instead of silent skip) if ChemProp cannot load
-Environment variables (optional): MLGNN_PROFILE (laptop|workstation), MLGNN_N_JOBS.
+Environment variables (optional): MLGNN_PROFILE (laptop|workstation), MLGNN_N_JOBS,
+    MLGNN_TF_PYTHON (python of the separate TensorFlow environment, needed only by the scripts/tf/ steps).
 """
 import argparse
 import importlib.util
@@ -39,7 +40,22 @@ PIPELINE = [
     "scripts/08_admet_profiling.py",
     "scripts/09_gnn_baseline.py",
     "scripts/12_gnn_tuned.py",
+    "scripts/14_export_folds.py",
+    "scripts/19_gnn_strong_baselines.py",
 ]
+
+# Audit of the original TensorFlow/Keras network: these steps run with the interpreter of a separate environment
+# (MLGNN_TF_PYTHON, see requirements-tf-lock.txt), because TensorFlow is not part of the main one. They live in scripts/tf/,
+# which the import scan of --check does not enter, and they only read inputs and write CSV files to results/.
+TF_PYTHON = os.environ.get("MLGNN_TF_PYTHON")
+TF_PIPELINE = [
+    "scripts/tf/15_karimova_reproduction.py",
+    "scripts/tf/16_leakage_ladder.py",
+    "scripts/tf/17_dnn_nested_cv.py",
+]
+TF_REQUIRED_MODULES = ["tensorflow", "keras", "feature_engine", "sklearn", "pandas", "numpy"]
+# Main-environment summary of the TensorFlow steps (statistics and LaTeX variables); runs after them
+AUDIT = ["scripts/18_karimova_audit.py"]
 
 # Figure and table stage: runs automatically after every computation step has finished (so no figure can read a
 # result that does not exist yet) and can be launched alone with `--only figures`, without recomputing anything.
@@ -65,13 +81,16 @@ SENSITIVITY = [
     ("10", "scripts/10_outlier_sensitivity.py", {}),
 ]
 
-# Scaffold-split robustness: the classical Morgan ensemble (01) and the default D-MPNN (09) are re-run on scaffold-grouped
+# Scaffold-split robustness: the classical ensembles of the four representations (01) and the default D-MPNN (09) are re-run on scaffold-grouped
 # outer folds, writing to scaffold/; step 13 summarizes the comparison with the random folds.
 SCAFFOLD_DIR = os.environ.get("MLGNN_SCAFFOLD_DIR") or os.path.join(ROOT, "scaffold")
-SCAFFOLD_ENV = {"MLGNN_OUT_DIR": SCAFFOLD_DIR, "MLGNN_SPLIT": "scaffold", "MLGNN_MODES": "morgan"}
+SCAFFOLD_ENV = {"MLGNN_OUT_DIR": SCAFFOLD_DIR, "MLGNN_SPLIT": "scaffold",
+                "MLGNN_MODES": "morgan,rdkit2d,rdkit2d_fp,rdkit2d3d_fp"}
 SCAFFOLD = [
     ("SC01", "scripts/01_nested_cv_stacking.py", SCAFFOLD_ENV),
     ("SC09", "scripts/09_gnn_baseline.py", SCAFFOLD_ENV),
+    ("SC17", "scripts/tf/17_dnn_nested_cv.py", SCAFFOLD_ENV),
+    ("SC19", "scripts/19_gnn_strong_baselines.py", {**SCAFFOLD_ENV, "MLGNN_K19_VARIANTS": "dmpnn_ens5,chemeleon"}),
     ("13", "scripts/13_scaffold_split.py", {}),
 ]
 
@@ -177,14 +196,34 @@ def check_dependencies():
         print(f"  - {m}: {e}\n      used by: {users}")
     print("\nNote: cross-check the list above against requirements.txt (module names differ from PyPI names,"
           " e.g. sklearn -> scikit-learn, tdc -> PyTDC).")
-    return not bad
+    return not bad and check_tf_environment()
+
+
+def check_tf_environment():
+    """Checks the separate TensorFlow interpreter of the scripts/tf/ steps; not having one is only a warning."""
+    if not TF_PYTHON:
+        print("\nMLGNN_TF_PYTHON is not set: the TensorFlow steps (scripts/tf/) cannot run, every other step is unaffected.")
+        return True
+    code = "import " + ", ".join(TF_REQUIRED_MODULES) + "; print(tensorflow.__version__, keras.__version__)"
+    proc = subprocess.run([TF_PYTHON, "-c", code], capture_output=True, text=True,
+                          env=dict(os.environ, TF_CPP_MIN_LOG_LEVEL="2"))
+    if proc.returncode != 0:
+        print(f"\nTensorFlow environment ({TF_PYTHON}) FAILS to import {TF_REQUIRED_MODULES}:\n{proc.stderr.strip()[-800:]}")
+        return False
+    tf_ver, keras_ver = proc.stdout.split()[-2:]
+    print(f"\nTensorFlow environment OK ({TF_PYTHON}): tensorflow {tf_ver}, keras {keras_ver}")
+    return True
 
 
 def all_steps(include_sensitivity=True, include_scaffold=True):
     """Ordered (step id, script, extra environment) triples: the main pipeline, then the sensitivity analysis."""
     figures = [(step_id(s), s, {}) for s in FIGURES]
-    steps = [(step_id(s), s, {}) for s in PIPELINE]
+    steps = [(step_id(s), s, {}) for s in PIPELINE + TF_PIPELINE + AUDIT]
     return (steps + (SENSITIVITY if include_sensitivity else []) + (SCAFFOLD if include_scaffold else []) + figures)
+
+
+def is_tf_step(script_path):
+    return script_path.replace("\\", "/").startswith("scripts/tf/")
 
 
 def execute_and_log(script_path, master_log_path, extra_env=None):
@@ -203,8 +242,9 @@ def execute_and_log(script_path, master_log_path, extra_env=None):
     env = dict(os.environ, MLGNN_LOG_MANAGED="1", PYTHONUNBUFFERED="1", PYTHONIOENCODING="utf-8",
                MPLBACKEND="Agg", **(extra_env or {}))
 
+    python = TF_PYTHON if is_tf_step(script_path) else sys.executable
     process = subprocess.Popen(
-        [sys.executable, os.path.join(ROOT, script_path)],
+        [python, os.path.join(ROOT, script_path)],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True, encoding="utf-8", errors="replace", bufsize=1,
         cwd=ROOT, env=env,
@@ -243,6 +283,11 @@ def select_steps(args):
 
 def run_pipeline(steps=None):
     steps = steps if steps is not None else all_steps()
+    # Fail before running anything, rather than hours into the pipeline
+    tf_steps = [sid for sid, script, _ in steps if is_tf_step(script)]
+    if tf_steps and not (TF_PYTHON and os.access(TF_PYTHON, os.X_OK)):
+        sys.exit(f"Steps {tf_steps} need the TensorFlow interpreter: set MLGNN_TF_PYTHON to its python executable "
+                 f"(current value: {TF_PYTHON!r}), or leave these steps out with --only.")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     master_log_path = os.path.join(LOGS_DIR, f"master_pipeline_{timestamp}.log")
 

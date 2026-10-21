@@ -136,6 +136,9 @@ N_JOBS = ACTIVE_CFG.get('N_JOBS', 1)
 # =========================================================
 TEST_SIZE = 0.15  # 15% holdout test set (identical to paper)
 N_ENSEMBLE_RUNS = 5  # 5 stochastic ensemble runs (averaged)
+# Fixed architecture of the deployed screening model (base-estimator names of step 01), shared by steps 03 and 04.
+DEPLOYED_ARCHITECTURE = ('RF', 'XGB', 'SVM')
+PI_CV_FOLDS = 5  # folds of the out-of-fold permutation importance inside the development partition
 N_BOOTSTRAP = 2000  # Resampling iterations for non-parametric CIs
 LATEX_FILE = LATEX_AUGMENT
 FIGURE_FILE = FIGURE_AUGMENT
