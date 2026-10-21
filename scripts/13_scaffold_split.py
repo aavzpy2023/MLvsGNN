@@ -1,3 +1,4 @@
+import itertools
 import os
 import sys
 
@@ -8,15 +9,48 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from paths_config import *
 from logger_utils import setup_logger, explain
 from splits import murcko_groups
+from nb_stats import CLASSICAL_MODE_LABEL, compare_to_classical, holm, nb_paired
 
 SCAFFOLD_DIR = os.environ.get("MLGNN_SCAFFOLD_DIR") or os.path.join(ROOT, "scaffold")
 SC_RESULTS = os.path.join(SCAFFOLD_DIR, "results")
 LATEX_SCAFFOLD = os.path.join(LATEX_DIR, "scaffold_variables.tex")
 SUMMARY_CSV = os.path.join(RESULTS_DIR, "13_scaffold_summary.csv")
+PAIRWISE_CSV = os.path.join(RESULTS_DIR, "13_scaffold_classical_pairwise.csv")
+NEURAL_CSV = os.path.join(RESULTS_DIR, "13_scaffold_neural_vs_classical.csv")
+
+# Neural models scored fold by fold (Fold, R2, MAE, N_train, N_test): macro label -> file name, identical in results/ and
+# scaffold/results/. 'Gnn' is the default D-MPNN of step 09; the others come from steps 17 and 19.
+NEURAL_MODELS = {
+    "Gnn": os.path.basename(GNN_FOLD_SCORES_CSV),
+    "DnnBase": "17_dnn_baseline_fold_scores.csv",
+    "DnnFull": "17_dnn_full_fold_scores.csv",
+    "DmpnnEns": "19_dmpnn_ens5_fold_scores.csv",
+    "Chemeleon": "19_chemeleon_fold_scores.csv",
+}
 
 
 def summarize(scores, r2_col, mae_col):
     return {"R2_mean": scores[r2_col].mean(), "R2_std": scores[r2_col].std(ddof=1), "MAE_mean": scores[mae_col].mean()}
+
+
+def classical_scores(checkpoint, mode):
+    c = checkpoint[checkpoint['Mode'] == mode].sort_values('Fold').reset_index(drop=True)
+    return c.rename(columns={"R2_outer": "R2", "MAE_outer": "MAE"})
+
+
+def classical_pairwise(checkpoint, modes):
+    """Every pair of classical representations on the shared scaffold folds: corrected paired t-test, Holm within metric."""
+    rows = []
+    for metric, col in (("RTwo", "R2"), ("Mae", "MAE")):
+        block = []
+        for a, b in itertools.combinations(modes, 2):
+            sa, sb = classical_scores(checkpoint, a), classical_scores(checkpoint, b)
+            res = nb_paired(sa[col].values - sb[col].values, sa["N_train"].mean(), sa["N_test"].mean())
+            block.append(dict(Metric=metric, A=a, B=b, mean_diff_a_minus_b=res["mean_diff"], t=res["t"], p_raw=res["p"]))
+        for row, p_adj in zip(block, holm([r["p_raw"] for r in block])):
+            row["p_holm"] = p_adj
+        rows += block
+    return pd.DataFrame(rows)
 
 
 def main():
@@ -26,55 +60,83 @@ def main():
     print("=" * 105)
     explain("What this step does", """
         Random folds put close analogs of the same chemical series in both the training and the test part, which can make a
-        model look better than it would be on a new series. Steps SC01 and SC09 repeated the benchmark with folds that keep every
-        Bemis-Murcko scaffold in a single fold, for the Morgan stacking ensemble and for the default D-MPNN. This step puts the
-        two results next to the random-fold results, and tests the network against the classical ensemble on the shared
-        scaffold folds. The scaffold results are expected to be lower; the question is whether the comparison changes.
+        model look better than it would be on a new series. The scaffold runs (SC01, SC09, SC17, SC19) repeated the benchmark
+        with folds that keep every Bemis-Murcko scaffold in a single fold, for the four classical representations and for the
+        neural models. This step puts every scaffold result next to its random-fold result, compares the classical
+        representations with each other on the scaffold folds, and tests each neural model against them. The scaffold results
+        are expected to be lower; the question is whether the comparisons change.
     """)
 
-    sc_ckpt = os.path.join(SC_RESULTS, "01_nested_cv_checkpoint.csv")
-    sc_gnn = os.path.join(SC_RESULTS, "09_gnn_fold_scores.csv")
-    for path in (sc_ckpt, sc_gnn, CHECKPOINT_FILE):
+    sc_ckpt_path = os.path.join(SC_RESULTS, "01_nested_cv_checkpoint.csv")
+    for path in (sc_ckpt_path, CHECKPOINT_FILE, os.path.join(SC_RESULTS, NEURAL_MODELS["Gnn"]), GNN_FOLD_SCORES_CSV):
         if not os.path.exists(path):
-            print(f"[ERROR] Missing input: {path}. Run steps SC01 and SC09 (and 01) first.")
+            print(f"[ERROR] Missing input: {path}. Run steps SC01 and SC09 (and 01, 09) first.")
             sys.exit(1)
+    random_ckpt, scaffold_ckpt = pd.read_csv(CHECKPOINT_FILE), pd.read_csv(sc_ckpt_path)
+    sc_modes = [m for m in CLASSICAL_MODE_LABEL if (scaffold_ckpt['Mode'] == m).sum() > 0]
 
-    random_morgan = pd.read_csv(CHECKPOINT_FILE).query("Mode == 'morgan'")
-    scaffold_morgan = pd.read_csv(sc_ckpt).query("Mode == 'morgan'").sort_values("Fold").reset_index(drop=True)
-    scaffold_gnn = pd.read_csv(sc_gnn).sort_values("Fold").reset_index(drop=True)
-    random_gnn = pd.read_csv(GNN_FOLD_SCORES_CSV)
+    values, rows = {}, {}
+    for mode in sc_modes:
+        label = CLASSICAL_MODE_LABEL[mode]
+        rows[label] = dict(kind="classical",
+                           **{f"random_{k}": v for k, v in summarize(classical_scores(random_ckpt, mode), "R2", "MAE").items()},
+                           **{f"scaffold_{k}": v for k, v in summarize(classical_scores(scaffold_ckpt, mode), "R2", "MAE").items()})
 
-    rows = {"Random Morgan": summarize(random_morgan, "R2_outer", "MAE_outer"),
-            "Scaffold Morgan": summarize(scaffold_morgan, "R2_outer", "MAE_outer"),
-            "Random D-MPNN": summarize(random_gnn, "R2", "MAE"),
-            "Scaffold D-MPNN": summarize(scaffold_gnn, "R2", "MAE")}
+    neural = {}
+    for label, fname in NEURAL_MODELS.items():
+        r_path, s_path = os.path.join(RESULTS_DIR, fname), os.path.join(SC_RESULTS, fname)
+        if not (os.path.exists(r_path) and os.path.exists(s_path)):
+            print(f"  [NOTE] {label}: random or scaffold results not available yet ({fname}); left out.")
+            continue
+        s = pd.read_csv(s_path).sort_values("Fold").reset_index(drop=True)
+        neural[label] = s
+        rows[label] = dict(kind="neural",
+                           **{f"random_{k}": v for k, v in summarize(pd.read_csv(r_path), "R2", "MAE").items()},
+                           **{f"scaffold_{k}": v for k, v in summarize(s, "R2", "MAE").items()})
+
     summary = pd.DataFrame(rows).T
+    summary["drop_R2"] = summary["random_R2_mean"] - summary["scaffold_R2_mean"]
     summary.to_csv(SUMMARY_CSV)
-    print(summary.round(4).to_string())
+    print(summary.drop(columns="kind").astype(float).round(4).to_string())
+    for label, r in summary.iterrows():
+        for split in ("Random", "Scaffold"):
+            values[f"{split}{label}RTwoMean"] = f"{r[f'{split.lower()}_R2_mean']:.4f}"
+            values[f"{split}{label}RTwoStd"] = f"{r[f'{split.lower()}_R2_std']:.4f}"
+            values[f"{split}{label}Mae"] = f"{r[f'{split.lower()}_MAE_mean']:.4f}"
+        values[f"Scaffold{label}DropRTwo"] = f"{r['drop_R2']:.4f}"
 
-    from nb_stats import compare_to_classical
-    table, macros = compare_to_classical(scaffold_gnn, pd.read_csv(sc_ckpt), "ScaffoldGnnVs")
-    table.to_csv(os.path.join(RESULTS_DIR, "13_scaffold_gnn_vs_morgan.csv"), index=False)
-    print(table.round(4).to_string(index=False))
+    pairwise = classical_pairwise(scaffold_ckpt, sc_modes)
+    pairwise.to_csv(PAIRWISE_CSV, index=False)
+    print("\nClassical representations against each other on the scaffold folds:")
+    print(pairwise.round(4).to_string(index=False))
+    for _, p in pairwise.iterrows():
+        key = f"Scaffold{CLASSICAL_MODE_LABEL[p['A']]}Vs{CLASSICAL_MODE_LABEL[p['B']]}"
+        values[f"{key}Diff{p['Metric']}"] = f"{p['mean_diff_a_minus_b']:+.4f}"
+        values[f"{key}P{p['Metric']}"] = f"{p['p_holm']:.3f}"
+
+    tables = []
+    for label, s in neural.items():
+        table, macros = compare_to_classical(s, scaffold_ckpt, f"Scaffold{label}Vs")
+        values.update(macros)
+        tables.append(table.assign(model=label))
+    if tables:
+        neural_tests = pd.concat(tables, ignore_index=True)
+        neural_tests.to_csv(NEURAL_CSV, index=False)
+        print("\nNeural models against the classical representations on the scaffold folds (Holm within metric):")
+        print(neural_tests[["model", "Metric", "Classical", "mean_diff_model_minus_classical", "p_holm", "p_equiv"]]
+              .round(4).to_string(index=False))
 
     groups = murcko_groups(pd.read_csv(TRAIN_FILE).dropna(subset=['Smiles', 'pIC50 Value'])['Smiles'].tolist())
     sizes = pd.Series(groups).value_counts()
-    values = {"ScaffoldNGroups": len(sizes), "ScaffoldLargestGroup": int(sizes.iloc[0]),
-              "ScaffoldSingletonGroups": int((sizes == 1).sum())}
-    for label, key in (("RandomMorgan", "Random Morgan"), ("ScaffoldMorgan", "Scaffold Morgan"),
-                       ("RandomGnn", "Random D-MPNN"), ("ScaffoldGnn", "Scaffold D-MPNN")):
-        values[f"{label}RTwoMean"] = f"{summary.loc[key, 'R2_mean']:.4f}"
-        values[f"{label}RTwoStd"] = f"{summary.loc[key, 'R2_std']:.4f}"
-        values[f"{label}Mae"] = f"{summary.loc[key, 'MAE_mean']:.4f}"
-    values["ScaffoldMorganDropRTwo"] = f"{summary.loc['Random Morgan', 'R2_mean'] - summary.loc['Scaffold Morgan', 'R2_mean']:.4f}"
-    values["ScaffoldGnnDropRTwo"] = f"{summary.loc['Random D-MPNN', 'R2_mean'] - summary.loc['Scaffold D-MPNN', 'R2_mean']:.4f}"
-    values.update(macros)
+    values.update({"ScaffoldNGroups": len(sizes), "ScaffoldLargestGroup": int(sizes.iloc[0]),
+                   "ScaffoldSingletonGroups": int((sizes == 1).sum())})
+
     os.makedirs(os.path.dirname(LATEX_SCAFFOLD), exist_ok=True)
     with open(LATEX_SCAFFOLD, "w", encoding="utf-8") as f:
         f.write("% Auto-generated by 13_scaffold_split.py\n")
         for name, value in values.items():
             f.write(f"\\newcommand{{\\{name}}}{{{value}}}\n")
-    print(f"[EXPORT] LaTeX variables saved to {LATEX_SCAFFOLD}")
+    print(f"[EXPORT] {len(values)} LaTeX variables saved to {LATEX_SCAFFOLD}")
     print("[DONE] 13_scaffold_split.py complete.")
 
 
