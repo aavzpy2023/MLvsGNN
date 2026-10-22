@@ -23,6 +23,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from paths_config import *
 from logger_utils import setup_logger, explain
 from splits import outer_splits
+from tools.featurization import morgan_fingerprints, rdkit_2d_descriptors
 
 CHECKPOINT_19 = os.path.join(RESULTS_DIR, "19_gnn_strong_checkpoint.csv")
 OOF_19 = os.path.join(RESULTS_DIR, "19_gnn_strong_oof_predictions.csv")
@@ -37,30 +38,6 @@ VARIANT_COST = {"chemeleon": 10, "dmpnn_ens5": 5, "dmpnn_rdkit": 1, "mlp_ecfp": 
 N_ENSEMBLE = 5
 EPOCHS = int(os.environ.get("MLGNN_GNN_EPOCHS", "100"))
 THREADS_PER_WORKER = int(os.environ.get("MLGNN_K19_THREADS", "4"))
-
-
-def morgan(smiles):
-    from rdkit import Chem
-    from rdkit.Chem import rdFingerprintGenerator
-    gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-    return np.array([gen.GetFingerprintAsNumPy(Chem.MolFromSmiles(s)).astype(np.float32) for s in smiles])
-
-
-def rdkit_2d(smiles):
-    from rdkit import Chem
-    from rdkit.Chem import Descriptors
-    rows = []
-    for s in smiles:
-        m = Chem.MolFromSmiles(s)
-        vals = []
-        for _, fn in Descriptors._descList:
-            try:
-                vals.append(fn(m))
-            except Exception:
-                vals.append(np.nan)
-        rows.append(vals)
-    X = np.array(rows, dtype=float)
-    return np.where(np.isfinite(X), X, np.nan)
 
 
 def train_predict_mpnn(smiles_tr, y_tr, smiles_te, seed, threads, x_d_tr=None, x_d_te=None, foundation=None):
@@ -121,14 +98,14 @@ def run_task(task):
     if variant == "dmpnn_ens5":
         pred = np.mean([train_predict_mpnn(s_tr, y[tr], s_te, seed + 1000 * k, threads) for k in range(N_ENSEMBLE)], axis=0)
     elif variant == "dmpnn_rdkit":
-        X = rdkit_2d(smiles)
+        X = rdkit_2d_descriptors(smiles)
         x_tr, x_te = scaled_descriptors(X[tr], X[te])
         pred = train_predict_mpnn(s_tr, y[tr], s_te, seed, threads, x_tr, x_te)
     elif variant == "chemeleon":
         pred = train_predict_mpnn(s_tr, y[tr], s_te, seed, threads, foundation=CHEMELEON_FILE)
     elif variant == "mlp_ecfp":
         from sklearn.neural_network import MLPRegressor
-        X = morgan(smiles)
+        X = morgan_fingerprints(smiles).astype(np.float32)
         mlp = MLPRegressor(hidden_layer_sizes=(512, 128), alpha=1e-3, early_stopping=True, validation_fraction=0.1,
                            max_iter=500, random_state=seed)
         pred = mlp.fit(X[tr], y[tr]).predict(X[te])

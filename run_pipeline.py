@@ -163,12 +163,16 @@ def scan_imports():
     if not os.path.isdir(scripts_dir):
         return {}
     stdlib = set(sys.stdlib_module_names)
-    local = {os.path.splitext(f)[0] for f in os.listdir(scripts_dir) if f.endswith(".py")}
+    # Project modules: the step scripts, the shared modules next to them and the tools package
+    local = {os.path.splitext(f)[0] for f in os.listdir(scripts_dir) if f.endswith(".py")} | {"tools"}
+    tools_dir = os.path.join(scripts_dir, "tools")
+    files = [os.path.join(scripts_dir, f) for f in sorted(os.listdir(scripts_dir)) if f.endswith(".py")]
+    if os.path.isdir(tools_dir):
+        files += [os.path.join(tools_dir, f) for f in sorted(os.listdir(tools_dir)) if f.endswith(".py")]
     found = {}
-    for fname in sorted(os.listdir(scripts_dir)):
-        if not fname.endswith(".py"):
-            continue
-        with open(os.path.join(scripts_dir, fname), encoding="utf-8") as fh:
+    for path in files:
+        fname = os.path.relpath(path, scripts_dir)
+        with open(path, encoding="utf-8") as fh:
             tree = ast.parse(fh.read(), filename=fname)
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):

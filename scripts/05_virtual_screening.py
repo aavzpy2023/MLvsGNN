@@ -12,12 +12,13 @@ import pandas as pd
 import joblib
 
 from rdkit import Chem, RDLogger
-from rdkit.Chem import Descriptors, rdFingerprintGenerator
+from rdkit.Chem import Descriptors
 from sklearn.ensemble import IsolationForest
 
 # ── Configuration and Logging Integration ────────────────────────────────────
 from paths_config import *
 from logger_utils import setup_logger, explain
+from tools.featurization import morgan_fingerprints
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")
@@ -29,25 +30,6 @@ OUTPUT_CSV = FDA_CANDIDATES_CSV
 # =========================================================
 # MOLECULAR REPRESENTATION
 # =========================================================
-_MORGAN_GEN = None
-
-
-def _get_generator():
-    global _MORGAN_GEN
-    if _MORGAN_GEN is None:
-        _MORGAN_GEN = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-    return _MORGAN_GEN
-
-
-def get_morgan_fp(mol):
-    if mol is None:
-        return np.zeros((2048,), dtype=np.float32)
-    try:
-        return _get_generator().GetFingerprintAsNumPy(mol).astype(np.float32)
-    except Exception:
-        return np.zeros((2048,), dtype=np.float32)
-
-
 def check_atoms(mol):
     if mol is None:
         return False
@@ -133,7 +115,7 @@ def run():
 
     df_train = pd.read_csv(TRAIN_FILE).dropna(subset=['Smiles', 'pIC50 Value'])
     train_mols = [Chem.MolFromSmiles(s) for s in df_train['Smiles']]
-    X_train_full = np.array([get_morgan_fp(m) for m in train_mols])
+    X_train_full = morgan_fingerprints(train_mols).astype(np.float32)
     X_train = X_train_full[:, mask] if mask is not None else X_train_full
 
     iso = IsolationForest(contamination=ISO_CONTAMINATION, random_state=RANDOM_STATE, n_jobs=-1)
@@ -174,7 +156,7 @@ def run():
         if mw > MAX_MW or not check_atoms(mol):
             continue
 
-        fp = get_morgan_fp(mol)
+        fp = morgan_fingerprints([mol])[0].astype(np.float32)
         candidates.append({
             'CID': row.get('cid'), 'Name': row.get('cmpdname'),
             'SMILES': str(smi), 'FP': fp,

@@ -24,8 +24,7 @@ from sklearn.model_selection import KFold, cross_val_score
 import lightgbm as lgb
 from xgboost import XGBRegressor
 
-from rdkit.Chem import rdFingerprintGenerator
-from rdkit import Chem
+from tools.featurization import morgan_fingerprints
 
 logger = logging.getLogger(__name__)
 
@@ -67,18 +66,6 @@ def build_dynamic_model(architecture_name):
             cv=CV_FOLDS,
             n_jobs=1
         )
-
-
-def get_morgan_fp(smiles):
-    """Calculates Morgan fingerprints (ECFP4, 2048 bits) for SMILES strings."""
-    try:
-        m = Chem.MolFromSmiles(smiles)
-        if m is None:
-            return np.zeros((2048,), dtype=np.int8)
-        gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-        return gen.GetFingerprintAsNumPy(m).astype(np.int8)
-    except Exception:
-        return np.zeros((2048,), dtype=np.int8)
 
 
 # =========================================================
@@ -124,7 +111,7 @@ def main():
 
     # 2. Feature Matrix Generation
     logger.info(f"Generating feature matrix X for representation mode '{best_mode}'...")
-    X_raw = np.array([get_morgan_fp(s) for s in df['Smiles']])
+    X_raw = morgan_fingerprints(df['Smiles'].tolist()).astype(np.int8)
 
     X = pd.DataFrame(X_raw, columns=[f"fp_{i}" for i in range(X_raw.shape[1])])
     logger.info(f"Feature matrix dimensions: {X.shape}")

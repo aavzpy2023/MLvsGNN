@@ -5,7 +5,7 @@ import time
 import numpy as np
 import pandas as pd
 from rdkit import Chem, RDLogger
-from rdkit.Chem import Descriptors, rdFingerprintGenerator
+from rdkit.Chem import Descriptors
 from rdkit.Chem.MolStandardize import rdMolStandardize
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from tdc.single_pred import ADME, Tox
@@ -14,6 +14,7 @@ from tdc.single_pred import ADME, Tox
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import *
 from logger_utils import setup_logger, explain
+from tools.featurization import morgan_fingerprints
 
 RDLogger.DisableLog('rdApp.*')
 
@@ -56,21 +57,6 @@ def evaluate_smiles(row):
     """Wrapper function to process each row in parallel."""
     smiles = row["Parent_SMILES"]
     return smiles if lipinski_pass(smiles) else None
-
-
-def smiles_to_fps(smiles_list, radius=2, n_bits=2048):
-    """Generates Morgan fingerprints as Numpy arrays using the modern RDKit Generator."""
-    fps = []
-    morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=radius, fpSize=n_bits)
-
-    for s in smiles_list:
-        mol = Chem.MolFromSmiles(s)
-        if mol:
-            fp = morgan_gen.GetFingerprintAsNumPy(mol)
-            fps.append(fp)
-        else:
-            fps.append(np.zeros(n_bits))
-    return np.array(fps)
 
 
 def main():
@@ -124,12 +110,12 @@ def main():
         sys.exit(1)
 
     smiles_candidates = df_filtered["Parent_SMILES"].tolist()
-    X_cand = smiles_to_fps(smiles_candidates)
+    X_cand = morgan_fingerprints(smiles_candidates)
 
     # 2. hERG Training and Prediction (Cardiotoxicity Classifier)
     herg_dataset = Tox(name="hERG", path=DATA_DIR).get_data()
     print(f"\n[2] Training hERG Cardiotoxicity Classifier (TDC Dataset: {len(herg_dataset)} samples)...")
-    X_train_herg = smiles_to_fps(herg_dataset["Drug"].tolist())
+    X_train_herg = morgan_fingerprints(herg_dataset["Drug"].tolist())
     y_train_herg = herg_dataset["Y"].values
 
     rf_herg = RandomForestClassifier(n_estimators=100, random_state=RANDOM_STATE, n_jobs=CORES_ADMET)
@@ -139,7 +125,7 @@ def main():
     # 3. Caco-2 Training and Prediction (Intestinal Permeability Regressor)
     caco_dataset = ADME(name="Caco2_Wang", path=DATA_DIR).get_data()
     print(f"\n[3] Training Caco-2 Permeability Regressor (TDC Dataset: {len(caco_dataset)} samples)...")
-    X_train_caco = smiles_to_fps(caco_dataset["Drug"].tolist())
+    X_train_caco = morgan_fingerprints(caco_dataset["Drug"].tolist())
     y_train_caco = caco_dataset["Y"].values
 
     rf_caco = RandomForestRegressor(n_estimators=100, random_state=RANDOM_STATE, n_jobs=CORES_ADMET)

@@ -12,8 +12,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from rdkit import Chem, RDLogger
-from rdkit.Chem import rdFingerprintGenerator
+from rdkit import RDLogger
 
 from sklearn.ensemble import RandomForestRegressor, StackingRegressor
 from sklearn.svm import SVR
@@ -29,6 +28,7 @@ from sklearn.inspection import permutation_importance
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import *
 from logger_utils import setup_logger, explain
+from tools.featurization import morgan_fingerprints
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")
@@ -61,28 +61,8 @@ SEEDED_MEMBERS = [n for n, _ in STACK_MEMBERS if n in ('rf', 'xgb')]
 # =========================================================
 # MOLECULAR REPRESENTATIONS
 # =========================================================
-_MORGAN_GEN = None
-
-
-def _get_morgan_generator():
-    global _MORGAN_GEN
-    if _MORGAN_GEN is None:
-        _MORGAN_GEN = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-    return _MORGAN_GEN
-
-
-def get_morgan_fp(smiles):
-    try:
-        m = Chem.MolFromSmiles(smiles)
-        if m is None:
-            return np.zeros((2048,), dtype=np.int8)
-        return _get_morgan_generator().GetFingerprintAsNumPy(m).astype(np.int8)
-    except Exception:
-        return np.zeros((2048,), dtype=np.int8)
-
-
 def build_X(smiles_list):
-    return np.array([get_morgan_fp(s) for s in smiles_list], dtype=float)
+    return morgan_fingerprints(smiles_list).astype(float)
 
 
 # =========================================================

@@ -10,7 +10,6 @@ import sys
 import numpy as np
 import pandas as pd
 from rdkit import Chem, RDLogger
-from rdkit.Chem import rdFingerprintGenerator
 from scipy import stats
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import KFold, cross_val_predict
@@ -19,6 +18,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import (CFG, DATA_DIR, LATEX_DIR, LOGS_DIR, MAIN_FILE, RANDOM_STATE, RESULTS_DIR, SENS_DIR,
                           SENS_FILE, mode_labels)
 from logger_utils import setup_logger, explain
+from tools.featurization import morgan_fingerprints
 
 RDLogger.DisableLog("rdApp.*")
 TARGET = "pIC50 Value"
@@ -27,11 +27,6 @@ OUT_CSV = os.path.join(RESULTS_DIR, "10_outlier_sensitivity.csv")
 OUT_DIAG_CSV = os.path.join(RESULTS_DIR, "10_outlier_diagnostic.csv")
 OUT_TEX = os.path.join(LATEX_DIR, "outlier_variables.tex")
 OUT_TABLE_TEX = os.path.join(LATEX_DIR, "outlier_table.tex")
-
-
-def morgan_matrix(smiles):
-    gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-    return np.array([gen.GetFingerprintAsNumPy(Chem.MolFromSmiles(s)) for s in smiles], dtype=np.uint8)
 
 
 def compare_runs(main, sens):
@@ -59,11 +54,11 @@ def diagnose_extremes():
     """Out-of-fold error of a Morgan/RandomForest model on the main set vs. its error on the removed extremes."""
     main = pd.read_csv(MAIN_FILE)
     ext = pd.read_csv(os.path.join(DATA_DIR, "V2-combined_bd_chmbl_unique_outliers.csv"))
-    X, y = morgan_matrix(main["Smiles"]), main[TARGET].values
+    X, y = morgan_fingerprints(main["Smiles"].tolist()), main[TARGET].values
     rf = RandomForestRegressor(n_estimators=CFG["N_ESTIMATORS_TREES"], random_state=RANDOM_STATE, n_jobs=CFG["N_JOBS"])
     oof = cross_val_predict(rf, X, y, cv=KFold(5, shuffle=True, random_state=RANDOM_STATE))
     rmse, abs_err = np.sqrt(np.mean((oof - y) ** 2)), np.abs(oof - y)
-    pred = rf.fit(X, y).predict(morgan_matrix(ext["Smiles"]))
+    pred = rf.fit(X, y).predict(morgan_fingerprints(ext["Smiles"].tolist()))
     out = ext[["cid", TARGET, "fence_violated"]].copy()
     out["predicted"] = pred
     out["abs_error"] = np.abs(pred - ext[TARGET].values)

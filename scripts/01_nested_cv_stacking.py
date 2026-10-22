@@ -25,9 +25,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import *
 from logger_utils import setup_logger, explain
 
-from rdkit import Chem, RDLogger
-from rdkit.Chem import AllChem, Descriptors, Descriptors3D
-from rdkit.Chem import rdFingerprintGenerator
+from rdkit import RDLogger
+from tools.featurization import (RDKIT_2D_NAMES, RDKIT_3D_NAMES, morgan_fingerprints, rdkit_2d_descriptors,
+                                 rdkit_3d_shape_descriptors)
 
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, StackingRegressor
 from sklearn.svm import SVR
@@ -125,86 +125,6 @@ MODE_DESCRIPTION = {
 # =========================================================
 # DESCRIPTOR GENERATION
 # =========================================================
-_MORGAN_GEN = None
-
-
-def _get_morgan_generator():
-    global _MORGAN_GEN
-    if _MORGAN_GEN is None:
-        _MORGAN_GEN = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-    return _MORGAN_GEN
-
-
-def get_morgan_fp(smiles):
-    try:
-        m = Chem.MolFromSmiles(smiles)
-        if m is None:
-            return np.zeros((2048,), dtype=np.int8)
-        gen = _get_morgan_generator()
-        return gen.GetFingerprintAsNumPy(m).astype(np.int8)
-    except Exception:
-        return np.zeros((2048,), dtype=np.int8)
-
-
-_RDKIT_2D_NAMES = [name for name, _ in Descriptors._descList]
-
-
-def get_rdkit_2d(smiles):
-    m = Chem.MolFromSmiles(smiles)
-    if m is None:
-        return np.full((len(_RDKIT_2D_NAMES),), np.nan)
-    vals = []
-    for name, fn in Descriptors._descList:
-        try:
-            vals.append(fn(m))
-        except Exception:
-            vals.append(np.nan)
-    return np.array(vals, dtype=float)
-
-
-_RDKIT_3D_NAMES = [
-    'Asphericity', 'Eccentricity', 'InertialShapeFactor',
-    'NPR1', 'NPR2', 'PMI1', 'PMI2', 'PMI3',
-    'RadiusOfGyration', 'SpherocityIndex',
-]
-
-
-def get_rdkit_3d(smiles):
-    m = Chem.MolFromSmiles(smiles)
-    if m is None:
-        return np.full((len(_RDKIT_3D_NAMES),), np.nan)
-    try:
-        m = Chem.AddHs(m)
-        params = AllChem.ETKDGv3()
-        params.randomSeed = 42
-        if AllChem.EmbedMolecule(m, params) == -1:
-            if AllChem.EmbedMolecule(m, useRandomCoords=True) == -1:
-                return np.full((len(_RDKIT_3D_NAMES),), np.nan)
-        try:
-            AllChem.MMFFOptimizeMolecule(m)
-        except Exception:
-            pass
-        vals = [
-            Descriptors3D.Asphericity(m), Descriptors3D.Eccentricity(m),
-            Descriptors3D.InertialShapeFactor(m), Descriptors3D.NPR1(m),
-            Descriptors3D.NPR2(m), Descriptors3D.PMI1(m), Descriptors3D.PMI2(m),
-            Descriptors3D.PMI3(m), Descriptors3D.RadiusOfGyration(m),
-            Descriptors3D.SpherocityIndex(m),
-        ]
-        return np.array(vals, dtype=float)
-    except Exception:
-        return np.full((len(_RDKIT_3D_NAMES),), np.nan)
-
-
-def compute_parallel(smiles_list, fn, n_jobs):
-    results = Parallel(n_jobs=n_jobs, backend='loky')(delayed(fn)(s) for s in smiles_list)
-    return np.array(results)
-
-
-def sanitize_matrix(X):
-    return np.where(np.isinf(X), np.nan, X)
-
-
 def detect_descriptor_columns(df):
     cols = []
     for c in df.columns:
@@ -219,27 +139,23 @@ def build_feature_matrix(df, mode, n_jobs):
     smiles = df['Smiles'].tolist()
 
     if mode == 'morgan':
-        X = compute_parallel(smiles, get_morgan_fp, n_jobs)
+        X = morgan_fingerprints(smiles)
         return X, [f'morgan_{i}' for i in range(X.shape[1])], True
 
     if mode == 'rdkit2d':
-        X = sanitize_matrix(compute_parallel(smiles, get_rdkit_2d, n_jobs))
-        return X, list(_RDKIT_2D_NAMES), False
+        return rdkit_2d_descriptors(smiles, n_jobs=n_jobs), list(RDKIT_2D_NAMES), False
 
     if mode == 'rdkit2d_fp':
-        X2d = sanitize_matrix(compute_parallel(smiles, get_rdkit_2d, n_jobs))
-        Xfp = compute_parallel(smiles, get_morgan_fp, n_jobs)
-        X = np.hstack([X2d, Xfp])
-        return X, list(_RDKIT_2D_NAMES) + [f'morgan_{i}' for i in range(Xfp.shape[1])], False
+        X2d, Xfp = rdkit_2d_descriptors(smiles, n_jobs=n_jobs), morgan_fingerprints(smiles)
+        return np.hstack([X2d, Xfp]), list(RDKIT_2D_NAMES) + [f'morgan_{i}' for i in range(Xfp.shape[1])], False
 
     if mode == 'rdkit2d3d_fp':
         print("    [INFO] Generating 3D conformers (ETKDGv3 + MMFF)...", flush=True)
-        X2d = sanitize_matrix(compute_parallel(smiles, get_rdkit_2d, n_jobs))
-        X3d = sanitize_matrix(compute_parallel(smiles, get_rdkit_3d, n_jobs))
-        Xfp = compute_parallel(smiles, get_morgan_fp, n_jobs)
-        X = np.hstack([X2d, X3d, Xfp])
-        names = list(_RDKIT_2D_NAMES) + list(_RDKIT_3D_NAMES) + [f'morgan_{i}' for i in range(Xfp.shape[1])]
-        return X, names, False
+        X2d = rdkit_2d_descriptors(smiles, n_jobs=n_jobs)
+        X3d = rdkit_3d_shape_descriptors(smiles, seed=RANDOM_STATE, n_jobs=n_jobs)
+        Xfp = morgan_fingerprints(smiles)
+        names = list(RDKIT_2D_NAMES) + list(RDKIT_3D_NAMES) + [f'morgan_{i}' for i in range(Xfp.shape[1])]
+        return np.hstack([X2d, X3d, Xfp]), names, False
 
     if mode == 'csv_descriptors':
         cols = detect_descriptor_columns(df)
@@ -451,7 +367,7 @@ LEARNERS = ['RF', 'ET', 'LGBM', 'XGB', 'SVM', 'kNN']
 def record_feature_qc(mode, X, feat_names, featurization_s):
     """Counts missing/failed values of a feature matrix before imputation (3D failures = rows with NaN in the 3D block)."""
     Xf = np.asarray(X, dtype=float)
-    cols_3d = [i for i, n in enumerate(feat_names) if n in _RDKIT_3D_NAMES]
+    cols_3d = [i for i, n in enumerate(feat_names) if n in RDKIT_3D_NAMES]
     row = {'Mode': mode, 'N_rows': Xf.shape[0], 'N_features': Xf.shape[1],
            'N_cells_missing': int(np.isnan(Xf).sum()), 'N_rows_missing': int(np.isnan(Xf).any(axis=1).sum()),
            'N_rows_3D_failed': int(np.isnan(Xf[:, cols_3d]).any(axis=1).sum()) if cols_3d else 0,
