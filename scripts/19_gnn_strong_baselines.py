@@ -10,11 +10,9 @@ closes the gap to the classical ensembles:
   mlp_ecfp     a multilayer perceptron on the 2048-bit Morgan fingerprints (a neural model without learned representation)
 Every variant is fitted on the outer training part only, with no tuning, and results are checkpointed per fold.
 """
-import multiprocessing as mp
 import os
 import sys
 import time
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import numpy as np
 import pandas as pd
@@ -24,6 +22,7 @@ from paths_config import *
 from logger_utils import setup_logger, explain
 from splits import outer_splits
 from tools.featurization import morgan_fingerprints, rdkit_2d_descriptors
+from tools.parallel import SAFE_CPU_ENV, run_tasks
 
 CHECKPOINT_19 = os.path.join(RESULTS_DIR, "19_gnn_strong_checkpoint.csv")
 OOF_19 = os.path.join(RESULTS_DIR, "19_gnn_strong_oof_predictions.csv")
@@ -148,14 +147,15 @@ def main():
     if tasks:
         n_workers = max(1, min(len(tasks), (os.cpu_count() or 1) // THREADS_PER_WORKER))
         print(f"  {n_workers} workers x {THREADS_PER_WORKER} threads")
-        # ProcessPoolExecutor, not multiprocessing.Pool: if a worker dies, Pool replaces it and waits forever for the lost
-        # task, whereas the executor raises BrokenProcessPool. Finished folds are already in the checkpoint, so a re-run
-        # only repeats the missing ones.
-        with ProcessPoolExecutor(n_workers, mp_context=mp.get_context("spawn")) as pool:
-            for fut in as_completed([pool.submit(run_task, t) for t in tasks]):
-                row, pred = fut.result()
-                pd.DataFrame([row]).to_csv(CHECKPOINT_19, mode="a", header=not os.path.exists(CHECKPOINT_19), index=False)
-                pred.to_csv(OOF_19, mode="a", header=not os.path.exists(OOF_19), index=False)
+        # Workers occasionally died with SIGILL on this AVX-only CPU; see tools.parallel for the cap and the retries
+        os.environ.update(SAFE_CPU_ENV)
+
+        def save(task, result):
+            row, pred = result
+            pd.DataFrame([row]).to_csv(CHECKPOINT_19, mode="a", header=not os.path.exists(CHECKPOINT_19), index=False)
+            pred.to_csv(OOF_19, mode="a", header=not os.path.exists(OOF_19), index=False)
+
+        run_tasks(run_task, tasks, n_workers, on_result=save)
 
     from nb_stats import compare_to_classical, nb_paired, EQUIVALENCE_MARGIN_R2, EQUIVALENCE_MARGIN_MAE
     scores = pd.read_csv(CHECKPOINT_19)
