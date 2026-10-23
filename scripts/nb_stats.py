@@ -1,47 +1,15 @@
-"""Nadeau-Bengio corrected paired comparisons for repeated cross-validation, shared by steps 02, 09, 12 and 13."""
-import numpy as np
-from scipy import stats
+"""Project-specific comparisons against the classical models of step 01: equivalence margins, representation labels and
+compare_to_classical. The corrected t-test and the Holm adjustment come from qsartools.stats."""
+from qsartools.stats import corrected_ttest, holm
 
 EQUIVALENCE_MARGIN_R2 = 0.05
 EQUIVALENCE_MARGIN_MAE = 0.05
 
 
 def nb_paired(diff, n_train, n_test, margin=None):
-    """Corrected paired t-test on the per-fold differences `diff` (A minus B).
-
-    The variance is inflated by (1/n + n_test/n_train) because folds of a repeated cross-validation share training data.
-    With `margin`, also returns the two one-sided tests (TOST) for |mean difference| < margin: `p_equiv` is the larger of
-    the two one-sided p-values, and [ci90_low, ci90_high] is the 90% interval, which lies inside (-margin, margin)
-    exactly when equivalence is declared at the 5% level."""
-    diff = np.asarray(diff, dtype=float)
-    n = len(diff)
-    mean = float(diff.mean())
-    se = float(np.sqrt(diff.var(ddof=1) * (1.0 / n + n_test / n_train)))
-    df = n - 1
-    t = mean / se if se > 0 else 0.0
-    out = {"mean_diff": mean, "se": se, "t": t, "p": 2 * stats.t.sf(abs(t), df=df) if se > 0 else 1.0}
-    if margin is not None:
-        t_crit = stats.t.ppf(0.95, df=df)
-        out["ci90_low"], out["ci90_high"] = mean - t_crit * se, mean + t_crit * se
-        if se > 0:
-            p_lower = stats.t.sf((mean + margin) / se, df=df)
-            p_upper = stats.t.cdf((mean - margin) / se, df=df)
-            out["p_equiv"] = float(max(p_lower, p_upper))
-        else:
-            out["p_equiv"] = 0.0 if abs(mean) < margin else 1.0
-    return out
-
-
-def holm(p_values):
-    """Holm step-down adjusted p-values, in the input order."""
-    p = np.asarray(p_values, dtype=float)
-    order = np.argsort(p)
-    adjusted = np.empty_like(p)
-    running = 0.0
-    for rank, i in enumerate(order):
-        running = max(running, min(1.0, (len(p) - rank) * p[i]))
-        adjusted[i] = running
-    return adjusted
+    """qsartools.stats.corrected_ttest against 0 with the equivalence `margin` as fourth positional argument, the
+    signature the steps that compare against step 01 call it with (corrected_ttest takes popmean there)."""
+    return corrected_ttest(diff, n_train, n_test, margin=margin)
 
 
 CLASSICAL_MODE_LABEL = {'morgan': 'Morgan', 'rdkit2d': 'RdkitTwoD', 'rdkit2d_fp': 'RdkitTwoDFp',
