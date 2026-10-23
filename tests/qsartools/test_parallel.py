@@ -1,5 +1,6 @@
 import os
 import signal
+import time
 
 import pytest
 
@@ -42,9 +43,41 @@ def test_crashed_worker_is_retried(tmp_path):
     assert any("worker died" in m for m in messages)
 
 
-def test_gives_up_after_max_rounds():
-    with pytest.raises(RuntimeError, match="unfinished after 2 rounds"):
-        run_tasks(always_crash, [1], n_workers=1, max_rounds=2, log=lambda m: None)
+def record_run(task):
+    """Leaves one file per execution in a directory; task 'crash' kills its worker, the others take a moment."""
+    name, directory = task
+    open(os.path.join(directory, f"{name}-{os.getpid()}"), "w").close()
+    if name == "crash":
+        os.kill(os.getpid(), signal.SIGKILL)
+    time.sleep(1.0)
+    return name
+
+
+def test_crash_does_not_rerun_siblings(tmp_path):
+    tasks = [("a", str(tmp_path)), ("crash", str(tmp_path)), ("b", str(tmp_path))]
+    with pytest.raises(RuntimeError, match="1 task"):
+        run_tasks(record_run, tasks, n_workers=3, max_attempts=2, log=lambda m: None)
+    runs = sorted(p.name.split("-")[0] for p in tmp_path.iterdir())
+    assert runs == ["a", "b", "crash", "crash"]
+
+
+def test_results_before_giving_up_are_kept():
+    seen = []
+    with pytest.raises(RuntimeError):
+        run_tasks(crash_on_zero, [0, 1, 2], n_workers=1, max_attempts=2, on_result=lambda t, r: seen.append(r),
+                  log=lambda m: None)
+    assert sorted(seen) == [1, 2]
+
+
+def crash_on_zero(task):
+    if task == 0:
+        os.kill(os.getpid(), signal.SIGKILL)
+    return task
+
+
+def test_gives_up_after_max_attempts():
+    with pytest.raises(RuntimeError, match="unfinished after 2 attempts"):
+        run_tasks(always_crash, [1], n_workers=1, max_attempts=2, log=lambda m: None)
 
 
 def test_ordinary_exceptions_propagate():
