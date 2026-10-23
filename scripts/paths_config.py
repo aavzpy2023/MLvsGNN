@@ -67,7 +67,7 @@ FIGURE_AUGMENT   = os.path.join(FIGURES_DIR, "augment_r2_comparison.png")
 
 RANDOM_STATE = 42
 
-# Outer-fold strategy: 'random' (repeated K-fold) or 'scaffold' (Bemis-Murcko scaffold-grouped K-fold); see splits.py
+# Outer-fold strategy: 'random' (repeated K-fold) or 'scaffold' (Bemis-Murcko scaffold-grouped K-fold); see qsartools/splits.py
 SPLIT_KIND = os.environ.get('MLGNN_SPLIT', 'random')
 
 # =========================================================

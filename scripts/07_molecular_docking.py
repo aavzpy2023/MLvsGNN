@@ -9,6 +9,7 @@ from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, Descriptors, Lipinski
 from scipy import stats
 from logger_utils import setup_logger, explain
+from qsartools.latex import newcommand as macro
 
 # =========================================================
 # LOGGING SYSTEM SETUP
@@ -67,7 +68,7 @@ def prepare_ligand_pdbqt(mol_clean):
 # LATEX EXPORT
 # =========================================================
 def newcommand(f_handle, name, value):
-    f_handle.write(f"\\newcommand{{\\{name}}}{{{value}}}\n")
+    f_handle.write(macro(name, value))
 
 def export_latex(df_results):
     abs_path = os.path.abspath(LATEX_DOCKING)

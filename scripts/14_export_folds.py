@@ -1,14 +1,12 @@
 import os
 import sys
 
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from paths_config import *
 from logger_utils import setup_logger, explain
-from splits import outer_splits
+from qsartools.splits import holdout_split, outer_splits
 
 FOLDS_CSV = os.path.join(RESULTS_DIR, "14_outer_folds.csv")
 
@@ -47,7 +45,7 @@ def main():
     parts = fold_rows(smiles, cids, "random") + fold_rows(smiles, cids, "scaffold")
 
     # Same call as step 04, which splits arrays of this length with the same seed
-    dev_idx, test_idx = train_test_split(np.arange(len(df)), test_size=TEST_SIZE, random_state=RANDOM_STATE)
+    dev_idx, test_idx = holdout_split(len(df), test_size=TEST_SIZE, seed=RANDOM_STATE)
     for role, idx in (("train", dev_idx), ("test", test_idx)):
         parts.append(pd.DataFrame({"split_kind": "holdout", "fold": 0, "repeat": 0, "role": role, "cid": cids[idx]}))
 

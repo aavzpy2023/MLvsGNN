@@ -6,12 +6,6 @@ EQUIVALENCE_MARGIN_R2 = 0.05
 EQUIVALENCE_MARGIN_MAE = 0.05
 
 
-def nb_paired(diff, n_train, n_test, margin=None):
-    """qsartools.stats.corrected_ttest against 0 with the equivalence `margin` as fourth positional argument, the
-    signature the steps that compare against step 01 call it with (corrected_ttest takes popmean there)."""
-    return corrected_ttest(diff, n_train, n_test, margin=margin)
-
-
 CLASSICAL_MODE_LABEL = {'morgan': 'Morgan', 'rdkit2d': 'RdkitTwoD', 'rdkit2d_fp': 'RdkitTwoDFp',
                         'rdkit2d3d_fp': 'RdkitTwoDThreeDFp'}
 
@@ -31,7 +25,8 @@ def compare_to_classical(scores, checkpoint, prefix):
             if len(c) != len(scores) or not (c['N_test'].values == scores['N_test'].values).all():
                 print(f"  [WARNING] Folds of '{mode}' do not match the evaluated model's folds; comparison skipped.", flush=True)
                 continue
-            res = nb_paired(scores[s_col].values - c[c_col].values, scores['N_train'].mean(), scores['N_test'].mean(), margin)
+            res = corrected_ttest(scores[s_col].values - c[c_col].values, scores['N_train'].mean(), scores['N_test'].mean(),
+                                  margin=margin)
             block.append({"Metric": metric, "Classical": mode, "Label": label, "mean_diff_model_minus_classical": res["mean_diff"],
                           "t": res["t"], "p_raw": res["p"], "ci90_low": res["ci90_low"], "ci90_high": res["ci90_high"],
                           "equiv_margin": margin, "p_equiv": res["p_equiv"]})

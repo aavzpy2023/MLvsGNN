@@ -14,7 +14,9 @@ This README documents how to reproduce every computational result in the manuscr
 ## 1. Repository structure
 
 ```
-scripts/                 Pipeline steps (00 through 13), shared modules (paths_config.py, logger_utils.py, nb_stats.py, splits.py, gnn_utils.py)
+scripts/                 Pipeline steps (00 through 19), project modules (paths_config.py, logger_utils.py, nb_stats.py, gnn_utils.py)
+scripts/qsartools/       Reusable, tested QSAR tools (featurization, splits, models, statistics, ...); tests in tests/qsartools/
+scripts/tf/              Steps that need the separate TensorFlow environment (reproduction of the original DNN)
 run_pipeline.py           Orchestrator: runs all steps in order, or a subset (see below)
 conda_environment.yml     Conda environment definition (Python 3.11, pip-managed dependencies)
 requirements.txt          Pinned pip dependencies (see comments inside for rationale)
