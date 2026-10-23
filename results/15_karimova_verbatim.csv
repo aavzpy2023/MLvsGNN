@@ -1,0 +1,5 @@
+stage,notebook,r2_printed,mae_printed,r2_rerun,mae_rerun,r2_paper
+baseline,3-DNN_Baseline/V2-3-Model_TgDHFR_2d-3d-fp-pic50_qt-pic50.ipynb,0.746263,0.462149,0.753259,0.45669,0.75
+sel_G1234,7-Feature_Importance_byGroups/V2-7-1-Feature_Importance_byGroups.ipynb,0.816039,0.404029,0.823929,0.388182,0.82
+sel_G123,7-Feature_Importance_byGroups/V2-7-1-Feature_Importance_byGroups.ipynb,0.81531,0.397893,0.81196,0.397454,
+aug_G123,8-Trainingset_Augmentation/V2-Model_TgDHFR_2d-3d-fp-pic50_qt-pic50-Augmented_Final_15.ipynb,0.85753,0.349035,0.858101,0.353411,0.85

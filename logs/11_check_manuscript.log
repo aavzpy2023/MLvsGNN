@@ -1,3 +1,5 @@
+=== START LOG: 11_check_manuscript.py [2026-10-21 21:17:42] ===
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] What this step does
@@ -17,5 +19,8 @@
 [OK] figure figures/09_gnn_benchmark_comparison.png
 [OK] figure figures/S1_nested_cv_selection_full_heatmap.png
 
-[CHECK] 28 files followed, 9 figures, 565 project variables used, 0 undefined
+[CHECK] 28 files followed, 9 figures, 780 project variables used, 0 undefined
 [OK] Every figure, included file, and variable used by the manuscript is produced by the pipeline.
+
+=== END LOG: 11_check_manuscript.py [EXIT CODE: 0] ===
+

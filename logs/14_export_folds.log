@@ -1,0 +1,23 @@
+=== START LOG: 14_export_folds.py [2026-10-18 19:40:38] ===
+
+=========================================================================================================
+14_export_folds.py — Export of the shared outer folds for the TensorFlow steps
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The audit of the original deep network (steps 15-17) runs in a separate Python environment with
+  TensorFlow. So that         the network is scored on exactly the same molecules as the classical
+  ensembles and the D-MPNN, this step writes the         25 outer folds (random and scaffold-
+  grouped) and the 15% hold-out split of step 04 to a table keyed by compound ID.         Nothing
+  is trained here.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  random    folds=25 | test size min=171 max=172 | repeats=5
+  scaffold  folds=25 | test size min=165 max=189 | repeats=5
+  holdout   dev=730 | test=129
+
+[+] 43809 rows (859 compounds) written to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/14_outer_folds.csv
+
+=== END LOG: 14_export_folds.py [EXIT CODE: 0] ===
+

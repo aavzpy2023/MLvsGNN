@@ -1,14 +1,17 @@
-=== START LOG: 04.1_build_figures.py [2026-10-16 12:14:07] ===
+=== START LOG: 04.1_build_figures.py [2026-10-18 18:59:02] ===
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] What this figure shows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  R2 on the held-out test molecules for the three experiments of step 04 (A baseline, B + feature
+  R2 on the held-out test molecules for the experiments of step 04 (A baseline, B + feature
   selection, C +         augmentation), each with its 95% bootstrap confidence interval, next to
-  the values reported in the original paper         (dashed lines). Bars whose intervals overlap
-  are not statistically distinguishable: with a small test set, apparent         gains from
-  feature selection or augmentation are often within noise.
+  the values reported in the original paper         (dashed lines). Intervals that overlap are not
+  statistically distinguishable: with a small test set, apparent         gains from feature
+  selection or augmentation are often within noise. The two hollow points on the right are
+  diagnostics: the same B and C, but with the bits selected using the test set (as in the original
+  study). They are         optimistically biased, and the gap to B and C shows how much that leak
+  can inflate the score.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Figure saved to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/figures/04_augment_r2_comparison.png / .pdf
 

@@ -1,0 +1,37 @@
+=== START LOG: 19_gnn_strong_baselines.py [2026-10-19 18:08:02] ===
+
+=========================================================================================================
+19_gnn_strong_baselines.py — Stronger neural baselines on the shared outer folds
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The graph network of steps 09 and 12 was trained from scratch, one network per fold. A fair
+  objection is that a         stronger neural model might have matched the classical ensembles.
+  This step tries four: an average of five graph         networks, a graph network that also
+  receives the RDKit descriptors, a graph network that starts from CheMeleon (a         model
+  pretrained on about a million PubChem molecules), and a plain neural network on the Morgan
+  fingerprints. All         are scored on the same 25 folds as every other model and compared with
+  the same corrected tests.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  1 variant x fold tasks to run (99 already in the checkpoint)
+  1 workers x 16 threads
+Seed set to 45
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+`Trainer.fit` stopped: `max_epochs=100` reached.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'predict_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+  chemeleon    fold  3 R2=0.7330 MAE=0.4610 (6469s)
+  mlp_ecfp     R2 = 0.7090 ± 0.0542 | MAE = 0.4989 | vs default D-MPNN dR2 = -0.0157 (p = 0.556)
+  dmpnn_ens5   R2 = 0.7409 ± 0.0405 | MAE = 0.4599 | vs default D-MPNN dR2 = +0.0162 (p = 0.095)
+  dmpnn_rdkit  R2 = 0.7008 ± 0.0497 | MAE = 0.4949 | vs default D-MPNN dR2 = -0.0240 (p = 0.227)
+  chemeleon    R2 = 0.7615 ± 0.0415 | MAE = 0.4416 | vs default D-MPNN dR2 = +0.0367 (p = 0.110)
+[EXPORT] 200 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_strong_variables.tex
+
+=== END LOG: 19_gnn_strong_baselines.py [EXIT CODE: 0] ===
+

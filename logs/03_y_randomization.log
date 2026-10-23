@@ -1,8 +1,8 @@
-=== START LOG: 03_y_randomization.py [2026-10-14 17:10:36] ===
+=== START LOG: 03_y_randomization.py [2026-10-18 16:30:09] ===
 
-2026-10-14 17:10:37,751 | INFO | ================================================================================
-2026-10-14 17:10:37,751 | INFO | 03_y_randomization.py — Model Robustness Test (Y-Randomization)
-2026-10-14 17:10:37,751 | INFO | ================================================================================
+2026-10-18 16:30:11,296 | INFO | ================================================================================
+2026-10-18 16:30:11,296 | INFO | 03_y_randomization.py — Model Robustness Test (Y-Randomization)
+2026-10-18 16:30:11,296 | INFO | ================================================================================
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] What this step does
@@ -16,17 +16,15 @@
   R2 is the fraction of the variation in potency that the model explains: 1.0 is perfect, 0 is no
   better than always         predicting the average potency, negative is worse than that.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2026-10-14 17:10:37,758 | INFO | Audit Result -> Best representation: 'rdkit2d_fp'
-2026-10-14 17:10:37,758 | INFO | Audit Result -> Most stable architecture: 'ET+XGB+SVM'
-2026-10-14 17:10:37,758 | INFO | Loading training data from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
-2026-10-14 17:10:37,762 | INFO | Successfully loaded 859 valid SMILES and target values.
-2026-10-14 17:10:37,762 | INFO | Generating feature matrix X for representation mode 'rdkit2d_fp'...
-2026-10-14 17:10:37,762 | WARNING | Winning representation 'rdkit2d_fp' is not pure Morgan. Falling back to Morgan FP for randomization validation.
-2026-10-14 17:10:38,008 | INFO | Feature matrix dimensions: (859, 2048)
-2026-10-14 17:10:38,010 | INFO | Evaluating baseline unpermuted R2 score using 5-fold CV...
-2026-10-14 17:12:16,479 | INFO | Baseline Unpermuted R2: 0.7638
-2026-10-14 17:12:16,479 | INFO | Starting 100 target permutations using 46 worker threads...
-2026-10-14 19:49:27,450 | INFO | Y-randomization distribution saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/03_y_randomization_scores.csv
+2026-10-18 16:30:11,297 | INFO | Deployed model -> representation: 'morgan', architecture: 'RF+XGB+SVM'
+2026-10-18 16:30:11,297 | INFO | Loading training data from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
+2026-10-18 16:30:11,304 | INFO | Successfully loaded 859 valid SMILES and target values.
+2026-10-18 16:30:11,304 | INFO | Generating feature matrix X for representation mode 'morgan'...
+2026-10-18 16:30:11,628 | INFO | Feature matrix dimensions: (859, 2048)
+2026-10-18 16:30:11,633 | INFO | Evaluating baseline unpermuted R2 score using 5-fold CV...
+2026-10-18 16:31:21,526 | INFO | Baseline Unpermuted R2: 0.7649
+2026-10-18 16:31:21,526 | INFO | Starting 100 target permutations using 46 worker threads...
+2026-10-18 17:23:44,633 | INFO | Y-randomization distribution saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/03_y_randomization_scores.csv
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] How to read the report below
@@ -36,20 +34,20 @@
   standard deviations the real         result sits above the shuffled results; the pass criterion
   used here is real R2 > mean + 2.33 SD (~99% confidence).
   If the verdict is PASSED, the predictive signal is not a chance correlation. Note that this test
-  uses Morgan         fingerprints and the most frequently selected stacking architecture from
-  step 01.
+  uses Morgan         fingerprints and the stacking architecture of the deployed screening model
+  (RF+XGB+SVM, as in step 04).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2026-10-14 19:49:27,452 | INFO | --------------------------------------------------------------------------------
-2026-10-14 19:49:27,452 | INFO | Y-RANDOMIZATION INTEGRITY REPORT
-2026-10-14 19:49:27,452 | INFO | --------------------------------------------------------------------------------
-2026-10-14 19:49:27,452 | INFO |   Baseline R2 (True Target) : 0.7638
-2026-10-14 19:49:27,452 | INFO |   Random R2 (Mean)          : -0.0135
-2026-10-14 19:49:27,452 | INFO |   Random R2 (Std)           : 0.0084
-2026-10-14 19:49:27,453 | INFO |   Z-Score                   : 92.61
-2026-10-14 19:49:27,453 | INFO | ACADEMIC VERDICT: PASSED. Model performance on true target is significantly superior to random chance (no memory leakage/overfitting).
-2026-10-14 19:49:27,453 | INFO | Exporting Y-Randomization LaTeX variables to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/yrandom_variables.tex
-2026-10-14 19:49:27,453 | INFO | LaTeX variable export completed successfully.
-2026-10-14 19:49:27,454 | INFO | Total execution time: 9431.0 seconds
+2026-10-18 17:23:44,635 | INFO | --------------------------------------------------------------------------------
+2026-10-18 17:23:44,635 | INFO | Y-RANDOMIZATION INTEGRITY REPORT
+2026-10-18 17:23:44,635 | INFO | --------------------------------------------------------------------------------
+2026-10-18 17:23:44,635 | INFO |   Baseline R2 (True Target) : 0.7649
+2026-10-18 17:23:44,635 | INFO |   Random R2 (Mean)          : -0.0138
+2026-10-18 17:23:44,636 | INFO |   Random R2 (Std)           : 0.0081
+2026-10-18 17:23:44,636 | INFO |   Z-Score                   : 96.13
+2026-10-18 17:23:44,636 | INFO | ACADEMIC VERDICT: PASSED. Model performance on true target is significantly superior to random chance (no memory leakage/overfitting).
+2026-10-18 17:23:44,636 | INFO | Exporting Y-Randomization LaTeX variables to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/yrandom_variables.tex
+2026-10-18 17:23:44,636 | INFO | LaTeX variable export completed successfully.
+2026-10-18 17:23:44,637 | INFO | Total execution time: 3143.1 seconds
 
 === END LOG: 03_y_randomization.py [EXIT CODE: 0] ===
 
