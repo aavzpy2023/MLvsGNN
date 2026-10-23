@@ -13,45 +13,20 @@ import joblib
 
 from rdkit import Chem, RDLogger
 from rdkit.Chem import Descriptors
-from sklearn.ensemble import IsolationForest
 
 # ── Configuration and Logging Integration ────────────────────────────────────
 from paths_config import *
 from logger_utils import setup_logger, explain
+from qsartools.applicability_domain import contains_only_elements, fit_isolation_forest, in_domain
 from qsartools.featurization import morgan_fingerprints
+from qsartools.latex import format_macros
+from qsartools.ligand_efficiency import ligand_efficiency_metrics
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")
 
 LOG_FILE = os.path.join(LOGS_DIR, "05_virtual_screening.log")
 OUTPUT_CSV = FDA_CANDIDATES_CSV
-
-
-# =========================================================
-# MOLECULAR REPRESENTATION
-# =========================================================
-def check_atoms(mol):
-    if mol is None:
-        return False
-    return all(a.GetAtomicNum() in ALLOWED_ATOMS for a in mol.GetAtoms())
-
-
-# =========================================================
-# LIGAND EFFICIENCY METRICS
-# =========================================================
-def ligand_efficiency(pic50, smiles):
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return dict(LE=np.nan, BEI=np.nan, LLE=np.nan, SEI=np.nan)
-    hac = sum(1 for a in mol.GetAtoms() if a.GetAtomicNum() != 1)
-    mw = Descriptors.MolWt(mol)
-    logp = Descriptors.MolLogP(mol)
-    psa = Descriptors.TPSA(mol)
-    le = 1.37 * pic50 / hac if hac > 0 else np.nan
-    bei = pic50 / mw * 1000 if mw > 0 else np.nan
-    lle = pic50 - logp
-    sei = pic50 / psa * 100 if psa > 0 else np.nan
-    return dict(LE=round(le, 2), BEI=round(bei, 2), LLE=round(lle, 2), SEI=round(sei, 2))
 
 
 def find_control(df_res, drug):
@@ -118,8 +93,7 @@ def run():
     X_train_full = morgan_fingerprints(train_mols).astype(np.float32)
     X_train = X_train_full[:, mask] if mask is not None else X_train_full
 
-    iso = IsolationForest(contamination=ISO_CONTAMINATION, random_state=RANDOM_STATE, n_jobs=-1)
-    iso.fit(X_train)
+    iso = fit_isolation_forest(X_train, contamination=ISO_CONTAMINATION, seed=RANDOM_STATE, n_jobs=-1)
 
     print(f"  [+] Training matrix generated: {X_train.shape}")
     print(f"  [+] Isolation Forest fitted (Contamination: {ISO_CONTAMINATION * 100}%) in {time.time() - t0:.2f}s")
@@ -153,7 +127,7 @@ def run():
         mw = row.get('mw')
         mw = Descriptors.MolWt(mol) if (pd.isna(mw) or mw == '') else float(mw)
 
-        if mw > MAX_MW or not check_atoms(mol):
+        if mw > MAX_MW or not contains_only_elements(mol, ALLOWED_ATOMS):
             continue
 
         fp = morgan_fingerprints([mol])[0].astype(np.float32)
@@ -170,8 +144,8 @@ def run():
     X_fda_full = np.array([c['FP'] for c in candidates])
     X_fda = X_fda_full[:, mask] if mask is not None else X_fda_full
 
-    iso_labels = iso.predict(X_fda)
-    final = [candidates[i] for i in range(len(candidates)) if iso_labels[i] == 1]
+    inside = in_domain(iso, X_fda)
+    final = [c for c, keep in zip(candidates, inside) if keep]
     X_final = np.array([c['FP'] for c in final])
     X_final = X_final[:, mask] if mask is not None else X_final
 
@@ -197,7 +171,7 @@ def run():
     # Result dataframe construction
     rows = []
     for i, c in enumerate(final):
-        metrics = ligand_efficiency(preds[i], c['SMILES'])
+        metrics = ligand_efficiency_metrics(preds[i], c['SMILES'], decimals=2)
         rows.append({
             'CID': c['CID'], 'Name': c['Name'], 'SMILES': c['SMILES'],
             'pIC50_pred': round(float(preds[i]), 4),
@@ -260,34 +234,33 @@ def run():
     combined.to_csv(OUTPUT_CSV, index=False)
 
     os.makedirs(os.path.dirname(LATEX_SCREENING), exist_ok=True)
+    values = {"ScreenNLibrary": initial_fda_count, "ScreenNStructural": len(candidates), "ScreenNDomain": len(final),
+              "ScreenNCandidates": len(combined), "ScreenNTopML": int((combined['Type'] == '[TOP_ML]').sum()),
+              "ScreenNReference": int((combined['Type'] == '[REFERENCE]').sum()),
+              "ScreenNTrainMols": len(df_train), "ScreenMaskBits": int(mask.sum()) if mask is not None else 2048,
+              "ScreenMaxMW": f"{MAX_MW:.0f}", "ScreenIsoContamination": f"{ISO_CONTAMINATION * 100:.0f}",
+              "ScreenTrainMaxMW": f"{max(Descriptors.MolWt(m) for m in train_mols):.0f}",
+              "ScreenTrainNOutsideElements": sum(1 for m in train_mols if not contains_only_elements(m, ALLOWED_ATOMS))}
+    for cand in ("Methotrexate", "Trimetrexate", "Pralatrexate", "Triamterene", "Pyrimethamine"):
+        row = find_control(df_res, cand)
+        if not row.empty:
+            r0 = row.iloc[0]
+            values[f"Cand{cand}Pred"] = f"{r0['pIC50_pred']:.2f}"
+            values[f"Cand{cand}LE"] = f"{r0['LE']:.2f}"
+            values[f"Cand{cand}BEI"] = f"{r0['BEI']:.1f}"
+    antifolate_le = [find_control(df_res, n).iloc[0]['LE'] for n in ("Methotrexate", "Trimetrexate", "Pralatrexate")
+                     if not find_control(df_res, n).empty]
+    values["AntifolateLEMin"], values["AntifolateLEMax"] = f"{min(antifolate_le):.2f}", f"{max(antifolate_le):.2f}"
+    for drug, real in KNOWN_VALUES.items():
+        match = find_control(df_res, drug)
+        if not match.empty:
+            pred = match.iloc[0]['pIC50_pred']
+            values[f"Control{drug}Exp"] = f"{real:.2f}"
+            values[f"Control{drug}Pred"] = f"{pred:.2f}"
+            values[f"Control{drug}Err"] = f"{abs(real - pred):.2f}"
+    os.makedirs(os.path.dirname(LATEX_SCREENING), exist_ok=True)
     with open(LATEX_SCREENING, "w", encoding="utf-8") as f:
-        f.write("% Auto-generated by 05_virtual_screening.py\n")
-        counts = {"ScreenNLibrary": initial_fda_count, "ScreenNStructural": len(candidates), "ScreenNDomain": len(final),
-                  "ScreenNCandidates": len(combined), "ScreenNTopML": int((combined['Type'] == '[TOP_ML]').sum()),
-                  "ScreenNReference": int((combined['Type'] == '[REFERENCE]').sum()),
-                  "ScreenNTrainMols": len(df_train), "ScreenMaskBits": int(mask.sum()) if mask is not None else 2048,
-                  "ScreenMaxMW": f"{MAX_MW:.0f}", "ScreenIsoContamination": f"{ISO_CONTAMINATION * 100:.0f}",
-                  "ScreenTrainMaxMW": f"{max(Descriptors.MolWt(m) for m in train_mols):.0f}",
-                  "ScreenTrainNOutsideElements": sum(1 for m in train_mols if not check_atoms(m))}
-        for name, value in counts.items():
-            f.write(f"\\newcommand{{\\{name}}}{{{value}}}\n")
-        for cand in ("Methotrexate", "Trimetrexate", "Pralatrexate", "Triamterene", "Pyrimethamine"):
-            row = find_control(df_res, cand)
-            if not row.empty:
-                r0 = row.iloc[0]
-                f.write(f"\\newcommand{{\\Cand{cand}Pred}}{{{r0['pIC50_pred']:.2f}}}\n")
-                f.write(f"\\newcommand{{\\Cand{cand}LE}}{{{r0['LE']:.2f}}}\n")
-                f.write(f"\\newcommand{{\\Cand{cand}BEI}}{{{r0['BEI']:.1f}}}\n")
-        antifolate_le = [find_control(df_res, n).iloc[0]['LE'] for n in ("Methotrexate", "Trimetrexate", "Pralatrexate")
-                         if not find_control(df_res, n).empty]
-        f.write(f"\\newcommand{{\\AntifolateLEMin}}{{{min(antifolate_le):.2f}}}\n")
-        f.write(f"\\newcommand{{\\AntifolateLEMax}}{{{max(antifolate_le):.2f}}}\n")
-        for drug, real in KNOWN_VALUES.items():
-            match = find_control(df_res, drug)
-            if not match.empty:
-                f.write(f"\\newcommand{{\\Control{drug}Exp}}{{{real:.2f}}}\n")
-                f.write(f"\\newcommand{{\\Control{drug}Pred}}{{{match.iloc[0]['pIC50_pred']:.2f}}}\n")
-                f.write(f"\\newcommand{{\\Control{drug}Err}}{{{abs(real - match.iloc[0]['pIC50_pred']):.2f}}}\n")
+        f.write(format_macros(values, header="Auto-generated by 05_virtual_screening.py"))
 
     print("\n" + "=" * 100)
     print(f"[SUCCESS] {len(combined)} candidates safely exported to:")
