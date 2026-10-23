@@ -3,7 +3,7 @@ import signal
 
 import pytest
 
-from tools.parallel import run_tasks
+from qsartools.parallel import run_tasks
 
 
 def square(task):

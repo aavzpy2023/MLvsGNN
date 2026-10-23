@@ -28,7 +28,7 @@ from sklearn.inspection import permutation_importance
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import *
 from logger_utils import setup_logger, explain
-from tools.featurization import morgan_fingerprints
+from qsartools.featurization import morgan_fingerprints
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")

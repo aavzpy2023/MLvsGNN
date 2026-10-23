@@ -26,7 +26,7 @@ from paths_config import *
 from logger_utils import setup_logger, explain
 
 from rdkit import RDLogger
-from tools.featurization import (RDKIT_2D_NAMES, RDKIT_3D_NAMES, morgan_fingerprints, rdkit_2d_descriptors,
+from qsartools.featurization import (RDKIT_2D_NAMES, RDKIT_3D_NAMES, morgan_fingerprints, rdkit_2d_descriptors,
                                  rdkit_3d_shape_descriptors)
 
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, StackingRegressor

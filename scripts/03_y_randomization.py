@@ -24,7 +24,7 @@ from sklearn.model_selection import KFold, cross_val_score
 import lightgbm as lgb
 from xgboost import XGBRegressor
 
-from tools.featurization import morgan_fingerprints
+from qsartools.featurization import morgan_fingerprints
 
 logger = logging.getLogger(__name__)
 

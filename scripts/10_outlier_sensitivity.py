@@ -18,7 +18,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import (CFG, DATA_DIR, LATEX_DIR, LOGS_DIR, MAIN_FILE, RANDOM_STATE, RESULTS_DIR, SENS_DIR,
                           SENS_FILE, mode_labels)
 from logger_utils import setup_logger, explain
-from tools.featurization import morgan_fingerprints
+from qsartools.featurization import morgan_fingerprints
 
 RDLogger.DisableLog("rdApp.*")
 TARGET = "pIC50 Value"

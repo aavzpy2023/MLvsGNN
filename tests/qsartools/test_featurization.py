@@ -3,7 +3,7 @@ import pytest
 from rdkit import Chem, DataStructs
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-from tools.featurization import (RDKIT_2D_NAMES, RDKIT_3D_NAMES, morgan_fingerprints, rdkit_2d_descriptors,
+from qsartools.featurization import (RDKIT_2D_NAMES, RDKIT_3D_NAMES, morgan_fingerprints, rdkit_2d_descriptors,
                                  rdkit_3d_shape_descriptors)
 
 SMILES = ["CCO", "c1ccccc1O", "CCC1=C(C(=NC(=N1)N)N)C2=CC=C(C=C2)Cl", "CC(=O)Nc1ccc(O)cc1"]

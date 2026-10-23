@@ -18,7 +18,7 @@ from sklearn.ensemble import IsolationForest
 # ── Configuration and Logging Integration ────────────────────────────────────
 from paths_config import *
 from logger_utils import setup_logger, explain
-from tools.featurization import morgan_fingerprints
+from qsartools.featurization import morgan_fingerprints
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")

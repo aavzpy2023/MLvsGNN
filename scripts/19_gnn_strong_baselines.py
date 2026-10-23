@@ -21,8 +21,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from paths_config import *
 from logger_utils import setup_logger, explain
 from splits import outer_splits
-from tools.featurization import morgan_fingerprints, rdkit_2d_descriptors
-from tools.parallel import SAFE_CPU_ENV, run_tasks
+from qsartools.featurization import morgan_fingerprints, rdkit_2d_descriptors
+from qsartools.parallel import SAFE_CPU_ENV, run_tasks
 
 CHECKPOINT_19 = os.path.join(RESULTS_DIR, "19_gnn_strong_checkpoint.csv")
 OOF_19 = os.path.join(RESULTS_DIR, "19_gnn_strong_oof_predictions.csv")
@@ -147,7 +147,7 @@ def main():
     if tasks:
         n_workers = max(1, min(len(tasks), (os.cpu_count() or 1) // THREADS_PER_WORKER))
         print(f"  {n_workers} workers x {THREADS_PER_WORKER} threads")
-        # Workers occasionally died with SIGILL on this AVX-only CPU; see tools.parallel for the cap and the retries
+        # Workers occasionally died with SIGILL on this AVX-only CPU; see qsartools.parallel for the cap and the retries
         os.environ.update(SAFE_CPU_ENV)
 
         def save(task, result):
