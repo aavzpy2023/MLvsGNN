@@ -19,7 +19,11 @@ ON_INVALID = ("raise", "fill")
 
 
 def to_mol(molecule):
-    """RDKit molecule from a SMILES string (None if it cannot be parsed); an RDKit molecule is returned unchanged."""
+    """RDKit molecule from a SMILES string (None if it cannot be parsed); an RDKit molecule is returned unchanged.
+
+    Args:
+        molecule: SMILES string or RDKit molecule (any other object is converted with str() and parsed as SMILES).
+    """
     if isinstance(molecule, Chem.Mol):
         return molecule
     return Chem.MolFromSmiles(str(molecule))
@@ -40,7 +44,11 @@ def _parse(molecule, on_invalid):
 def morgan_fingerprints(molecules, radius=2, n_bits=2048, on_invalid="raise"):
     """Morgan bit vectors (ECFP4 for radius 2), without chirality, as an (n, n_bits) uint8 array of 0/1.
 
-    on_invalid: "raise" (default) raises ValueError for a molecule that cannot be parsed; "fill" gives it an all-zero row.
+    Args:
+        molecules: sequence of SMILES strings or RDKit molecules.
+        radius: Morgan radius in bonds (2 gives ECFP4, 3 gives ECFP6).
+        n_bits: length of the folded bit vector.
+        on_invalid: "raise" raises ValueError for a molecule that cannot be parsed; "fill" gives it an all-zero row.
     """
     _check_on_invalid(on_invalid)
     generator = rdFingerprintGenerator.GetMorganGenerator(radius=radius, fpSize=n_bits)
@@ -69,11 +77,16 @@ def rdkit_2d_descriptors(molecules, n_jobs=1, on_invalid="raise"):
     """The full RDKit 2D descriptor list (RDKIT_2D_NAMES) as an (n, len(RDKIT_2D_NAMES)) float array.
 
     A descriptor that fails, or is infinite, is NaN; imputation is left to the model pipeline, so that it can be fitted on
-    training data only. on_invalid: "raise" (default) or "fill" (a row of NaN).
+    training data only.
 
     Reproducibility note: RDKit's Ipc and AvgIpc are numerically unstable for very large molecules (Ipc of order 1e98)
     and can differ in their last digits depending on which molecules the same process computed before. Results are
     identical for the same inputs, order and n_jobs.
+
+    Args:
+        molecules: sequence of SMILES strings or RDKit molecules.
+        n_jobs: number of worker processes (joblib loky backend); 1 computes in the calling process.
+        on_invalid: "raise" raises ValueError for a molecule that cannot be parsed; "fill" gives it a row of NaN.
     """
     _check_on_invalid(on_invalid)
     rows = Parallel(n_jobs=n_jobs, backend="loky")(delayed(_rdkit_2d_row)(m, on_invalid) for m in molecules)
@@ -107,7 +120,12 @@ def rdkit_3d_shape_descriptors(molecules, seed=42, n_jobs=1, on_invalid="raise")
 
     Hydrogens are added and one conformer is embedded with ETKDGv3 (random seed `seed`; random initial coordinates as a
     fallback) and minimized with MMFF94. A molecule that cannot be embedded gets a row of NaN; infinite values are NaN.
-    on_invalid: "raise" (default) or "fill" (a row of NaN).
+
+    Args:
+        molecules: sequence of SMILES strings or RDKit molecules.
+        seed: random seed of the conformer embedding (same seed, same conformer).
+        n_jobs: number of worker processes (joblib loky backend); 1 computes in the calling process.
+        on_invalid: "raise" raises ValueError for a molecule that cannot be parsed; "fill" gives it a row of NaN.
     """
     _check_on_invalid(on_invalid)
     rows = Parallel(n_jobs=n_jobs, backend="loky")(delayed(_rdkit_3d_row)(m, seed, on_invalid) for m in molecules)

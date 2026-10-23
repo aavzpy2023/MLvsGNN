@@ -17,12 +17,20 @@ def corrected_ttest(diff, n_train, n_test, popmean=0.0, margin=None):
     """Corrected resampled t-test of the mean of per-fold values `diff` against `popmean`.
 
     For a paired comparison of two models scored on the same folds, pass the per-fold differences (A minus B) and
-    popmean 0. n_train and n_test are the (mean) training and test sizes of a fold.
+    popmean 0.
 
-    Returns a dict with mean_diff (mean minus popmean), se (corrected standard error), t, df and the two-sided p.
-    With `margin`, also an equivalence test (two one-sided tests, TOST) of |mean - popmean| < margin: p_equiv is the larger
-    of the two one-sided p-values, and [ci90_low, ci90_high] is the 90% interval of the difference, which lies inside
-    (-margin, margin) exactly when equivalence is declared at the 5% level.
+    Args:
+        diff: per-fold values (one per fold of every repeat), e.g. score of model A minus score of model B.
+        n_train: number of training samples of a fold (the mean, if folds differ in size).
+        n_test: number of test samples of a fold (the mean, if folds differ in size).
+        popmean: value the mean of `diff` is tested against.
+        margin: optional equivalence margin (same units as `diff`); None skips the equivalence test.
+
+    Returns:
+        Dict with mean_diff (mean minus popmean), se (corrected standard error), t, df and the two-sided p. With
+        `margin`, also an equivalence test (two one-sided tests, TOST) of |mean - popmean| < margin: p_equiv is the
+        larger of the two one-sided p-values, and [ci90_low, ci90_high] is the 90% interval of the difference, which lies
+        inside (-margin, margin) exactly when equivalence is declared at the 5% level.
     """
     diff = np.asarray(diff, dtype=float)
     n = len(diff)
@@ -47,7 +55,15 @@ def corrected_welch_test(a, b, n_train, n_test):
     """Corrected test for two sets of per-fold scores that are NOT paired (e.g. two cross-validations on different data).
 
     Each variance is inflated as in corrected_ttest, with the fold sizes of the first set, and the two are added.
-    Returns a dict with mean_diff (mean(b) - mean(a)), se, t, df (len(a) + len(b) - 2) and the two-sided p.
+
+    Args:
+        a: per-fold scores of the first cross-validation.
+        b: per-fold scores of the second cross-validation.
+        n_train: number of training samples of a fold of `a` (the mean, if folds differ in size).
+        n_test: number of test samples of a fold of `a` (the mean, if folds differ in size).
+
+    Returns:
+        Dict with mean_diff (mean(b) - mean(a)), se, t, df (len(a) + len(b) - 2) and the two-sided p.
     """
     a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
     inflation = 1.0 / len(a) + n_test / n_train
@@ -59,7 +75,11 @@ def corrected_welch_test(a, b, n_train, n_test):
 
 
 def holm(p_values):
-    """Holm step-down adjusted p-values, returned in the input order (Holm, 1979)."""
+    """Holm step-down adjusted p-values, returned in the input order (Holm, 1979).
+
+    Args:
+        p_values: raw p-values of the family of tests to be corrected together.
+    """
     p = np.asarray(p_values, dtype=float)
     order = np.argsort(p)
     adjusted = np.empty_like(p)
@@ -71,7 +91,13 @@ def holm(p_values):
 
 
 def r2(y_true, y_pred):
-    """Coefficient of determination, 1 - SS_res / SS_tot (identical to sklearn.metrics.r2_score for one output)."""
+    """Coefficient of determination, 1 - SS_res / SS_tot (equal to sklearn.metrics.r2_score for one output, up to
+    floating-point rounding).
+
+    Args:
+        y_true: observed values.
+        y_pred: predicted values, in the same order.
+    """
     y_true, y_pred = np.asarray(y_true, dtype=float), np.asarray(y_pred, dtype=float)
     return float(1.0 - np.sum((y_true - y_pred) ** 2) / np.sum((y_true - y_true.mean()) ** 2))
 
@@ -81,6 +107,13 @@ def bootstrap_distribution(y_true, y_pred, metric=r2, n_boot=2000, seed=42):
 
     The resampled indices depend only on `seed`, n_boot and the number of molecules, so two models scored with the same
     seed on the same molecules see the same resamples, and the difference of their distributions is a paired bootstrap.
+
+    Args:
+        y_true: observed values of the test molecules.
+        y_pred: predicted values, in the same order.
+        metric: callable metric(y_true, y_pred) -> float (r2 by default; e.g. sklearn.metrics.mean_absolute_error).
+        n_boot: number of bootstrap resamples.
+        seed: seed of the numpy RandomState that draws the resampled indices.
     """
     y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
     rng = np.random.RandomState(seed)
@@ -93,14 +126,25 @@ def bootstrap_distribution(y_true, y_pred, metric=r2, n_boot=2000, seed=42):
 
 
 def percentile_interval(distribution, level=0.95):
-    """(mean, lower, upper) of a bootstrap distribution, with the percentile interval at the given level."""
+    """(mean, lower, upper) of a bootstrap distribution, with the percentile interval at the given level.
+
+    Args:
+        distribution: bootstrap values (e.g. the output of bootstrap_distribution, or a difference of two of them).
+        level: coverage of the interval (0.95 gives the 2.5th and 97.5th percentiles).
+    """
     distribution = np.asarray(distribution, dtype=float)
     lo, hi = np.percentile(distribution, [(1 - level) / 2 * 100, (1 + level) / 2 * 100])
     return float(np.mean(distribution)), float(lo), float(hi)
 
 
 def bootstrap_p_value(distribution, reference):
-    """Two-sided empirical p-value of `reference` against a bootstrap distribution: twice the smaller tail fraction."""
+    """Two-sided empirical p-value of `reference` against a bootstrap distribution: twice the smaller tail fraction,
+    capped at 1.
+
+    Args:
+        distribution: bootstrap values.
+        reference: value tested (e.g. a published score, or 0 for a distribution of differences).
+    """
     distribution = np.asarray(distribution, dtype=float)
     p = 2.0 * min(np.mean(distribution <= reference), np.mean(distribution >= reference))
     return float(min(1.0, p))

@@ -14,7 +14,15 @@ def permutation_importance_mean(estimator, X_fit, y_fit, X_eval, y_eval, n_repea
     """Fit a clone of `estimator` on (X_fit, y_fit) and return the mean permutation importance of every feature on
     (X_eval, y_eval), with scoring negative MSE (so a positive importance means the feature reduces the error).
 
-    n_jobs parallelizes over features; with single-threaded estimators the result does not depend on it.
+    Args:
+        estimator: unfitted regressor (it is cloned, never modified).
+        X_fit: feature matrix the clone is fitted on.
+        y_fit: target values of X_fit.
+        X_eval: feature matrix whose columns are permuted (same columns as X_fit).
+        y_eval: target values of X_eval.
+        n_repeats: number of permutations of each feature; their score drops are averaged.
+        seed: random_state of the permutations.
+        n_jobs: processes over features; with single-threaded estimators the result does not depend on it.
     """
     fitted = clone(estimator).fit(X_fit, y_fit)
     result = permutation_importance(fitted, X_eval, y_eval, scoring="neg_mean_squared_error", n_repeats=n_repeats,
@@ -28,6 +36,15 @@ def oof_permutation_importance(estimator, X, y, n_folds=5, n_repeats=5, seed=42,
 
     Every importance is measured on molecules the fitted model has not seen, and only the rows passed in are used, so
     selecting features with it inside a training set keeps the test set out of the selection.
+
+    Args:
+        estimator: unfitted regressor (it is cloned for every fold, never modified).
+        X: feature matrix of the rows used for the selection (e.g. the training part only).
+        y: target values of X.
+        n_folds: number of folds of the KFold.
+        n_repeats: number of permutations of each feature per fold.
+        seed: random_state of both the KFold shuffle and the permutations.
+        n_jobs: processes over features; with single-threaded estimators the result does not depend on it.
     """
     X, y = np.asarray(X), np.asarray(y)
     folds = KFold(n_splits=n_folds, shuffle=True, random_state=seed)
@@ -41,5 +58,9 @@ def select_by_importance(importances, tol=1e-9):
 
     A feature the model never uses has an importance that is zero up to floating-point noise (about 1e-15), so a plain
     "> 0" keeps a random subset of them; the default tolerance sits well above that noise and below genuine importances.
+
+    Args:
+        importances: one importance per feature (e.g. from oof_permutation_importance).
+        tol: features with an importance above this value are kept.
     """
     return np.asarray(importances) > tol

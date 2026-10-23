@@ -10,7 +10,11 @@ import numpy as np
 
 def tanimoto_matrix(fingerprints):
     """Pairwise Tanimoto similarity |A and B| / |A or B| of the rows of a binary (0/1) matrix, as an (n, n) array.
-    Two empty fingerprints have similarity 0."""
+    Two empty fingerprints have similarity 0.
+
+    Args:
+        fingerprints: (n, n_bits) array-like of 0/1 values, one fingerprint per row.
+    """
     X = np.asarray(fingerprints, dtype=np.float64)
     intersection = X @ X.T
     counts = X.sum(axis=1)
@@ -22,7 +26,14 @@ def tanimoto_matrix(fingerprints):
 
 def activity_cliff_pairs(fingerprints, potency, similarity_threshold=0.9, potency_difference=1.0):
     """Every pair (i, j), i < j, with Tanimoto similarity >= similarity_threshold and |potency_i - potency_j| >=
-    potency_difference. Returns an (m, 4) array of rows (i, j, similarity, absolute potency difference)."""
+    potency_difference. Returns an (m, 4) array of rows (i, j, similarity, absolute potency difference).
+
+    Args:
+        fingerprints: (n, n_bits) array-like of 0/1 values, one fingerprint per row.
+        potency: n potencies on a log scale (e.g. pIC50), in the same order as the fingerprints.
+        similarity_threshold: minimum Tanimoto similarity of a pair.
+        potency_difference: minimum absolute potency difference of a pair, in log units (1.0 = tenfold).
+    """
     potency = np.asarray(potency, dtype=float)
     sim = tanimoto_matrix(fingerprints)
     delta = np.abs(potency[:, None] - potency[None, :])
@@ -31,7 +42,12 @@ def activity_cliff_pairs(fingerprints, potency, similarity_threshold=0.9, potenc
 
 
 def cliff_compounds(n_compounds, pairs):
-    """Boolean mask of the compounds that take part in at least one cliff pair."""
+    """Boolean mask of the compounds that take part in at least one cliff pair.
+
+    Args:
+        n_compounds: total number of compounds (length of the mask).
+        pairs: output of activity_cliff_pairs; only its first two columns (i, j) are used.
+    """
     mask = np.zeros(n_compounds, dtype=bool)
     if len(pairs):
         mask[np.asarray(pairs)[:, :2].astype(int).ravel()] = True

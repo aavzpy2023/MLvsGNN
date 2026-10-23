@@ -1,6 +1,7 @@
 """The package contract of qsartools (see its __init__): generic dependencies only, no file I/O, no global state."""
 import ast
 import os
+import re
 import sys
 
 import pytest
@@ -42,3 +43,21 @@ def test_no_file_io_or_global_state(module):
         if isinstance(node, ast.Attribute) and node.attr == "environ":
             offending.append(f"line {node.lineno}: os.environ")
     assert not offending, f"{module}: {offending}"
+
+
+@pytest.mark.parametrize("module", MODULES)
+def test_public_functions_document_every_parameter(module):
+    """Every public function says what each of its parameters means, in an 'Args:' section of its docstring."""
+    missing = []
+    for node in parsed(module).body:
+        if not isinstance(node, ast.FunctionDef) or node.name.startswith("_"):
+            continue
+        doc = ast.get_docstring(node) or ""
+        args_section = doc.split("Args:", 1)[1].split("\n\n", 1)[0] if "Args:" in doc else ""
+        documented = set(re.findall(r"^    (\w+):", args_section, flags=re.MULTILINE))
+        params = [a.arg for a in node.args.posonlyargs + node.args.args + node.args.kwonlyargs]
+        params += [a.arg for a in (node.args.vararg, node.args.kwarg) if a is not None]
+        undocumented = [p for p in params if p not in documented]
+        if undocumented:
+            missing.append(f"{node.name}: {undocumented}")
+    assert not missing, f"{module}: parameters without a description under 'Args:': {missing}"

@@ -24,9 +24,19 @@ def y_randomization(estimator, X, y, n_permutations=100, n_folds=5, seed=42, n_j
     target with numpy.random.default_rng(seed + i) and is cross-validated with the folds of seed + i, so every result is
     reproducible and independent of n_jobs. The estimator is cloned for every fit and never modified.
 
-    Returns a dict: true_r2; permuted_r2 (array of n_permutations scores); permuted_mean; permuted_sd (population
-    standard deviation); z = (true_r2 - permuted_mean) / permuted_sd; p_empirical = (1 + number of permuted scores
-    >= true_r2) / (n_permutations + 1), the usual permutation p-value.
+    Args:
+        estimator: unfitted regressor (it is cloned for every fit, never modified).
+        X: feature matrix (array or DataFrame).
+        y: target values, in the same order as the rows of X.
+        n_permutations: number of shuffled targets.
+        n_folds: number of folds of each cross-validation.
+        seed: base seed; the true-target folds use it and permutation i uses seed + i.
+        n_jobs: processes; the true-target CV is parallel over folds, the permutations over permutations.
+
+    Returns:
+        Dict: true_r2; permuted_r2 (array of n_permutations scores); permuted_mean; permuted_sd (population standard
+        deviation); z = (true_r2 - permuted_mean) / permuted_sd; p_empirical = (1 + number of permuted scores >=
+        true_r2) / (n_permutations + 1), the usual permutation p-value.
     """
     y = np.asarray(y)
     true_r2 = _cv_r2(estimator, X, y, n_folds, seed, n_jobs=n_jobs)

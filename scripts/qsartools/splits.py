@@ -14,6 +14,9 @@ def murcko_scaffolds(smiles):
 
     Acyclic molecules have the empty scaffold "" and therefore all share one group; a SMILES that cannot be parsed also
     gets "".
+
+    Args:
+        smiles: sequence of SMILES strings.
     """
     out = []
     for s in smiles:
@@ -25,7 +28,14 @@ def murcko_scaffolds(smiles):
 def scaffold_repeated_kfold(smiles, n_splits=5, n_repeats=5, seed=42):
     """Repeated scaffold-grouped K-fold: every molecule sharing a scaffold falls in the same fold, so no scaffold is in both
     the training and the test part of a split. In each repeat the scaffolds are visited in a random order and each is
-    assigned to the currently smallest fold. Yields (train_idx, test_idx), both sorted, repeat by repeat."""
+    assigned to the currently smallest fold. Yields (train_idx, test_idx), both sorted, repeat by repeat.
+
+    Args:
+        smiles: sequence of SMILES strings; the indices refer to positions in it.
+        n_splits: number of folds per repeat (K).
+        n_repeats: number of repeats, each with a different random order of the scaffolds.
+        seed: seed of the numpy RandomState that orders the scaffolds.
+    """
     groups = murcko_scaffolds(smiles)
     unique = np.unique(groups)
     members = {g: np.flatnonzero(groups == g) for g in unique}
@@ -41,12 +51,27 @@ def scaffold_repeated_kfold(smiles, n_splits=5, n_repeats=5, seed=42):
 
 
 def random_repeated_kfold(n_samples, n_splits=5, n_repeats=5, seed=42):
-    """Repeated random K-fold (scikit-learn RepeatedKFold). Yields (train_idx, test_idx), repeat by repeat."""
+    """Repeated random K-fold (scikit-learn RepeatedKFold). Yields (train_idx, test_idx), repeat by repeat.
+
+    Args:
+        n_samples: number of samples; the indices run from 0 to n_samples - 1.
+        n_splits: number of folds per repeat (K).
+        n_repeats: number of repeats, each with a different shuffle.
+        seed: random_state of RepeatedKFold.
+    """
     yield from RepeatedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=seed).split(np.zeros(n_samples))
 
 
 def outer_splits(smiles, n_splits=5, n_repeats=5, seed=42, kind="random"):
-    """Repeated K-fold over the molecules `smiles`: kind="random" or kind="scaffold" (scaffold-grouped)."""
+    """Repeated K-fold over the molecules `smiles`. Yields (train_idx, test_idx), repeat by repeat.
+
+    Args:
+        smiles: sequence of SMILES strings; the indices refer to positions in it.
+        n_splits: number of folds per repeat (K).
+        n_repeats: number of repeats.
+        seed: random seed of the partition.
+        kind: "random" (random_repeated_kfold) or "scaffold" (scaffold_repeated_kfold).
+    """
     if kind == "scaffold":
         yield from scaffold_repeated_kfold(smiles, n_splits, n_repeats, seed)
     elif kind == "random":
@@ -56,5 +81,11 @@ def outer_splits(smiles, n_splits=5, n_repeats=5, seed=42, kind="random"):
 
 
 def holdout_split(n_samples, test_size=0.15, seed=42):
-    """One random hold-out partition (scikit-learn train_test_split on positions). Returns (train_idx, test_idx)."""
+    """One random hold-out partition (scikit-learn train_test_split on positions). Returns (train_idx, test_idx).
+
+    Args:
+        n_samples: number of samples; the indices run from 0 to n_samples - 1.
+        test_size: fraction of the samples (float in (0, 1)) or number of samples (int) placed in the test part.
+        seed: random_state of train_test_split.
+    """
     return train_test_split(np.arange(n_samples), test_size=test_size, random_state=seed)

@@ -16,7 +16,12 @@ def ligand_efficiency_metrics(pic50, molecule, decimals=None):
     """The four metrics of one molecule (SMILES or RDKit molecule) for a potency pIC50, as a dict LE, BEI, LLE, SEI.
 
     A metric whose denominator is zero (no heavy atoms, no polar surface) is NaN, and so are all four for a molecule that
-    cannot be parsed. With `decimals`, values are rounded.
+    cannot be parsed.
+
+    Args:
+        pic50: potency as pIC50 (-log10 of the IC50 in mol/L), measured or predicted.
+        molecule: SMILES string or RDKit molecule.
+        decimals: if given, every metric is rounded to this number of decimals; None leaves them unrounded.
     """
     mol = molecule if isinstance(molecule, Chem.Mol) else Chem.MolFromSmiles(str(molecule))
     if mol is None:

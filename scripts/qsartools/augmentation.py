@@ -9,8 +9,16 @@ def gaussian_noise_augmentation(X, y, noise_levels=(0.01, 0.001), seed=42, inclu
     Rows are ordered [original block (if include_original)], then one block per noise level, each block in input order.
     The noise is drawn with numpy.random.RandomState(seed), one block after the other.
 
-    Returns (X_aug, y_aug, groups): groups[i] is the index of the input row that output row i comes from, so that a
-    GroupKFold on it never puts a copy of a sample on the other side of a split from that sample.
+    Args:
+        X: (n, d) feature matrix (converted to float).
+        y: n target values; every copy keeps the target of its original row.
+        noise_levels: standard deviations of the Gaussian noise, one noisy copy of X per value.
+        seed: seed of the numpy RandomState that draws the noise.
+        include_original: if True, the unmodified X is the first block of the output.
+
+    Returns:
+        (X_aug, y_aug, groups): groups[i] is the index of the input row that output row i comes from, so that a
+        GroupKFold on it never puts a copy of a sample on the other side of a split from that sample.
     """
     X = np.asarray(X, dtype=float)
     y = np.asarray(y)
