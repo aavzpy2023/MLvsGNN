@@ -10,7 +10,6 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
 import time
 import warnings
-import itertools
 import math
 import numpy as np
 import pandas as pd
@@ -18,7 +17,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
-from scipy import stats
 
 # Link root directory to import paths_config and logger_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,23 +25,15 @@ from logger_utils import setup_logger, explain
 
 from rdkit import RDLogger
 from qsartools.featurization import (RDKIT_2D_NAMES, RDKIT_3D_NAMES, morgan_fingerprints, rdkit_2d_descriptors,
-                                 rdkit_3d_shape_descriptors)
+                                     rdkit_3d_shape_descriptors)
+from qsartools.latex import newcommand as macro
+from qsartools.models import (base_regressors, clip_bounds, clip_predictions, combination_id, descriptor_pipeline,
+                              model_combinations, stacking_regressor)
+from qsartools.splits import outer_splits
+from qsartools.stats import corrected_ttest
 
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, StackingRegressor
-from sklearn.svm import SVR
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.linear_model import RidgeCV
-from sklearn.base import BaseEstimator, RegressorMixin, clone
-import lightgbm as lgb
-from xgboost import XGBRegressor
-
-from sklearn.model_selection import KFold, cross_validate
-from splits import outer_splits
-from sklearn.metrics import r2_score, mean_absolute_error, make_scorer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectFromModel
+from sklearn.model_selection import KFold
+from sklearn.metrics import r2_score, mean_absolute_error
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")
@@ -51,52 +41,11 @@ warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 
 # =========================================================
-# NADEAU-BENGIO CORRECTION
-# =========================================================
-def nadeau_bengio_ttest_1samp(sample, popmean, n_train_ratio=4.0):
-    """
-    One-sample t-test with overlapping variance correction
-    in repeated cross-validation (Nadeau & Bengio, 2003).
-    For 5-fold CV, n_train/n_test = 4.0 (i.e., n_test/n_train = 0.25).
-    """
-    sample = np.asarray(sample, dtype=float)
-    n_obs = len(sample)  # K * R (25 for 5x5)
-    mean_diff = np.mean(sample) - popmean
-    var_diff = np.var(sample, ddof=1)
-
-    variance_correction = (1.0 / n_obs) + (1.0 / n_train_ratio)
-    corrected_se = np.sqrt(variance_correction * var_diff)
-
-    if corrected_se == 0:
-        return 0.0, 1.0
-
-    t_stat = mean_diff / corrected_se
-    df = n_obs - 1
-    p_val = 2 * stats.t.sf(np.abs(t_stat), df=df)
-    return float(t_stat), float(p_val)
-
-
-def nadeau_bengio_ttest_rel(sample_a, sample_b, n_train_ratio=4.0):
-    """
-    Paired t-test with Nadeau-Bengio correction for repeated CV.
-    """
-    diffs = np.asarray(sample_a, dtype=float) - np.asarray(sample_b, dtype=float)
-    return nadeau_bengio_ttest_1samp(diffs, popmean=0.0, n_train_ratio=n_train_ratio)
-
-
-# =========================================================
 # PREDICTION CLIPPING
 # =========================================================
 CLIP_MARGIN = 3.0  # pIC50 units outside the [min, max] range of the training set
-
-def get_clip_bounds(y_train, margin=CLIP_MARGIN):
-    return float(np.min(y_train) - margin), float(np.max(y_train) + margin)
-
-
-def clip_predictions(y_pred, lo, hi):
-    y_pred = np.asarray(y_pred, dtype=float)
-    clipped_mask = (y_pred < lo) | (y_pred > hi)
-    return np.clip(y_pred, lo, hi), int(clipped_mask.sum())
+# n_train/n_test of a 5-fold split, used by the corrected t-tests of the summary (fixed ratio, not the exact fold sizes)
+NB_TRAIN_TEST_RATIO = 4.0
 
 
 NON_FEATURE_COLS = {
@@ -168,49 +117,16 @@ def build_feature_matrix(df, mode, n_jobs):
 # =========================================================
 # MODELS & PIPELINES
 # =========================================================
-def build_base_models(n_jobs_model=1, n_estimators=200):
-    return {
-        'RF':   RandomForestRegressor(n_estimators=n_estimators, random_state=RANDOM_STATE, n_jobs=n_jobs_model),
-        'ET':   ExtraTreesRegressor(n_estimators=n_estimators, random_state=RANDOM_STATE, n_jobs=n_jobs_model),
-        'LGBM': lgb.LGBMRegressor(n_estimators=n_estimators, random_state=RANDOM_STATE, verbosity=-1, n_jobs=n_jobs_model),
-        'XGB':  XGBRegressor(n_estimators=n_estimators, random_state=RANDOM_STATE, n_jobs=n_jobs_model, verbosity=0),
-        'SVM':  SVR(kernel='rbf', C=10, gamma='scale', epsilon=0.1),
-        'kNN':  KNeighborsRegressor(n_neighbors=5, metric='cosine', n_jobs=n_jobs_model),
-    }
-
-
-def build_core_estimator(combo_dict):
-    items = list(combo_dict.items())
-    if len(items) == 1:
-        return clone(items[0][1])
-    return StackingRegressor(
-        estimators=[(n, clone(m)) for n, m in items],
-        final_estimator=RidgeCV(),
-        cv=5,
-        n_jobs=1,
-    )
-
-
 def build_pipeline(combo_dict, is_binary):
-    core = build_core_estimator(combo_dict)
-    if is_binary:
-        return Pipeline([('model', core)])
-    return Pipeline([
-        ('impute', SimpleImputer(strategy='median')),
-        ('scale', StandardScaler()),
-        ('select', SelectFromModel(
-            RandomForestRegressor(n_estimators=CFG['N_ESTIMATORS_TREES'], random_state=RANDOM_STATE, n_jobs=1),
-            threshold=1e-9,
-        )),
-        ('model', core),
-    ])
+    return descriptor_pipeline(stacking_regressor(combo_dict, cv=5), is_binary,
+                               selector_trees=CFG['N_ESTIMATORS_TREES'], seed=RANDOM_STATE)
 
 
 def evaluate_combo_inner_fold(combo, X_tr, y_tr, train_idx, val_idx, is_binary):
     """One inner-CV fit of one combo; returns (clipped R2, clipped MAE) on the validation split."""
     warnings.filterwarnings("ignore")
     pipe = build_pipeline(combo, is_binary)
-    lo, hi = get_clip_bounds(y_tr)
+    lo, hi = clip_bounds(y_tr, CLIP_MARGIN)
     pipe.fit(X_tr[train_idx], y_tr[train_idx])
     y_pred, _ = clip_predictions(pipe.predict(X_tr[val_idx]), lo, hi)
     return r2_score(y_tr[val_idx], y_pred), mean_absolute_error(y_tr[val_idx], y_pred)
@@ -244,7 +160,7 @@ def evaluate_combos_inner(all_combos, X_tr, y_tr, inner_splits, is_binary, n_job
         r2 = np.array([per_combo[ci][fi][0] for fi in range(len(splits))])
         mae = np.array([per_combo[ci][fi][1] for fi in range(len(splits))])
         rows.append({
-            'Model': "+".join(combo.keys()),
+            'Model': combination_id(combo),
             'R2_inner_mean': r2.mean(),
             'R2_inner_std': r2.std(),
             'MAE_inner_mean': mae.mean(),
@@ -289,11 +205,8 @@ def nested_cv_for_mode(mode, df_clean, cfg):
     y = df_clean['pIC50 Value'].values
     n_features_total = X.shape[1]
 
-    base_models = build_base_models(n_jobs_model=1, n_estimators=cfg['N_ESTIMATORS_TREES'])
-    all_combos = []
-    for k in range(1, cfg['MAX_COMBO_SIZE'] + 1):
-        for combo in itertools.combinations(base_models.items(), k):
-            all_combos.append(dict(combo))
+    base_models = base_regressors(n_estimators=cfg['N_ESTIMATORS_TREES'], seed=RANDOM_STATE, n_jobs=1)
+    all_combos = model_combinations(base_models, cfg['MAX_COMBO_SIZE'])
 
     outer_cv = list(outer_splits(df_clean['Smiles'].tolist(), cfg['OUTER_N_SPLITS'], cfg['OUTER_N_REPEATS'], RANDOM_STATE, SPLIT_KIND))
     done_folds = load_done_folds(mode)
@@ -315,7 +228,7 @@ def nested_cv_for_mode(mode, df_clean, cfg):
         append_selection_log(df_inner, mode, fold_idx)
 
         best_combo_id = df_inner.iloc[0]['Model']
-        best_combo = next(c for c in all_combos if "+".join(c.keys()) == best_combo_id)
+        best_combo = next(c for c in all_combos if combination_id(c) == best_combo_id)
 
         pipe = build_pipeline(best_combo, is_binary)
         pipe.fit(X_tr, y_tr)
@@ -323,7 +236,7 @@ def nested_cv_for_mode(mode, df_clean, cfg):
         if y_pred.ndim > 1:
             y_pred = y_pred.flatten()
 
-        lo, hi = get_clip_bounds(y_tr)
+        lo, hi = clip_bounds(y_tr, CLIP_MARGIN)
         y_pred, n_clipped = clip_predictions(y_pred, lo, hi)
 
         r2_outer = r2_score(y_te, y_pred)
@@ -357,7 +270,7 @@ def latex_safe_combo(combo_id):
 
 
 def newcommand(f, name, value):
-    f.write(f"\\newcommand{{\\{name}}}{{{value}}}\n")
+    f.write(macro(name, value))
 
 
 FEATURE_QC_FILE = os.path.join(RESULTS_DIR, "01_feature_qc.csv")
@@ -501,7 +414,8 @@ def summarize_and_test():
     for mode in df['Mode'].unique():
         vals = df[df['Mode'] == mode]['R2_outer'].values
         for label, (desc, paper_val) in PAPER_R2.items():
-            t_stat, p_val = nadeau_bengio_ttest_1samp(vals, popmean=paper_val, n_train_ratio=4.0)
+            res = corrected_ttest(vals, n_train=NB_TRAIN_TEST_RATIO, n_test=1.0, popmean=paper_val)
+            t_stat, p_val = res['t'], res['p']
             ttest_rows.append({
                 'Mode': mode, 'Paper_reference_label': label, 'Paper_reference_desc': desc,
                 'Paper_R2': paper_val, 'Our_R2_mean': vals.mean(), 'Our_R2_std': vals.std(),
@@ -518,7 +432,8 @@ def summarize_and_test():
         a = df[df['Mode'] == top2[0]].sort_values('Fold')['R2_outer'].values
         b = df[df['Mode'] == top2[1]].sort_values('Fold')['R2_outer'].values
         if len(a) == len(b) and len(a) > 1:
-            t_stat, p_val = nadeau_bengio_ttest_rel(a, b, n_train_ratio=4.0)
+            res = corrected_ttest(a - b, n_train=NB_TRAIN_TEST_RATIO, n_test=1.0)
+            t_stat, p_val = res['t'], res['p']
             paired_stats = {'t_stat': t_stat, 't_p': p_val}
             print(f"\nPaired comparison (Nadeau-Bengio) between {top2[0]} and {top2[1]}:", flush=True)
             print(f"  t = {t_stat:.3f}, p = {p_val:.4f}", flush=True)
