@@ -5,7 +5,6 @@ import warnings
 import logging
 import numpy as np
 import pandas as pd
-from joblib import Parallel, delayed
 
 # Suppress scikit-learn feature name mismatch UserWarnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -15,16 +14,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import *
 from logger_utils import setup_logger, explain
 
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, StackingRegressor
-from sklearn.svm import SVR
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.linear_model import RidgeCV
-from sklearn.base import clone
-from sklearn.model_selection import KFold, cross_val_score
-import lightgbm as lgb
-from xgboost import XGBRegressor
-
 from qsartools.featurization import morgan_fingerprints
+from qsartools.latex import format_macros
+from qsartools.models import base_regressors, stacking_regressor
+from qsartools.y_randomization import y_randomization
 
 logger = logging.getLogger(__name__)
 
@@ -35,49 +28,6 @@ logger = logging.getLogger(__name__)
 # Architecture of the deployed screening model (DEPLOYED_ARCHITECTURE in paths_config, shared with step 04), evaluated on
 # all 2048 Morgan bits: this validates the architecture, not the feature-selected model deployed in step 05.
 DEPLOYED_MODE = 'morgan'
-
-
-# =========================================================
-# 2. ARCHITECTURE RECONSTRUCTION
-# =========================================================
-def build_base_models(n_estimators=200):
-    """Rebuilds the dictionary of base regressors matching the primary pipeline."""
-    return {
-        'RF':   RandomForestRegressor(n_estimators=n_estimators, random_state=RANDOM_STATE, n_jobs=1),
-        'ET':   ExtraTreesRegressor(n_estimators=n_estimators, random_state=RANDOM_STATE, n_jobs=1),
-        'LGBM': lgb.LGBMRegressor(n_estimators=n_estimators, random_state=RANDOM_STATE, verbosity=-1, n_jobs=1),
-        'XGB':  XGBRegressor(n_estimators=n_estimators, random_state=RANDOM_STATE, n_jobs=1, verbosity=0),
-        'SVM':  SVR(kernel='rbf', C=10, gamma='scale', epsilon=0.1),
-        'kNN':  KNeighborsRegressor(n_neighbors=5, metric='cosine', n_jobs=1),
-    }
-
-
-def build_dynamic_model(architecture_name):
-    """Rebuilds the stacking ensemble or single model dynamically based on its string identifier."""
-    base_models = build_base_models()
-    keys = architecture_name.split('+')
-
-    if len(keys) == 1:
-        return clone(base_models[keys[0]])
-    else:
-        return StackingRegressor(
-            estimators=[(k, clone(base_models[k])) for k in keys],
-            final_estimator=RidgeCV(),
-            cv=CV_FOLDS,
-            n_jobs=1
-        )
-
-
-# =========================================================
-# 3. Y-RANDOMIZATION CORE
-# =========================================================
-def permutation_task(model, X, y_true, cv, seed):
-    """Permutes the target variable and evaluates cross-validated R2 score."""
-    rng = np.random.default_rng(seed)
-    y_shuffled = rng.permutation(y_true)
-    kf = KFold(n_splits=cv, shuffle=True, random_state=seed)
-    scores = cross_val_score(model, X, y_shuffled, cv=kf, scoring='r2', n_jobs=1)
-    return float(np.mean(scores))
 
 
 def main():
@@ -116,21 +66,16 @@ def main():
     X = pd.DataFrame(X_raw, columns=[f"fp_{i}" for i in range(X_raw.shape[1])])
     logger.info(f"Feature matrix dimensions: {X.shape}")
 
-    model = build_dynamic_model(best_architecture)
+    base_models = base_regressors(seed=RANDOM_STATE)
+    model = stacking_regressor({k: base_models[k] for k in DEPLOYED_ARCHITECTURE}, cv=CV_FOLDS)
 
-    # 3. Compute Baseline (True) R2 Score
-    logger.info(f"Evaluating baseline unpermuted R2 score using {CV_FOLDS}-fold CV...")
-    kf = KFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
-    true_r2 = float(np.mean(cross_val_score(model, X, y_true, cv=kf, scoring='r2', n_jobs=N_JOBS)))
-    logger.info(f"Baseline Unpermuted R2: {true_r2:.4f}")
-
-    # 4. Y-Randomization Permutation Loop
-    logger.info(f"Starting {N_PERMUTATIONS} target permutations using {N_JOBS} worker threads...")
+    logger.info(f"Evaluating the unpermuted model and {N_PERMUTATIONS} target permutations "
+                f"({CV_FOLDS}-fold CV, {N_JOBS} worker processes)...")
     start_time = time.time()
-    random_scores = Parallel(n_jobs=N_JOBS, verbose=0)(
-        delayed(permutation_task)(clone(model), X, y_true, CV_FOLDS, seed=(RANDOM_STATE + i))
-        for i in range(N_PERMUTATIONS)
-    )
+    res = y_randomization(model, X, y_true, n_permutations=N_PERMUTATIONS, n_folds=CV_FOLDS, seed=RANDOM_STATE,
+                          n_jobs=N_JOBS)
+    true_r2, random_scores = res["true_r2"], res["permuted_r2"]
+    logger.info(f"Baseline Unpermuted R2: {true_r2:.4f}")
 
     elapsed_time = time.time() - start_time
     df_random = pd.DataFrame({'Permuted_R2': random_scores})
@@ -138,9 +83,7 @@ def main():
     df_random.to_csv(csv_path, index=False)
     logger.info(f"Y-randomization distribution saved to {csv_path}")
 
-    mean_random = float(np.mean(random_scores))
-    std_random = float(np.std(random_scores))
-    z_score = (true_r2 - mean_random) / std_random if std_random > 0 else 0.0
+    mean_random, std_random, z_score = res["permuted_mean"], res["permuted_sd"], res["z"]
 
     explain("How to read the report below", f"""
         'Baseline R2' is the real model ({true_r2:.2f}). 'Random R2' is what the same model achieves when potencies are shuffled
@@ -170,16 +113,15 @@ def main():
     try:
         os.makedirs(os.path.dirname(latex_file), exist_ok=True)
         with open(latex_file, 'w', encoding='utf-8') as f:
-            f.write("% =====================================================\n")
-            f.write("% Auto-generated by 03_y_randomization.py\n")
-            f.write("% =====================================================\n\n")
-            f.write(f"\\newcommand{{\\YRandomTrueRTwo}}{{{true_r2:.4f}}}\n")
-            f.write(f"\\newcommand{{\\YRandomMeanRTwo}}{{{mean_random:.4f}}}\n")
-            f.write(f"\\newcommand{{\\YRandomStdRTwo}}{{{std_random:.4f}}}\n")
-            f.write(f"\\newcommand{{\\YRandomZScore}}{{{z_score:.1f}}}\n")
-            f.write(f"\\newcommand{{\\YRandomArchitecture}}{{{best_architecture}}}\n")
-            f.write(f"\\newcommand{{\\YRandomNPermutations}}{{{N_PERMUTATIONS}}}\n")
-            f.write(f"\\newcommand{{\\YRandomCVFolds}}{{{CV_FOLDS}}}\n")
+            f.write(format_macros({
+                "YRandomTrueRTwo": f"{true_r2:.4f}",
+                "YRandomMeanRTwo": f"{mean_random:.4f}",
+                "YRandomStdRTwo": f"{std_random:.4f}",
+                "YRandomZScore": f"{z_score:.1f}",
+                "YRandomArchitecture": best_architecture,
+                "YRandomNPermutations": N_PERMUTATIONS,
+                "YRandomCVFolds": CV_FOLDS,
+            }, header="Auto-generated by 03_y_randomization.py"))
         logger.info("LaTeX variable export completed successfully.")
     except Exception as e:
         logger.error(f"Failed to export LaTeX variables: {e}")
