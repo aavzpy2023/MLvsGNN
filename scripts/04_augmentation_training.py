@@ -14,21 +14,21 @@ import matplotlib.pyplot as plt
 
 from rdkit import RDLogger
 
-from sklearn.ensemble import RandomForestRegressor, StackingRegressor
-from sklearn.svm import SVR
-from sklearn.linear_model import RidgeCV
-from sklearn.base import clone
-from xgboost import XGBRegressor
 
-from sklearn.model_selection import GroupKFold, KFold, train_test_split
+from sklearn.model_selection import GroupKFold
 from sklearn.metrics import r2_score, mean_absolute_error
-from sklearn.inspection import permutation_importance
 
 # Link root directory to import paths_config and logger_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import *
 from logger_utils import setup_logger, explain
+from qsartools.augmentation import gaussian_noise_augmentation
+from qsartools.feature_selection import oof_permutation_importance, permutation_importance_mean, select_by_importance
 from qsartools.featurization import morgan_fingerprints
+from qsartools.latex import newcommand as macro
+from qsartools.models import base_regressors, stacking_regressor
+from qsartools.splits import holdout_split
+from qsartools.stats import bootstrap_distribution, bootstrap_p_value, percentile_interval
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")
@@ -49,14 +49,11 @@ logger = logging.getLogger(__name__)
 # Every model of this step is fitted and evaluated single-threaded: a multi-threaded RandomForest.predict() sums the trees
 # in a thread-dependent order, which changes the last bits of the predictions between runs. Parallelism is applied
 # across independent tasks instead (features in the permutation importance, runs in the ensemble), which cannot change results.
-_BASE_ESTIMATORS = {
-    'RF': ('rf', RandomForestRegressor(n_estimators=N_ESTIMATORS, random_state=RANDOM_STATE, n_jobs=1)),
-    'XGB': ('xgb', XGBRegressor(n_estimators=N_ESTIMATORS, random_state=RANDOM_STATE, n_jobs=1, verbosity=0)),
-    'SVM': ('svm', SVR(kernel='rbf', C=10, gamma='scale', epsilon=0.1)),
-}
-STACK_MEMBERS = [_BASE_ESTIMATORS[name] for name in DEPLOYED_ARCHITECTURE]
+_BASE_MODELS = base_regressors(n_estimators=N_ESTIMATORS, seed=RANDOM_STATE)
+# Lower-case member names: the ensemble runs re-seed them through set_params('rf__random_state', ...)
+STACK_MEMBERS = {name.lower(): _BASE_MODELS[name] for name in DEPLOYED_ARCHITECTURE}
 # Members whose seed changes between the runs of the ensemble (SVR is deterministic)
-SEEDED_MEMBERS = [n for n, _ in STACK_MEMBERS if n in ('rf', 'xgb')]
+SEEDED_MEMBERS = [n for n in STACK_MEMBERS if n in ('rf', 'xgb')]
 
 # =========================================================
 # MOLECULAR REPRESENTATIONS
@@ -73,17 +70,9 @@ def build_model(groups=None, X=None, y=None):
     With augmented data, `groups` (the original molecule of each row) makes the stacking's internal 5-fold split keep all
     noisy copies of a molecule on the same side, so that the meta-learner is not fitted on out-of-fold predictions of
     molecules whose copies the base models have seen."""
-    estimators = [(n, clone(m)) for n, m in STACK_MEMBERS]
-    if len(estimators) == 1:
-        return clone(estimators[0][1])
-
     # If N_JOBS is set here, it will multiply threads (N_JOBS * N_JOBS) and freeze the server.
-    return StackingRegressor(
-        estimators=estimators,
-        final_estimator=RidgeCV(),
-        cv=5 if groups is None else list(GroupKFold(n_splits=5).split(X, y, groups)),
-        n_jobs=1,
-    )
+    cv = 5 if groups is None else list(GroupKFold(n_splits=5).split(X, y, groups))
+    return stacking_regressor(STACK_MEMBERS, cv=cv, n_jobs=1)
 
 
 # =========================================================
@@ -94,23 +83,9 @@ def build_model(groups=None, X=None, y=None):
 IMPORTANCE_TOL = 1e-9
 
 
-def _fit_and_permute(model, X_fit, y_fit, X_eval, y_eval, n_repeats):
-    """Fits a clone of `model` on (X_fit, y_fit) and returns the mean permutation importance measured on (X_eval, y_eval)."""
-    fitted = clone(model)
-    fitted.fit(X_fit, y_fit)
-    result = permutation_importance(
-        fitted, X_eval, y_eval,
-        scoring='neg_mean_squared_error',
-        n_repeats=n_repeats,
-        random_state=RANDOM_STATE,
-        n_jobs=N_JOBS,
-    )
-    return result.importances_mean
-
-
 def _importances_to_mask(importances, label):
     """Keeps features whose importance exceeds IMPORTANCE_TOL and logs how many were kept."""
-    mask = importances > IMPORTANCE_TOL
+    mask = select_by_importance(importances, IMPORTANCE_TOL)
     n_zero = int((np.abs(importances) <= IMPORTANCE_TOL).sum())
     logger.info(f"[{label}] Features selected (importance > {IMPORTANCE_TOL:g}): {int(mask.sum())}/{len(mask)} "
                 f"({n_zero} features have a numerically zero importance)")
@@ -128,12 +103,8 @@ def select_features_by_permutation_importance(X, y, model, n_repeats=5):
     Returns (mask, importances).
     """
     logger.info(f"Computing out-of-fold Permutation Importance (folds={PI_CV_FOLDS}, n_repeats={n_repeats}, n_jobs={N_JOBS})...")
-    kf = KFold(n_splits=PI_CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
-    fold_importances = [
-        _fit_and_permute(model, X[tr], y[tr], X[va], y[va], n_repeats)
-        for tr, va in kf.split(X)
-    ]
-    importances = np.mean(fold_importances, axis=0)
+    importances = oof_permutation_importance(model, X, y, n_folds=PI_CV_FOLDS, n_repeats=n_repeats, seed=RANDOM_STATE,
+                                             n_jobs=N_JOBS)
     return _importances_to_mask(importances, "out-of-fold"), importances
 
 
@@ -145,7 +116,7 @@ def select_features_leaky(X_dev, y_dev, X_test, y_test, model, n_repeats=5):
     Returns (mask, importances).
     """
     logger.info("Computing LEAKY Permutation Importance (fit on dev, permute on test) — diagnostic only...")
-    importances = _fit_and_permute(model, X_dev, y_dev, X_test, y_test, n_repeats)
+    importances = permutation_importance_mean(model, X_dev, y_dev, X_test, y_test, n_repeats, RANDOM_STATE, N_JOBS)
     return _importances_to_mask(importances, "leaky"), importances
 
 
@@ -159,16 +130,7 @@ def augment_data(X_train, y_train, noise_levels=None, seed=RANDOM_STATE):
     """
     if noise_levels is None:
         noise_levels = NOISE_LEVELS
-    rng = np.random.RandomState(seed)
-    X_parts = [X_train]
-    y_parts = [y_train]
-    for sigma in noise_levels:
-        noise = rng.normal(0, sigma, X_train.shape)
-        X_parts.append(X_train + noise)
-        y_parts.append(y_train)
-    X_aug = np.vstack(X_parts)
-    y_aug = np.concatenate(y_parts)
-    groups = np.tile(np.arange(len(y_train)), len(X_parts))
+    X_aug, y_aug, groups = gaussian_noise_augmentation(X_train, y_train, noise_levels, seed)
     logger.info(f"Dataset expansion: {len(y_train)} -> {len(y_aug)} (noise levels: {noise_levels})")
     return X_aug, y_aug, groups
 
@@ -177,32 +139,9 @@ def augment_data(X_train, y_train, noise_levels=None, seed=RANDOM_STATE):
 # BOOTSTRAP STATISTICS & EMPIRICAL P-VALUES
 # =========================================================
 def bootstrap_r2_distribution(y_true, y_pred, n_boot=N_BOOTSTRAP, seed=RANDOM_STATE):
-    """Generates non-parametric bootstrap sampling distribution of R2 scores."""
-    rng = np.random.RandomState(seed)
-    n = len(y_true)
-    boots = []
-    for _ in range(n_boot):
-        idx = rng.randint(0, n, n)
-        boots.append(r2_score(y_true[idx], y_pred[idx]))
-    return np.array(boots)
-
-
-def compute_bootstrap_metrics(boot_array, ci=0.95):
-    """Calculates bootstrap mean and percentile-based confidence intervals."""
-    mean_val = float(np.mean(boot_array))
-    lo, hi = np.percentile(boot_array, [(1 - ci) / 2 * 100, (1 + ci) / 2 * 100])
-    return mean_val, float(lo), float(hi)
-
-
-def calculate_empirical_bootstrap_pvalue(boot_array, reference_val):
-    """
-    Calculates a two-tailed empirical bootstrap p-value against a point reference value.
-    Avoids parametric t-test pseudoreplication artifacts on bootstrap draws.
-    """
-    prop_below = np.mean(boot_array <= reference_val)
-    prop_above = np.mean(boot_array >= reference_val)
-    p_emp = 2.0 * min(prop_below, prop_above)
-    return float(min(1.0, p_emp))
+    """Bootstrap distribution of the test R2. The resamples depend only on the seed, so the distributions of two
+    experiments are paired draw by draw."""
+    return bootstrap_distribution(y_true, y_pred, metric=r2_score, n_boot=n_boot, seed=seed)
 
 
 # =========================================================
@@ -229,7 +168,7 @@ def _score_experiment(label, y_test, y_pred, n_features_total, n_features_select
     r2 = r2_score(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
     boot_r2s = bootstrap_r2_distribution(y_test, y_pred)
-    _, ci_lo, ci_hi = compute_bootstrap_metrics(boot_r2s)
+    _, ci_lo, ci_hi = percentile_interval(boot_r2s)
     logger.info(f"Results Exp {label} -> R2={r2:.4f} | MAE={mae:.4f} | 95% CI [{ci_lo:.4f}, {ci_hi:.4f}] | "
                 f"Time: {time.time() - t0:.1f}s")
     return dict(r2=r2, mae=mae, ci_lo=ci_lo, ci_hi=ci_hi, boot_r2s=boot_r2s,
@@ -240,7 +179,7 @@ def _score_experiment(label, y_test, y_pred, n_features_total, n_features_select
 # LATEX EXPORT
 # =========================================================
 def newcommand(f, name, value):
-    f.write(f"\\newcommand{{\\{name}}}{{{value}}}\n")
+    f.write(macro(name, value))
 
 
 def export_latex(results_dict, delta_rows=None):
@@ -305,7 +244,7 @@ def export_latex(results_dict, delta_rows=None):
             exp = results_dict[exp_key]
             for paper_key, (_, paper_val) in PAPER_R2.items():
                 is_within_ci = exp['ci_lo'] <= paper_val <= exp['ci_hi']
-                p_boot = calculate_empirical_bootstrap_pvalue(exp['boot_r2s'], paper_val)
+                p_boot = bootstrap_p_value(exp['boot_r2s'], paper_val)
                 sig = "false" if is_within_ci else "true"
 
                 newcommand(f, f"Exp{exp_key}Vs{paper_key}InCI", "true" if is_within_ci else "false")
@@ -370,9 +309,8 @@ def run():
     y_all = df['pIC50 Value'].values
 
     # 2. Train / Test Split (15% test held-out BEFORE selection/augmentation)
-    X_dev, X_test, y_dev, y_test = train_test_split(
-        X_all, y_all, test_size=TEST_SIZE, random_state=RANDOM_STATE
-    )
+    dev_idx, test_idx = holdout_split(len(y_all), test_size=TEST_SIZE, seed=RANDOM_STATE)
+    X_dev, X_test, y_dev, y_test = X_all[dev_idx], X_all[test_idx], y_all[dev_idx], y_all[test_idx]
     logger.info(f"Data Split: Dev={len(y_dev)} | Test held-out={len(y_test)} (isolated from tuning/augmentation)")
 
     results = {'split': dict(n_dev=len(y_dev), n_test=len(y_test))}
@@ -473,7 +411,7 @@ def run():
             f"{exp_label}: R2={exp['r2']:.4f} | MAE={exp['mae']:.4f} | 95% CI [{exp['ci_lo']:.4f}, {exp['ci_hi']:.4f}]")
         for paper_key, (desc, paper_val) in PAPER_R2.items():
             in_ci = exp['ci_lo'] <= paper_val <= exp['ci_hi']
-            p_boot = calculate_empirical_bootstrap_pvalue(exp['boot_r2s'], paper_val)
+            p_boot = bootstrap_p_value(exp['boot_r2s'], paper_val)
             sig_text = "NOT significantly different (within 95% CI)" if in_ci else "SIGNIFICANTLY different"
             direction = "above" if exp['r2'] > paper_val else "below"
             logger.info(
@@ -488,8 +426,8 @@ def run():
     for tag, k1, k0 in [('CvsA', 'C', 'A'), ('BvsA', 'B', 'A'), ('CvsB', 'C', 'B'),
                           ('BleakyvsA', 'Bleaky', 'A'), ('BleakyvsB', 'Bleaky', 'B'), ('CleakyvsC', 'Cleaky', 'C')]:
         diff = results[k1]['boot_r2s'] - results[k0]['boot_r2s']
-        d_mean, d_lo, d_hi = compute_bootstrap_metrics(diff)
-        d_p = calculate_empirical_bootstrap_pvalue(diff, 0.0)
+        d_mean, d_lo, d_hi = percentile_interval(diff)
+        d_p = bootstrap_p_value(diff, 0.0)
         d_point = results[k1]['r2'] - results[k0]['r2']
         delta_rows.append(dict(tag=tag, Comparison=f"Exp_{k1} - Exp_{k0}", delta_point=d_point,
                                delta_boot_mean=d_mean, ci_lo=d_lo, ci_hi=d_hi, p_boot=d_p))
