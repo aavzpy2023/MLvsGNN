@@ -1,0 +1,78 @@
+"""Regression models for tabular molecular features: base learners, stacking ensembles of them, the descriptor
+preprocessing pipeline and a prediction-clipping safeguard."""
+import itertools
+
+import lightgbm as lgb
+import numpy as np
+from sklearn.base import clone
+from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor, StackingRegressor
+from sklearn.feature_selection import SelectFromModel
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import RidgeCV
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
+from xgboost import XGBRegressor
+
+BASE_MODEL_NAMES = ("RF", "ET", "LGBM", "XGB", "SVM", "kNN")
+
+
+def base_regressors(n_estimators=200, seed=42, n_jobs=1):
+    """Six untuned base regressors with fixed hyperparameters, keyed by BASE_MODEL_NAMES:
+    Random Forest, Extra Trees, LightGBM and XGBoost (n_estimators trees each), SVR (RBF kernel, C=10, epsilon=0.1) and
+    k-nearest neighbours (k=5, cosine distance). n_jobs=1 keeps tree predictions bit-reproducible: a multi-threaded
+    forest sums its trees in a thread-dependent order."""
+    return {
+        "RF": RandomForestRegressor(n_estimators=n_estimators, random_state=seed, n_jobs=n_jobs),
+        "ET": ExtraTreesRegressor(n_estimators=n_estimators, random_state=seed, n_jobs=n_jobs),
+        "LGBM": lgb.LGBMRegressor(n_estimators=n_estimators, random_state=seed, verbosity=-1, n_jobs=n_jobs),
+        "XGB": XGBRegressor(n_estimators=n_estimators, random_state=seed, n_jobs=n_jobs, verbosity=0),
+        "SVM": SVR(kernel="rbf", C=10, gamma="scale", epsilon=0.1),
+        "kNN": KNeighborsRegressor(n_neighbors=5, metric="cosine", n_jobs=n_jobs),
+    }
+
+
+def model_combinations(base_models, max_size=3):
+    """Every combination of 1 to max_size base models, as dicts name -> estimator, in itertools order
+    (all singles, then all pairs, then all triples). With the six base regressors and max_size=3 there are 41."""
+    return [dict(combo) for k in range(1, max_size + 1) for combo in itertools.combinations(base_models.items(), k)]
+
+
+def combination_id(combo):
+    """'RF+XGB+SVM' for a combination dict."""
+    return "+".join(combo)
+
+
+def stacking_regressor(combo, cv=5, n_jobs=1):
+    """A fresh (cloned) estimator for a combination: the model itself if it has one member, otherwise a stacking ensemble
+    whose RidgeCV meta-learner is fitted on out-of-fold predictions of the members. `cv` is passed to
+    StackingRegressor (an int or an explicit list of (train, test) splits, e.g. grouped splits for augmented data)."""
+    items = list(combo.items())
+    if len(items) == 1:
+        return clone(items[0][1])
+    return StackingRegressor(estimators=[(n, clone(m)) for n, m in items], final_estimator=RidgeCV(), cv=cv, n_jobs=n_jobs)
+
+
+def descriptor_pipeline(estimator, binary_features, selector_trees=200, seed=42):
+    """Wrap an estimator in the preprocessing appropriate to its input, fitted inside whatever data it is fitted on.
+
+    Binary fingerprints are passed unchanged. Continuous descriptors go through median imputation, standardization and
+    feature selection that keeps every feature with a non-zero importance in a Random Forest (threshold 1e-9)."""
+    if binary_features:
+        return Pipeline([("model", estimator)])
+    selector = SelectFromModel(RandomForestRegressor(n_estimators=selector_trees, random_state=seed, n_jobs=1), threshold=1e-9)
+    return Pipeline([("impute", SimpleImputer(strategy="median")), ("scale", StandardScaler()), ("select", selector),
+                     ("model", estimator)])
+
+
+def clip_bounds(y_train, margin=3.0):
+    """(lower, upper) = training range of the target extended by `margin` units on both sides."""
+    return float(np.min(y_train) - margin), float(np.max(y_train) + margin)
+
+
+def clip_predictions(y_pred, lower, upper):
+    """Predictions clipped to [lower, upper] and the number of predictions that had to be clipped. A safeguard against
+    models that extrapolate without bound (e.g. after a non-linear feature transformation of an outlying molecule)."""
+    y_pred = np.asarray(y_pred, dtype=float)
+    return np.clip(y_pred, lower, upper), int(((y_pred < lower) | (y_pred > upper)).sum())

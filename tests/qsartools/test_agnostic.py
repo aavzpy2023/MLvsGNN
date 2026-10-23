@@ -8,7 +8,7 @@ import pytest
 PACKAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "scripts",
                            "qsartools")
 MODULES = sorted(f for f in os.listdir(PACKAGE_DIR) if f.endswith(".py"))
-ALLOWED_THIRD_PARTY = {"numpy", "scipy", "pandas", "sklearn", "rdkit", "joblib", "statsmodels"}
+ALLOWED_THIRD_PARTY = {"numpy", "scipy", "pandas", "sklearn", "rdkit", "joblib", "lightgbm", "xgboost"}
 # Calls and attributes that would read or write files or change global state
 FORBIDDEN_CALLS = {"open", "savefig", "to_csv", "to_excel", "to_parquet", "to_pickle", "save", "savez", "savetxt", "dump",
                    "seed", "set_random_seed", "makedirs", "mkdir", "remove", "unlink", "chdir"}
