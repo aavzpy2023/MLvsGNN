@@ -11,12 +11,12 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 import time
 import warnings
 import math
+from functools import partial
 import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from joblib import Parallel, delayed
 
 # Link root directory to import paths_config and logger_utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,13 +27,11 @@ from rdkit import RDLogger
 from qsartools.featurization import (RDKIT_2D_NAMES, RDKIT_3D_NAMES, morgan_fingerprints, rdkit_2d_descriptors,
                                      rdkit_3d_shape_descriptors)
 from qsartools.latex import newcommand as macro
-from qsartools.models import (base_regressors, clip_bounds, clip_predictions, combination_id, descriptor_pipeline,
-                              model_combinations, stacking_regressor)
+from qsartools.models import base_regressors, combination_id, descriptor_pipeline, model_combinations, stacking_regressor
+from qsartools.nested_cv import nested_cv
 from qsartools.splits import outer_splits
 from qsartools.stats import corrected_ttest
 
-from sklearn.model_selection import KFold
-from sklearn.metrics import r2_score, mean_absolute_error
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")
@@ -122,16 +120,6 @@ def build_pipeline(combo_dict, is_binary):
                                selector_trees=CFG['N_ESTIMATORS_TREES'], seed=RANDOM_STATE)
 
 
-def evaluate_combo_inner_fold(combo, X_tr, y_tr, train_idx, val_idx, is_binary):
-    """One inner-CV fit of one combo; returns (clipped R2, clipped MAE) on the validation split."""
-    warnings.filterwarnings("ignore")
-    pipe = build_pipeline(combo, is_binary)
-    lo, hi = clip_bounds(y_tr, CLIP_MARGIN)
-    pipe.fit(X_tr[train_idx], y_tr[train_idx])
-    y_pred, _ = clip_predictions(pipe.predict(X_tr[val_idx]), lo, hi)
-    return r2_score(y_tr[val_idx], y_pred), mean_absolute_error(y_tr[val_idx], y_pred)
-
-
 # Rough relative fit cost per base model; only used to dispatch the heaviest tasks first.
 _MODEL_COST = {'RF': 3.0, 'ET': 2.0, 'LGBM': 1.0, 'XGB': 1.5, 'SVM': 0.3, 'kNN': 0.1}
 
@@ -139,33 +127,6 @@ _MODEL_COST = {'RF': 3.0, 'ET': 2.0, 'LGBM': 1.0, 'XGB': 1.5, 'SVM': 0.3, 'kNN':
 def _combo_cost(combo):
     cost = 3.0 + sum(_MODEL_COST[n] for n in combo)  # 3.0 = SelectFromModel RF
     return cost * 6 if len(combo) > 1 else cost  # StackingRegressor: cv=5 + final refit
-
-
-def evaluate_combos_inner(all_combos, X_tr, y_tr, inner_splits, is_binary, n_jobs):
-    """Inner CV of every combo, parallelised over (combo, inner fold) so that no worker idles behind
-    the few expensive stacked combos. Per-fold fits are identical to the sequential evaluation."""
-    kf = KFold(n_splits=inner_splits, shuffle=True, random_state=RANDOM_STATE)
-    splits = list(kf.split(X_tr))
-    tasks = [(ci, fi) for ci in range(len(all_combos)) for fi in range(len(splits))]
-    tasks.sort(key=lambda t: -_combo_cost(all_combos[t[0]]))
-    out = Parallel(n_jobs=n_jobs, batch_size=1)(
-        delayed(evaluate_combo_inner_fold)(all_combos[ci], X_tr, y_tr, *splits[fi], is_binary)
-        for ci, fi in tasks
-    )
-    per_combo = {}
-    for (ci, fi), res in zip(tasks, out):
-        per_combo.setdefault(ci, {})[fi] = res
-    rows = []
-    for ci, combo in enumerate(all_combos):
-        r2 = np.array([per_combo[ci][fi][0] for fi in range(len(splits))])
-        mae = np.array([per_combo[ci][fi][1] for fi in range(len(splits))])
-        rows.append({
-            'Model': combination_id(combo),
-            'R2_inner_mean': r2.mean(),
-            'R2_inner_std': r2.std(),
-            'MAE_inner_mean': mae.mean(),
-        })
-    return rows
 
 
 # =========================================================
@@ -214,52 +175,28 @@ def nested_cv_for_mode(mode, df_clean, cfg):
     if done_folds:
         print(f"[CHECKPOINT] {len(done_folds)}/{total_folds} folds already completed for '{mode}', resuming...", flush=True)
 
-    for fold_idx, (train_idx, test_idx) in enumerate(outer_cv):
-        if fold_idx in done_folds:
-            continue
-
-        X_tr, X_te = X[train_idx], X[test_idx]
-        y_tr, y_te = y[train_idx], y[test_idx]
-
-        start = time.time()
-        inner_results = evaluate_combos_inner(all_combos, X_tr, y_tr, cfg['INNER_N_SPLITS'], is_binary, cfg['N_JOBS'])
-
-        df_inner = pd.DataFrame(inner_results).sort_values(by='R2_inner_mean', ascending=False)
-        append_selection_log(df_inner, mode, fold_idx)
-
-        best_combo_id = df_inner.iloc[0]['Model']
-        best_combo = next(c for c in all_combos if combination_id(c) == best_combo_id)
-
-        pipe = build_pipeline(best_combo, is_binary)
-        pipe.fit(X_tr, y_tr)
-        y_pred = pipe.predict(X_te)
-        if y_pred.ndim > 1:
-            y_pred = y_pred.flatten()
-
-        lo, hi = clip_bounds(y_tr, CLIP_MARGIN)
-        y_pred, n_clipped = clip_predictions(y_pred, lo, hi)
-
-        r2_outer = r2_score(y_te, y_pred)
-        mae_outer = mean_absolute_error(y_te, y_pred)
-        elapsed = time.time() - start
-
+    def save_fold(record, ranking, model):
+        append_selection_log(ranking, mode, record['Fold'])
         n_selected = n_features_total
         if not is_binary:
             try:
-                n_selected = int(pipe.named_steps['select'].get_support().sum())
+                n_selected = int(model.named_steps['select'].get_support().sum())
             except Exception:
                 pass
-
-        row = {
-            'Mode': mode, 'Fold': fold_idx, 'Selected_Model': best_combo_id,
-            'R2_outer': r2_outer, 'MAE_outer': mae_outer,
-            'N_train': len(train_idx), 'N_test': len(test_idx),
+        append_checkpoint({
+            'Mode': mode, 'Fold': record['Fold'], 'Selected_Model': record['Selected_Model'],
+            'R2_outer': record['R2_outer'], 'MAE_outer': record['MAE_outer'],
+            'N_train': record['N_train'], 'N_test': record['N_test'],
             'N_features_total': n_features_total, 'N_features_selected': n_selected,
-            'N_predictions_clipped': n_clipped,
-            'Time_s': elapsed,
-        }
-        append_checkpoint(row)
-        print(f"[{mode}] Fold {fold_idx + 1}/{total_folds} -> Best: {best_combo_id:<15} | R2_outer: {r2_outer:.4f} | MAE: {mae_outer:.4f} ({elapsed:.1f}s)", flush=True)
+            'N_predictions_clipped': record['N_predictions_clipped'],
+            'Time_s': record['Time_s'],
+        })
+        print(f"[{mode}] Fold {record['Fold'] + 1}/{total_folds} -> Best: {record['Selected_Model']:<15} | "
+              f"R2_outer: {record['R2_outer']:.4f} | MAE: {record['MAE_outer']:.4f} ({record['Time_s']:.1f}s)", flush=True)
+
+    nested_cv({combination_id(c): c for c in all_combos}, X, y, outer_cv, inner_folds=cfg['INNER_N_SPLITS'],
+              seed=RANDOM_STATE, make_estimator=partial(build_pipeline, is_binary=is_binary), clip_margin=CLIP_MARGIN,
+              n_jobs=cfg['N_JOBS'], task_cost=_combo_cost, skip_folds=done_folds, on_fold=save_fold)
 
 
 # =========================================================

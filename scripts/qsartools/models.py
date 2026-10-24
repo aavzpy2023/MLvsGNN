@@ -9,6 +9,7 @@ from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor, Stackin
 from sklearn.feature_selection import SelectFromModel
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import RidgeCV
+from sklearn.model_selection import KFold
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -59,9 +60,14 @@ def combination_id(combo):
     return "+".join(combo)
 
 
-def stacking_regressor(combo, cv=5, n_jobs=1):
+def stacking_regressor(combo, cv=5, n_jobs=1, shuffle=False, seed=42):
     """A fresh (cloned) estimator for a combination: the model itself if it has one member, otherwise a stacking ensemble
-    whose RidgeCV meta-learner is fitted on out-of-fold predictions of the members.
+    whose RidgeCV meta-learner is fitted on out-of-fold predictions of the members (Wolpert, 1992; Breiman, 1996).
+
+    With an integer `cv`, scikit-learn splits the rows into contiguous blocks in their input order. If the rows are
+    ordered by anything related to the target (potency, data source, publication date), each block then covers a
+    different part of the target range, the out-of-fold predictions are biased block by block, and the meta-learner
+    is fitted on those biased predictions. shuffle=True removes that dependence on row order.
 
     Args:
         combo: dict name -> unfitted estimator; the names become the StackingRegressor step names (so a member's
@@ -69,10 +75,15 @@ def stacking_regressor(combo, cv=5, n_jobs=1):
         cv: inner cross-validation of StackingRegressor that produces the out-of-fold predictions: a number of folds,
             or an explicit list of (train, test) index pairs (e.g. grouped splits for augmented data).
         n_jobs: number of members fitted in parallel by StackingRegressor.
+        shuffle: if True and `cv` is a number of folds, the folds are drawn after shuffling the rows
+            (KFold(cv, shuffle=True, random_state=seed)); ignored when `cv` is an explicit list of splits.
+        seed: random_state of that shuffle.
     """
     items = list(combo.items())
     if len(items) == 1:
         return clone(items[0][1])
+    if shuffle and isinstance(cv, int):
+        cv = KFold(n_splits=cv, shuffle=True, random_state=seed)
     return StackingRegressor(estimators=[(n, clone(m)) for n, m in items], final_estimator=RidgeCV(), cv=cv, n_jobs=n_jobs)
 
 
