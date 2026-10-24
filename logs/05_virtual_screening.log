@@ -1,6 +1,8 @@
+=== START LOG: 05_virtual_screening.py [2026-10-23 10:35:04] ===
+
 ====================================================================================================
 VIRTUAL SCREENING PIPELINE — TgDHFR Inhibitor Search
-Timestamp: 2026-10-23 06:36:51
+Timestamp: 2026-10-23 10:35:05
 ====================================================================================================
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,14 +24,14 @@ Timestamp: 2026-10-23 06:36:51
 
 [1/5] ML ARCHITECTURE LOADING
   [-] Model path: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model.joblib
-  [+] Ensembled model loaded successfully (0.26s)
+  [+] Ensembled model loaded successfully (0.12s)
   [-] Mask path: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_selected_features_mask.npy
   [+] Mask applied: 765 / 2048 features (37.35% retention)
 
 [2/5] APPLICABILITY DOMAIN CONFIGURATION (ISOLATION FOREST)
   [-] Training source: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
   [+] Training matrix generated: (859, 765)
-  [+] Isolation Forest fitted (Contamination: 5.0%) in 1.20s
+  [+] Isolation Forest fitted (Contamination: 5.0%) in 0.74s
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] Applicability Domain
@@ -45,7 +47,7 @@ Timestamp: 2026-10-23 06:36:51
   [+] Raw compounds imported: 3378
   [+] Physical/Structural Filtering (MW < 1000.0, Allowed Atoms): 2516 candidates retained (74.5%)
   [+] In-Domain Filtering (Isolation Forest): 1927 compounds retained (76.6%)
-  [+] Total filtering time: 5.86s
+  [+] Total filtering time: 2.43s
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] Reading the filter counts
@@ -57,7 +59,7 @@ Timestamp: 2026-10-23 06:36:51
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [4/5] ML INFERENCE - BIOACTIVITY PREDICTION (pIC50)
-  [+] Inferences completed in 2.558s
+  [+] Inferences completed in 0.714s
   [-] Prediction Statistics -> Mean: 4.8615 | Max: 7.4421 | Min: 3.5916
 
 [5/5] PERFORMANCE REPORTS AND EXPORT
@@ -111,5 +113,8 @@ Rank  Compound Name                    pIC50     LE     BEI    LLE    SEI
 [SUCCESS] 17 candidates safely exported to:
         -> /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/05_FDA_Candidates_For_Docking.csv
         Logs saved in: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/logs/05_virtual_screening.log
-        Total execution time: 14.76s
+        Total execution time: 5.84s
 ====================================================================================================
+
+=== END LOG: 05_virtual_screening.py [EXIT CODE: 0] ===
+

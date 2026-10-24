@@ -1,4 +1,4 @@
-=== START LOG: 08.1_build_figures.py [2026-10-18 18:59:11] ===
+=== START LOG: 08.1_build_figures.py [2026-10-24 01:51:08] ===
 
 [-] Reading full ADMET dataset from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/08_ADMET_CANDIDATES_For_Docking_FULL_PRE_FILTER.csv
 [+] ADMET table saved at: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/admet_table.tex

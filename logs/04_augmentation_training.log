@@ -1,9 +1,9 @@
-=== START LOG: 04_augmentation_training.py [2026-10-18 17:23:45] ===
+=== START LOG: 04_augmentation_training.py [2026-10-23 09:01:33] ===
 
-2026-10-18 17:23:46,945 | INFO | ================================================================================
-2026-10-18 17:23:46,945 | INFO | 04_augmentation_training.py — Feature Selection & Gaussian Augmentation Benchmark
-2026-10-18 17:23:46,945 | INFO | Evaluates classical ML pipeline parity against reported DNN benchmarks
-2026-10-18 17:23:46,945 | INFO | ================================================================================
+2026-10-23 09:01:35,455 | INFO | ================================================================================
+2026-10-23 09:01:35,455 | INFO | 04_augmentation_training.py — Feature Selection & Gaussian Augmentation Benchmark
+2026-10-23 09:01:35,455 | INFO | Evaluates classical ML pipeline parity against reported DNN benchmarks
+2026-10-23 09:01:35,455 | INFO | ================================================================================
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] What this step does
@@ -32,37 +32,37 @@
   virtual screening in step 05)         and results/04_selected_features_mask.npy (which
   fingerprint bits are kept).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2026-10-18 17:23:46,952 | INFO | Data Loaded: 859 compounds successfully loaded.
-2026-10-18 17:23:47,205 | INFO | Data Split: Dev=730 | Test held-out=129 (isolated from tuning/augmentation)
-2026-10-18 17:23:47,205 | INFO | --------------------------------------------------------------------------------
-2026-10-18 17:23:47,205 | INFO | EXPERIMENT A: ML Stacking Baseline (all fingerprint bits, original data only)
-2026-10-18 17:23:47,205 | INFO | --------------------------------------------------------------------------------
-2026-10-18 17:24:56,419 | INFO | Results Exp A -> R2=0.7341 | MAE=0.4378 | 95% CI [0.6278, 0.8176] | Time: 69.2s
-2026-10-18 17:24:56,420 | INFO | --------------------------------------------------------------------------------
-2026-10-18 17:24:56,420 | INFO | EXPERIMENT B: + Permutation Importance Feature Selection
-2026-10-18 17:24:56,420 | INFO | --------------------------------------------------------------------------------
-2026-10-18 17:24:56,422 | INFO | Computing out-of-fold Permutation Importance (folds=5, n_repeats=5, n_jobs=46)...
-2026-10-18 17:43:27,908 | INFO | [out-of-fold] Features selected (importance > 1e-09): 765/2048 (759 features have a numerically zero importance)
-2026-10-18 17:44:02,010 | INFO | Results Exp B -> R2=0.7409 | MAE=0.4376 | 95% CI [0.6394, 0.8218] | Time: 1145.6s
-2026-10-18 17:44:02,011 | INFO | Feature mask saved to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_selected_features_mask.npy
-2026-10-18 17:44:02,011 | INFO | --------------------------------------------------------------------------------
-2026-10-18 17:44:02,011 | INFO | EXPERIMENT C: + Gaussian Data Augmentation
-2026-10-18 17:44:02,011 | INFO | --------------------------------------------------------------------------------
-2026-10-18 17:44:02,071 | INFO | Dataset expansion: 730 -> 2190 (noise levels: [0.01, 0.001])
-2026-10-18 18:08:45,235 | INFO | Results Exp C -> R2=0.7233 | MAE=0.4485 | 95% CI [0.6119, 0.8115] | Time: 1483.2s
-2026-10-18 18:08:45,235 | INFO | --------------------------------------------------------------------------------
-2026-10-18 18:08:45,235 | INFO | DIAGNOSTIC EXPERIMENTS Bleaky / Cleaky: feature selection on the test set (LEAKY, not for use)
-2026-10-18 18:08:45,235 | INFO | --------------------------------------------------------------------------------
-2026-10-18 18:08:45,237 | INFO | Computing LEAKY Permutation Importance (fit on dev, permute on test) — diagnostic only...
-2026-10-18 18:12:32,467 | INFO | [leaky] Features selected (importance > 1e-09): 463/2048 (1233 features have a numerically zero importance)
-2026-10-18 18:12:32,468 | INFO | Jaccard index between leaky and out-of-fold masks: 0.3319
-2026-10-18 18:12:32,468 | INFO | The leaky mask is NOT saved to MASK_FILE and does NOT feed any persisted model: MASK_FILE, MODEL_FILE and the augmented model are built from the out-of-fold mask (Exp B).
-2026-10-18 18:12:57,218 | INFO | Results Exp Bleaky -> R2=0.8303 | MAE=0.3507 | 95% CI [0.7521, 0.8900] | Time: 252.0s
-2026-10-18 18:12:57,250 | INFO | Dataset expansion: 730 -> 2190 (noise levels: [0.01, 0.001])
-2026-10-18 18:27:57,274 | INFO | Results Exp Cleaky -> R2=0.8315 | MAE=0.3563 | 95% CI [0.7555, 0.8881] | Time: 900.1s
-2026-10-18 18:27:57,274 | INFO | ================================================================================
-2026-10-18 18:27:57,274 | INFO | EXECUTIVE SUMMARY — RIGOROUS STATISTICAL AUDIT
-2026-10-18 18:27:57,274 | INFO | ================================================================================
+2026-10-23 09:01:35,461 | INFO | Data Loaded: 859 compounds successfully loaded.
+2026-10-23 09:01:35,722 | INFO | Data Split: Dev=730 | Test held-out=129 (isolated from tuning/augmentation)
+2026-10-23 09:01:35,722 | INFO | --------------------------------------------------------------------------------
+2026-10-23 09:01:35,722 | INFO | EXPERIMENT A: ML Stacking Baseline (all fingerprint bits, original data only)
+2026-10-23 09:01:35,722 | INFO | --------------------------------------------------------------------------------
+2026-10-23 09:02:43,774 | INFO | Results Exp A -> R2=0.7341 | MAE=0.4378 | 95% CI [0.6278, 0.8176] | Time: 68.1s
+2026-10-23 09:02:43,774 | INFO | --------------------------------------------------------------------------------
+2026-10-23 09:02:43,774 | INFO | EXPERIMENT B: + Permutation Importance Feature Selection
+2026-10-23 09:02:43,774 | INFO | --------------------------------------------------------------------------------
+2026-10-23 09:02:43,776 | INFO | Computing out-of-fold Permutation Importance (folds=5, n_repeats=5, n_jobs=46)...
+2026-10-23 09:21:55,175 | INFO | [out-of-fold] Features selected (importance > 1e-09): 765/2048 (759 features have a numerically zero importance)
+2026-10-23 09:22:29,877 | INFO | Results Exp B -> R2=0.7409 | MAE=0.4376 | 95% CI [0.6394, 0.8218] | Time: 1186.1s
+2026-10-23 09:22:29,878 | INFO | Feature mask saved to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_selected_features_mask.npy
+2026-10-23 09:22:29,878 | INFO | --------------------------------------------------------------------------------
+2026-10-23 09:22:29,878 | INFO | EXPERIMENT C: + Gaussian Data Augmentation
+2026-10-23 09:22:29,878 | INFO | --------------------------------------------------------------------------------
+2026-10-23 09:22:29,924 | INFO | Dataset expansion: 730 -> 2190 (noise levels: [0.01, 0.001])
+2026-10-23 09:47:29,048 | INFO | Results Exp C -> R2=0.7233 | MAE=0.4485 | 95% CI [0.6119, 0.8115] | Time: 1499.2s
+2026-10-23 09:47:29,048 | INFO | --------------------------------------------------------------------------------
+2026-10-23 09:47:29,048 | INFO | DIAGNOSTIC EXPERIMENTS Bleaky / Cleaky: feature selection on the test set (LEAKY, not for use)
+2026-10-23 09:47:29,048 | INFO | --------------------------------------------------------------------------------
+2026-10-23 09:47:29,050 | INFO | Computing LEAKY Permutation Importance (fit on dev, permute on test) — diagnostic only...
+2026-10-23 09:51:33,988 | INFO | [leaky] Features selected (importance > 1e-09): 463/2048 (1233 features have a numerically zero importance)
+2026-10-23 09:51:33,989 | INFO | Jaccard index between leaky and out-of-fold masks: 0.3319
+2026-10-23 09:51:33,990 | INFO | The leaky mask is NOT saved to MASK_FILE and does NOT feed any persisted model: MASK_FILE, MODEL_FILE and the augmented model are built from the out-of-fold mask (Exp B).
+2026-10-23 09:51:57,823 | INFO | Results Exp Bleaky -> R2=0.8303 | MAE=0.3507 | 95% CI [0.7521, 0.8900] | Time: 268.8s
+2026-10-23 09:51:57,854 | INFO | Dataset expansion: 730 -> 2190 (noise levels: [0.01, 0.001])
+2026-10-23 10:06:37,679 | INFO | Results Exp Cleaky -> R2=0.8315 | MAE=0.3563 | 95% CI [0.7555, 0.8881] | Time: 879.9s
+2026-10-23 10:06:37,679 | INFO | ================================================================================
+2026-10-23 10:06:37,679 | INFO | EXECUTIVE SUMMARY — RIGOROUS STATISTICAL AUDIT
+2026-10-23 10:06:37,679 | INFO | ================================================================================
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] How to read the summary
@@ -77,44 +77,44 @@
   improvement cannot be distinguished from noise.         The leaky deltas (Bleaky vs A / B,
   Cleaky vs C) show how much selecting bits on the test set inflates the score.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2026-10-18 18:27:57,275 | INFO | Exp A (baseline): R2=0.7341 | MAE=0.4378 | 95% CI [0.6278, 0.8176]
-2026-10-18 18:27:57,275 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0159 | p_boot=0.7230 -> NOT significantly different (within 95% CI)
-2026-10-18 18:27:57,275 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0859 | p_boot=0.0470 -> SIGNIFICANTLY different
-2026-10-18 18:27:57,275 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1159 | p_boot=0.0050 -> SIGNIFICANTLY different
-2026-10-18 18:27:57,275 | INFO | Exp B (+feat.sel.): R2=0.7409 | MAE=0.4376 | 95% CI [0.6394, 0.8218]
-2026-10-18 18:27:57,275 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0091 | p_boot=0.8260 -> NOT significantly different (within 95% CI)
-2026-10-18 18:27:57,276 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0791 | p_boot=0.0610 -> NOT significantly different (within 95% CI)
-2026-10-18 18:27:57,276 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1091 | p_boot=0.0060 -> SIGNIFICANTLY different
-2026-10-18 18:27:57,276 | INFO | Exp C (+augment.): R2=0.7233 | MAE=0.4485 | 95% CI [0.6119, 0.8115]
-2026-10-18 18:27:57,276 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0267 | p_boot=0.5930 -> NOT significantly different (within 95% CI)
-2026-10-18 18:27:57,276 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0967 | p_boot=0.0280 -> SIGNIFICANTLY different
-2026-10-18 18:27:57,276 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1267 | p_boot=0.0040 -> SIGNIFICANTLY different
-2026-10-18 18:27:57,276 | INFO | Exp Bleaky (leaky, diagnostic): R2=0.8303 | MAE=0.3507 | 95% CI [0.7521, 0.8900]
-2026-10-18 18:27:57,277 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): above by 0.0803 | p_boot=0.0440 -> SIGNIFICANTLY different
-2026-10-18 18:27:57,277 | INFO |   vs After Permutation Importance selection (R2=0.82): above by 0.0103 | p_boot=0.7580 -> NOT significantly different (within 95% CI)
-2026-10-18 18:27:57,277 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.0197 | p_boot=0.5450 -> NOT significantly different (within 95% CI)
-2026-10-18 18:27:57,277 | INFO | Exp Cleaky (leaky, diagnostic): R2=0.8315 | MAE=0.3563 | 95% CI [0.7555, 0.8881]
-2026-10-18 18:27:57,277 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): above by 0.0815 | p_boot=0.0340 -> SIGNIFICANTLY different
-2026-10-18 18:27:57,277 | INFO |   vs After Permutation Importance selection (R2=0.82): above by 0.0115 | p_boot=0.7330 -> NOT significantly different (within 95% CI)
-2026-10-18 18:27:57,277 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.0185 | p_boot=0.5450 -> NOT significantly different (within 95% CI)
-2026-10-18 18:27:57,277 | INFO | --------------------------------------------------------------------------------
-2026-10-18 18:27:57,278 | INFO | PAIRED BOOTSTRAP DIFFERENCES (delta R2):
-2026-10-18 18:27:57,278 | INFO | Delta R2 (Exp C - Exp A): point=-0.0108 | boot mean=-0.0113 (95% CI [-0.0431, +0.0152], p_boot=0.4300)
-2026-10-18 18:27:57,279 | INFO | Delta R2 (Exp B - Exp A): point=+0.0068 | boot mean=+0.0066 (95% CI [-0.0223, +0.0326], p_boot=0.6140)
-2026-10-18 18:27:57,279 | INFO | Delta R2 (Exp C - Exp B): point=-0.0176 | boot mean=-0.0179 (95% CI [-0.0360, -0.0018], p_boot=0.0250)
-2026-10-18 18:27:57,280 | INFO | Delta R2 (Exp Bleaky - Exp A): point=+0.0962 | boot mean=+0.0970 (95% CI [+0.0548, +0.1471], p_boot=0.0000)
-2026-10-18 18:27:57,280 | INFO | Delta R2 (Exp Bleaky - Exp B): point=+0.0894 | boot mean=+0.0905 (95% CI [+0.0458, +0.1424], p_boot=0.0000)
-2026-10-18 18:27:57,281 | INFO | Delta R2 (Exp Cleaky - Exp C): point=+0.1082 | boot mean=+0.1092 (95% CI [+0.0615, +0.1676], p_boot=0.0000)
-2026-10-18 18:27:57,281 | INFO | --------------------------------------------------------------------------------
-2026-10-18 18:27:57,281 | INFO | PERSISTENCE AUDIT — Matching Section 2.5 Protocol
-2026-10-18 18:27:57,281 | INFO | --------------------------------------------------------------------------------
-2026-10-18 18:27:57,281 | INFO | Fitting clean baseline model (NO augmentation) on dev set for Virtual Screening...
-2026-10-18 18:28:26,963 | INFO | Saved unaugmented clean baseline model to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model.joblib
-2026-10-18 18:51:07,123 | INFO | Saved augmented model separately to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model_augmented.joblib
-2026-10-18 18:51:07,129 | INFO | Results summary saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_augmentation_summary.csv
-2026-10-18 18:51:07,148 | INFO | Delta R2, bootstrap distributions and test predictions saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results
-2026-10-18 18:51:07,150 | INFO | Variables successfully exported to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/augment_variables.tex
-2026-10-18 18:51:07,150 | INFO | 04_augmentation_training.py execution complete with Q1 statistical rigor.
+2026-10-23 10:06:37,680 | INFO | Exp A (baseline): R2=0.7341 | MAE=0.4378 | 95% CI [0.6278, 0.8176]
+2026-10-23 10:06:37,681 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0159 | p_boot=0.7230 -> NOT significantly different (within 95% CI)
+2026-10-23 10:06:37,681 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0859 | p_boot=0.0470 -> SIGNIFICANTLY different
+2026-10-23 10:06:37,681 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1159 | p_boot=0.0050 -> SIGNIFICANTLY different
+2026-10-23 10:06:37,681 | INFO | Exp B (+feat.sel.): R2=0.7409 | MAE=0.4376 | 95% CI [0.6394, 0.8218]
+2026-10-23 10:06:37,682 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0091 | p_boot=0.8260 -> NOT significantly different (within 95% CI)
+2026-10-23 10:06:37,682 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0791 | p_boot=0.0610 -> NOT significantly different (within 95% CI)
+2026-10-23 10:06:37,682 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1091 | p_boot=0.0060 -> SIGNIFICANTLY different
+2026-10-23 10:06:37,682 | INFO | Exp C (+augment.): R2=0.7233 | MAE=0.4485 | 95% CI [0.6119, 0.8115]
+2026-10-23 10:06:37,682 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0267 | p_boot=0.5930 -> NOT significantly different (within 95% CI)
+2026-10-23 10:06:37,682 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0967 | p_boot=0.0280 -> SIGNIFICANTLY different
+2026-10-23 10:06:37,683 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1267 | p_boot=0.0040 -> SIGNIFICANTLY different
+2026-10-23 10:06:37,683 | INFO | Exp Bleaky (leaky, diagnostic): R2=0.8303 | MAE=0.3507 | 95% CI [0.7521, 0.8900]
+2026-10-23 10:06:37,683 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): above by 0.0803 | p_boot=0.0440 -> SIGNIFICANTLY different
+2026-10-23 10:06:37,683 | INFO |   vs After Permutation Importance selection (R2=0.82): above by 0.0103 | p_boot=0.7580 -> NOT significantly different (within 95% CI)
+2026-10-23 10:06:37,683 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.0197 | p_boot=0.5450 -> NOT significantly different (within 95% CI)
+2026-10-23 10:06:37,683 | INFO | Exp Cleaky (leaky, diagnostic): R2=0.8315 | MAE=0.3563 | 95% CI [0.7555, 0.8881]
+2026-10-23 10:06:37,684 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): above by 0.0815 | p_boot=0.0340 -> SIGNIFICANTLY different
+2026-10-23 10:06:37,684 | INFO |   vs After Permutation Importance selection (R2=0.82): above by 0.0115 | p_boot=0.7330 -> NOT significantly different (within 95% CI)
+2026-10-23 10:06:37,684 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.0185 | p_boot=0.5450 -> NOT significantly different (within 95% CI)
+2026-10-23 10:06:37,684 | INFO | --------------------------------------------------------------------------------
+2026-10-23 10:06:37,684 | INFO | PAIRED BOOTSTRAP DIFFERENCES (delta R2):
+2026-10-23 10:06:37,685 | INFO | Delta R2 (Exp C - Exp A): point=-0.0108 | boot mean=-0.0113 (95% CI [-0.0431, +0.0152], p_boot=0.4300)
+2026-10-23 10:06:37,685 | INFO | Delta R2 (Exp B - Exp A): point=+0.0068 | boot mean=+0.0066 (95% CI [-0.0223, +0.0326], p_boot=0.6140)
+2026-10-23 10:06:37,686 | INFO | Delta R2 (Exp C - Exp B): point=-0.0176 | boot mean=-0.0179 (95% CI [-0.0360, -0.0018], p_boot=0.0250)
+2026-10-23 10:06:37,686 | INFO | Delta R2 (Exp Bleaky - Exp A): point=+0.0962 | boot mean=+0.0970 (95% CI [+0.0548, +0.1471], p_boot=0.0000)
+2026-10-23 10:06:37,687 | INFO | Delta R2 (Exp Bleaky - Exp B): point=+0.0894 | boot mean=+0.0905 (95% CI [+0.0458, +0.1424], p_boot=0.0000)
+2026-10-23 10:06:37,687 | INFO | Delta R2 (Exp Cleaky - Exp C): point=+0.1082 | boot mean=+0.1092 (95% CI [+0.0615, +0.1676], p_boot=0.0000)
+2026-10-23 10:06:37,687 | INFO | --------------------------------------------------------------------------------
+2026-10-23 10:06:37,687 | INFO | PERSISTENCE AUDIT — Matching Section 2.5 Protocol
+2026-10-23 10:06:37,688 | INFO | --------------------------------------------------------------------------------
+2026-10-23 10:06:37,688 | INFO | Fitting clean baseline model (NO augmentation) on dev set for Virtual Screening...
+2026-10-23 10:07:07,059 | INFO | Saved unaugmented clean baseline model to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model.joblib
+2026-10-23 10:35:03,973 | INFO | Saved augmented model separately to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model_augmented.joblib
+2026-10-23 10:35:03,986 | INFO | Results summary saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_augmentation_summary.csv
+2026-10-23 10:35:04,005 | INFO | Delta R2, bootstrap distributions and test predictions saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results
+2026-10-23 10:35:04,007 | INFO | Variables successfully exported to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/augment_variables.tex
+2026-10-23 10:35:04,007 | INFO | 04_augmentation_training.py execution complete with Q1 statistical rigor.
 
 === END LOG: 04_augmentation_training.py [EXIT CODE: 0] ===
 

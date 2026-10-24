@@ -1,11 +1,11 @@
-=== START LOG: 06_redocking_validation.py [2026-10-15 22:08:13] ===
+=== START LOG: 06_redocking_validation.py [2026-10-23 10:35:11] ===
 
 ================================================================================
 REDOCKING VALIDATION PIPELINE — Crystal Ligand Re-Docking
-Timestamp: 2026-10-15 22:08:14
+Timestamp: 2026-10-23 10:35:12
 Receptor setup: Chain B (DHFR active site) of PDB 6AOG
 ================================================================================
-Target Criterion: Centroid distance < 2.0 Å = Protocol Validated
+Target Criterion: heavy-atom RMSD < 2.0 Å = Protocol Validated
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -16,10 +16,10 @@ Target Criterion: Centroid distance < 2.0 Å = Protocol Validated
   bound to the TgDHFR active site. We         take that ligand out, place it back with AutoDock
   Vina (a physics-based scoring program that searches positions and         orientations of a
   molecule inside a search box), and compare where Vina puts it with where it sits in the crystal.
-  Pass criterion: the docked ligand's geometric centre must lie within 2.0 Å of the crystal
-  position         (1 Å = 0.1 nm, about one bond length). Methodological note for reviewers: this
-  compares centres only, which is more         lenient than the usual heavy-atom RMSD (that also
-  checks orientation of the ligand); a stricter check could be added.
+  Pass criterion: the heavy-atom RMSD between the docked pose and the crystal ligand must be below
+  2.0 Å         (1 Å = 0.1 nm, about one bond length), which also checks the orientation of the
+  ligand. The distance between the two         geometric centres is reported as well, but note
+  that the search box is centred on the crystal ligand.
   The same search box (centre and size in paths_config.py) is then reused for all FDA drugs in
   step 07.         Binding affinity is in kcal/mol: more negative = predicted tighter binding.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,8 +35,10 @@ Target Criterion: Centroid distance < 2.0 Å = Protocol Validated
 
 [2/4] LIGAND PREPARATION AND CONVERSION
   [+] Crystal ligand PDB successfully written to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/receptor/crystal_ligand.pdb
+[RDKit] WARNING:[10:35:12] WARNING: More than one matching pattern found - picking one
+[RDKit] WARNING:
   [+] Ligand successfully converted to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/receptor/crystal_ligand.pdbqt via RDKit + Meeko.
-  [+] Preparation completed in 0.77s
+  [+] Preparation completed in 0.54s
 
 [3/4] AUTODOCK VINA REDOCKING
   [-] Re-docking ligand 'CP6' into chain 'B'...
@@ -51,15 +53,16 @@ Performing docking (random seed: 42) ...
 mode |   affinity | dist from best mode
      | (kcal/mol) | rmsd l.b.| rmsd u.b.
 -----+------------+----------+----------
-   1       -7.906          0          0
-  [+] Docking completed in 7.63s
-  [+] Best Pose Binding Affinity: -7.906 kcal/mol
+   1       -7.629          0          0
+  [+] Docking completed in 6.35s
+  [+] Best Pose Binding Affinity: -7.629 kcal/mol
 
 [4/4] VALIDATION RESULT
 --------------------------------------------------------------------------------
   [-] Crystal Reference Centroid : [  3.689  39.992 -62.818]
-  [-] Docked Output Centroid     : [  3.899  40.17  -62.661]
-  [>] Calculated Centroid Distance: 0.317 Å
+  [-] Docked Output Centroid     : [  3.932  39.737 -62.855]
+  [>] Calculated Centroid Distance: 0.354 Å
+  [>] Heavy-atom RMSD (symmetry-aware): 1.110 Å
 --------------------------------------------------------------------------------
   [SUCCESS] ✓ PROTOCOL VALIDATED
 
@@ -67,8 +70,8 @@ mode |   affinity | dist from best mode
   "Docking protocol validation was performed by re-docking
   pyrimethamine (CP6, PDB: 6AOG, chain B)
   into the TgDHFR active site. The top-ranked pose reproduced
-  the crystallographic binding mode with a centroid distance
-  of 0.32 Å (threshold: 2.0 Å)."
+  the crystallographic binding mode with a heavy-atom RMSD
+  of 1.11 Å (threshold: 2.0 Å)."
 
   [IMPORTANT WARNING]: The corrected active site center
   for the DHFR site (chain B) is [3.689, 39.992, -62.818].
@@ -76,7 +79,7 @@ mode |   affinity | dist from best mode
 
   [+] LaTeX variable definitions saved to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/redocking_variables.tex
 ================================================================================
-[DONE] Redocking Validation Pipeline completed in 8.41s.
+[DONE] Redocking Validation Pipeline completed in 6.90s.
        Logs saved in: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/logs/06_redocking_validation.log
 ================================================================================
 
