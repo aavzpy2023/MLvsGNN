@@ -60,14 +60,14 @@ def combination_id(combo):
     return "+".join(combo)
 
 
-def stacking_regressor(combo, cv=5, n_jobs=1, shuffle=False, seed=42):
+def stacking_regressor(combo, cv=5, n_jobs=1, shuffle=True, seed=42):
     """A fresh (cloned) estimator for a combination: the model itself if it has one member, otherwise a stacking ensemble
     whose RidgeCV meta-learner is fitted on out-of-fold predictions of the members (Wolpert, 1992; Breiman, 1996).
 
     With an integer `cv`, scikit-learn splits the rows into contiguous blocks in their input order. If the rows are
     ordered by anything related to the target (potency, data source, publication date), each block then covers a
     different part of the target range, the out-of-fold predictions are biased block by block, and the meta-learner
-    is fitted on those biased predictions. shuffle=True removes that dependence on row order.
+    is fitted on those biased predictions. shuffle=True (the default) removes that dependence on row order.
 
     Args:
         combo: dict name -> unfitted estimator; the names become the StackingRegressor step names (so a member's
@@ -76,7 +76,8 @@ def stacking_regressor(combo, cv=5, n_jobs=1, shuffle=False, seed=42):
             or an explicit list of (train, test) index pairs (e.g. grouped splits for augmented data).
         n_jobs: number of members fitted in parallel by StackingRegressor.
         shuffle: if True and `cv` is a number of folds, the folds are drawn after shuffling the rows
-            (KFold(cv, shuffle=True, random_state=seed)); ignored when `cv` is an explicit list of splits.
+            (KFold(cv, shuffle=True, random_state=seed)); False gives scikit-learn's contiguous blocks. Ignored when
+            `cv` is an explicit list of splits.
         seed: random_state of that shuffle.
     """
     items = list(combo.items())

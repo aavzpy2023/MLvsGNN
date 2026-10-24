@@ -201,7 +201,7 @@ def nested_cv_for_mode(mode, df_clean, cfg):
         print(f"[{mode}] Fold {record['Fold'] + 1}/{total_folds} -> Best: {record['Selected_Model']:<15} | "
               f"R2_outer: {record['R2_outer']:.4f} | MAE: {record['MAE_outer']:.4f} ({record['Time_s']:.1f}s)", flush=True)
 
-    # inner_repeats=1 and inner_score="fold_mean" reproduce the protocol the existing results were computed with
+    # inner_repeats=1 and inner_score="fold_mean" are the inner protocol of the existing results (to be revised)
     nested_cv({combination_id(c): c for c in all_combos}, X, y, outer_cv, inner_folds=cfg['INNER_N_SPLITS'],
               inner_repeats=1, seed=RANDOM_STATE, inner_score="fold_mean",
               make_estimator=partial(build_pipeline, is_binary=is_binary), clip_margin=CLIP_MARGIN,

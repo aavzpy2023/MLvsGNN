@@ -67,8 +67,9 @@ def test_clipping():
 def test_stacking_shuffle_only_applies_to_a_number_of_folds():
     base = base_regressors(n_estimators=10)
     combo = {"RF": base["RF"], "SVM": base["SVM"]}
-    assert stacking_regressor(combo).cv == 5
-    shuffled = stacking_regressor(combo, shuffle=True, seed=7).cv
+    assert stacking_regressor(combo, shuffle=False).cv == 5
+    assert isinstance(stacking_regressor(combo).cv, KFold) and stacking_regressor(combo).cv.shuffle
+    shuffled = stacking_regressor(combo, seed=7).cv
     assert isinstance(shuffled, KFold) and shuffled.shuffle and shuffled.random_state == 7 and shuffled.n_splits == 5
     splits = list(GroupKFold(n_splits=3).split(X_BIN, Y, np.arange(120) % 30))
     assert stacking_regressor(combo, cv=splits, shuffle=True).cv is splits
