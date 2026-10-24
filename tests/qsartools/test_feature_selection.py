@@ -71,3 +71,53 @@ def test_selector_keeps_every_feature_when_none_passes():
     Xs, ys = rng.normal(size=(60, 5)), rng.normal(size=60)
     selector = PermutationImportanceSelector(LinearRegression(), n_folds=3, n_repeats=2, tol=1e9).fit(Xs, ys)
     assert selector.fallback_ and selector.get_support().all() and selector.transform(Xs).shape == (60, 5)
+
+
+def _informative_data(seed=5, n=80):
+    rng = np.random.default_rng(seed)
+    Xs = rng.normal(size=(n, 5))
+    return Xs, 2 * Xs[:, 0] - 1.5 * Xs[:, 1] + rng.normal(0, 0.3, n)
+
+
+def test_pimp_separates_informative_from_noise_features():
+    from qsartools.feature_selection import pimp_p_values
+    Xs, ys = _informative_data()
+    imp, p, null = pimp_p_values(LinearRegression(), Xs, ys, n_null=20, n_folds=4, n_repeats=2, seed=1)
+    assert null.shape == (20, 5) and p.shape == (5,)
+    assert (p[:2] < 0.01).all() and (p[2:] > 0.05).all()
+
+
+def test_pimp_nonparametric_is_the_fraction_of_null_importances_above_the_real_one():
+    from qsartools.feature_selection import pimp_p_values
+    Xs, ys = _informative_data()
+    imp, p, null = pimp_p_values(LinearRegression(), Xs, ys, n_null=10, distribution="nonparametric", n_folds=3,
+                                 n_repeats=2, seed=2)
+    np.testing.assert_array_equal(p, (null >= imp).mean(axis=0))
+
+
+def test_pimp_gaussian_raises_small_null_variances_to_the_mean():
+    from scipy import stats
+    from qsartools.feature_selection import pimp_p_values
+    Xs, ys = _informative_data()
+    imp, p, null = pimp_p_values(LinearRegression(), Xs, ys, n_null=10, n_folds=3, n_repeats=2, seed=3)
+    var = null.var(axis=0, ddof=1)
+    expected = stats.norm.sf(imp, loc=null.mean(axis=0), scale=np.sqrt(np.maximum(var, var.mean())))
+    np.testing.assert_allclose(p, expected)
+
+
+def test_pimp_options_are_checked():
+    import pytest
+    from qsartools.feature_selection import pimp_p_values
+    Xs, ys = _informative_data()
+    with pytest.raises(ValueError, match="distribution"):
+        pimp_p_values(LinearRegression(), Xs, ys, n_null=2, distribution="weibull")
+    with pytest.raises(ValueError, match="strictly positive"):
+        pimp_p_values(LinearRegression(), Xs, ys, n_null=5, distribution="gamma", n_folds=3, n_repeats=1)
+
+
+def test_selector_with_pimp_keeps_the_significant_features():
+    from qsartools.feature_selection import PermutationImportanceSelector
+    Xs, ys = _informative_data()
+    selector = PermutationImportanceSelector(LinearRegression(), method="pimp", n_null=20, n_folds=4, n_repeats=2,
+                                             seed=1).fit(Xs, ys)
+    assert list(selector.get_support()) == [True, True, False, False, False] and selector.p_values_.shape == (5,)
