@@ -157,7 +157,12 @@ CSV_04_PRED_FILE = "04_augmentation_test_predictions.csv"   # test-set predictio
 # CONFIGURATION FOR VIRTUAL SCREENING (5)
 # =========================================================
 # We directly use the variables exposed in paths_config.py
-ISO_CONTAMINATION = 0.05
+# Applicability domain (qsartools.applicability_domain): similarity to the training set (Sheridan et al., 2004), the mean
+# Tanimoto similarity to the AD_K nearest training molecules. Inside the domain = at least mean + AD_Z standard deviations
+# of the training distances (Sahigara et al., 2012, default z = 0.5). The value of z is arbitrary: the literature gives no
+# rule for it, so the screening reports the similarity of every candidate and does not exclude on it.
+AD_K = 5
+AD_Z = 0.5
 MAX_MW = 1000.0
 
 # Allowed atoms (identical to the original paper)

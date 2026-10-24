@@ -17,7 +17,8 @@ from rdkit.Chem import Descriptors
 # ── Configuration and Logging Integration ────────────────────────────────────
 from paths_config import *
 from logger_utils import setup_logger, explain
-from qsartools.applicability_domain import contains_only_elements, fit_isolation_forest, in_domain
+from qsartools.applicability_domain import (contains_only_elements, fit_similarity_domain, in_similarity_domain,
+                                            nearest_similarity, similarity_to_domain)
 from qsartools.featurization import morgan_fingerprints
 from qsartools.latex import format_macros
 from qsartools.ligand_efficiency import ligand_efficiency_metrics
@@ -84,23 +85,29 @@ def run():
         print("  [!] No mask detected. Using full 2D Morgan topology (2048 dimensions).")
 
     # ── Applicability Domain Configuration ────────────────────────────────────
-    print(f"\n[2/5] APPLICABILITY DOMAIN CONFIGURATION (ISOLATION FOREST)")
+    print(f"\n[2/5] APPLICABILITY DOMAIN CONFIGURATION (SIMILARITY TO THE TRAINING SET)")
     print(f"  [-] Training source: {TRAIN_FILE}")
     t0 = time.time()
 
     df_train = pd.read_csv(TRAIN_FILE).dropna(subset=['Smiles', 'pIC50 Value'])
     train_mols = [Chem.MolFromSmiles(s) for s in df_train['Smiles']]
     X_train_full = morgan_fingerprints(train_mols).astype(np.float32)
-    X_train = X_train_full[:, mask] if mask is not None else X_train_full
 
-    iso = fit_isolation_forest(X_train, contamination=ISO_CONTAMINATION, seed=RANDOM_STATE, n_jobs=-1)
+    # Similarity is computed on the full 2048-bit fingerprints (Sheridan et al.: all the descriptors)
+    domain = fit_similarity_domain(X_train_full, k=AD_K, z=AD_Z)
+    train_similarity = nearest_similarity(X_train_full, X_train_full, AD_K, exclude_self=True)
 
-    print(f"  [+] Training matrix generated: {X_train.shape}")
-    print(f"  [+] Isolation Forest fitted (Contamination: {ISO_CONTAMINATION * 100}%) in {time.time() - t0:.2f}s")
+    print(f"  [+] Training fingerprints generated: {X_train_full.shape}")
+    print(f"  [+] Similarity domain fitted (k={AD_K}, z={AD_Z}) in {time.time() - t0:.2f}s: minimum mean similarity to the "
+          f"{AD_K} nearest training molecules = {domain['min_similarity']:.3f} "
+          f"(training molecules, one against the others: median {np.median(train_similarity):.3f})")
     explain("Applicability Domain", f"""
-        The Isolation Forest learns the 'normal' region of chemical space covered by the {len(df_train)} training molecules.
-        By construction about {ISO_CONTAMINATION * 100:.0f}% of the training molecules themselves sit at the edge and are treated
-        as outliers. Any FDA drug that falls outside this region is excluded below, because the model would be extrapolating.
+        Prediction error grows as a molecule becomes less similar to the training set (Sheridan et al., 2004). Each FDA drug
+        is given its mean Tanimoto similarity to its {AD_K} most similar training molecules. A drug is flagged as inside the
+        domain when that value is at least {domain['min_similarity']:.3f}, which is 1 - (mean + {AD_Z} standard deviations) of the
+        same distance measured for the {len(df_train)} training molecules against each other (Sahigara et al., 2012). The
+        multiplier is arbitrary: the literature gives no rule for it. No drug is excluded on this flag; it is reported with
+        every candidate, because predictions outside the domain are extrapolations.
     """)
 
     # ── FDA Library Ingestion and Structural Filtering ────────────────────────
@@ -142,20 +149,21 @@ def run():
 
     # ── In-Domain Filtering ───────────────────────────────────────────────────
     X_fda_full = np.array([c['FP'] for c in candidates])
-    X_fda = X_fda_full[:, mask] if mask is not None else X_fda_full
+    fda_similarity = similarity_to_domain(domain, X_fda_full)
+    inside = in_similarity_domain(domain, X_fda_full)
+    final = candidates
+    X_final = X_fda_full[:, mask] if mask is not None else X_fda_full
 
-    inside = in_domain(iso, X_fda)
-    final = [c for c, keep in zip(candidates, inside) if keep]
-    X_final = np.array([c['FP'] for c in final])
-    X_final = X_final[:, mask] if mask is not None else X_final
-
-    ad_retention = (len(final) / len(candidates)) * 100
-    print(f"  [+] In-Domain Filtering (Isolation Forest): {len(final)} compounds retained ({ad_retention:.1f}%)")
+    print(f"  [+] Similarity to the training set of the {len(candidates)} candidates: median {np.median(fda_similarity):.3f} "
+          f"(5th-95th percentile {np.percentile(fda_similarity, 5):.3f}-{np.percentile(fda_similarity, 95):.3f})")
+    print(f"  [+] Inside the applicability domain: {int(inside.sum())} compounds ({100 * inside.mean():.1f}%); "
+          f"all are scored, none is excluded")
     print(f"  [+] Total filtering time: {time.time() - t0:.2f}s")
     explain("Reading the filter counts", f"""
-        {initial_fda_count} drugs in the library -> {len(candidates)} after size/atom filters -> {len(final)} inside the model's
-        domain. Drugs lost at each stage were never scored. A very low retention in the last stage would mean the FDA library
-        is chemically far from the training set (then predictions are less reliable and more training data would help).
+        {initial_fda_count} drugs in the library -> {len(candidates)} after size/atom filters, all scored -> {int(inside.sum())}
+        of them inside the model's domain. Drugs lost at the first stage were never scored. A low share inside the domain
+        means the FDA library is chemically far from the training set: the predictions are then extrapolations and are
+        less reliable, however high they rank.
     """)
 
     # ── ML Inference ──────────────────────────────────────────────────────────
@@ -176,6 +184,8 @@ def run():
             'CID': c['CID'], 'Name': c['Name'], 'SMILES': c['SMILES'],
             'pIC50_pred': round(float(preds[i]), 4),
             **metrics,
+            'AD_similarity': round(float(fda_similarity[i]), 4),
+            'In_AD': bool(inside[i]),
         })
     df_res = pd.DataFrame(rows).sort_values('pIC50_pred', ascending=False).reset_index(drop=True)
 
@@ -234,11 +244,19 @@ def run():
     combined.to_csv(OUTPUT_CSV, index=False)
 
     os.makedirs(os.path.dirname(LATEX_SCREENING), exist_ok=True)
-    values = {"ScreenNLibrary": initial_fda_count, "ScreenNStructural": len(candidates), "ScreenNDomain": len(final),
+    values = {"ScreenNLibrary": initial_fda_count, "ScreenNStructural": len(candidates), "ScreenNDomain": int(inside.sum()),
               "ScreenNCandidates": len(combined), "ScreenNTopML": int((combined['Type'] == '[TOP_ML]').sum()),
               "ScreenNReference": int((combined['Type'] == '[REFERENCE]').sum()),
               "ScreenNTrainMols": len(df_train), "ScreenMaskBits": int(mask.sum()) if mask is not None else 2048,
-              "ScreenMaxMW": f"{MAX_MW:.0f}", "ScreenIsoContamination": f"{ISO_CONTAMINATION * 100:.0f}",
+              "ScreenMaxMW": f"{MAX_MW:.0f}", "ScreenADNeighbors": AD_K, "ScreenADZ": f"{AD_Z}",
+              "ScreenADMinSimilarity": f"{domain['min_similarity']:.3f}",
+              "ScreenADTrainMedian": f"{np.median(train_similarity):.2f}",
+              "ScreenADFdaMedian": f"{np.median(fda_similarity):.2f}",
+              "ScreenADFdaLow": f"{np.percentile(fda_similarity, 5):.2f}",
+              "ScreenADFdaHigh": f"{np.percentile(fda_similarity, 95):.2f}",
+              "ScreenADFdaMax": f"{fda_similarity.max():.2f}",
+              "ScreenNCandidatesInDomain": int(combined['In_AD'].sum()),
+              "ScreenADCandidatesMedian": f"{combined['AD_similarity'].median():.2f}",
               "ScreenTrainMaxMW": f"{max(Descriptors.MolWt(m) for m in train_mols):.0f}",
               "ScreenTrainNOutsideElements": sum(1 for m in train_mols if not contains_only_elements(m, ALLOWED_ATOMS))}
     for cand in ("Methotrexate", "Trimetrexate", "Pralatrexate", "Triamterene", "Pyrimethamine"):

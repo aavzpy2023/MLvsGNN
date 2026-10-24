@@ -42,7 +42,7 @@
 					\textbf{Target Space:} \\FDA Approved \par\vspace{4pt}
 					\textbf{Library Size:} \\$N = \ScreenNLibrary$ \par\vspace{4pt}
 					\textbf{PhysChem:} MW \\$\le 1000$\,Da \par\vspace{4pt}
-					\textbf{Applicability:} \\Isolation Forest \par\vspace{4pt}
+					\textbf{Applicability:} \\Tanimoto similarity to the training set \par\vspace{4pt}
 					\textbf{Prioritized Set:} \\$N = \ScreenNCandidates$ candidates
 				\end{minipage}
 			};
@@ -98,7 +98,7 @@
 		\end{tikzpicture}%
 	}
 	\caption{\textbf{Schematic overview of the multi-tier computational screening and prioritization pipeline.} 
-		The hierarchical funnel integrates: (1) 2D ligand-based representation benchmarking under nested cross-validation, (2) applicability domain-constrained screening of FDA-approved compounds, (3) orthogonal physics-based consensus filtering via molecular docking (AutoDock Vina), and (4) in silico ADMET profiling (Caco-2 permeability route categorization and hERG cardiotoxicity filtering) to prioritize TgDHFR candidates for experimental testing.}
+		The hierarchical funnel integrates: (1) 2D ligand-based representation benchmarking under nested cross-validation, (2) screening of FDA-approved compounds with an applicability-domain assessment, (3) orthogonal physics-based consensus filtering via molecular docking (AutoDock Vina), and (4) in silico ADMET profiling (Caco-2 permeability route categorization and hERG cardiotoxicity filtering) to prioritize TgDHFR candidates for experimental testing.}
 	\label{fig:pipeline_flowchart}
 	\vspace{-10pt}
 \end{figure}
