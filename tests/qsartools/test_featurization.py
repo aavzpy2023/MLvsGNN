@@ -100,3 +100,16 @@ class TestRdkit3D:
     def test_invalid_fill(self):
         X = rdkit_3d_shape_descriptors(["CCO", "not_a_smiles"], on_invalid="fill")
         assert np.isnan(X[1]).all() and not np.isnan(X[0]).any()
+
+
+def test_largest_fragment_and_standardize_ligand():
+    from rdkit import Chem
+    from qsartools.featurization import largest_fragment, standardize_ligand
+    base = Chem.MolToSmiles(Chem.MolFromSmiles("CC(=O)Nc1ccc(O)cc1"))
+    assert Chem.MolToSmiles(largest_fragment("CC(=O)Nc1ccc(O)cc1.Cl")) == base
+    assert Chem.MolToSmiles(largest_fragment("CC(=O)Nc1ccc(O)cc1")) == base
+    assert largest_fragment("not_a_smiles") is None and standardize_ligand("not_a_smiles") is None
+    acid = Chem.MolToSmiles(Chem.MolFromSmiles("CC(=O)O"))
+    assert Chem.MolToSmiles(standardize_ligand("CC(=O)[O-].[Na+]")) == acid
+    assert Chem.MolToSmiles(standardize_ligand("CC(=O)[O-].[Na+]", neutralize=False)) == "CC(=O)[O-]"
+    assert Chem.MolToSmiles(standardize_ligand("CC[NH3+].[Cl-]")) == Chem.MolToSmiles(Chem.MolFromSmiles("CCN"))

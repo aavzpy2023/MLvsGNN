@@ -19,7 +19,7 @@ from paths_config import *
 from logger_utils import setup_logger, explain
 from qsartools.applicability_domain import (contains_only_elements, fit_similarity_domain, in_similarity_domain,
                                             nearest_similarity, similarity_to_domain)
-from qsartools.featurization import morgan_fingerprints
+from qsartools.featurization import morgan_fingerprints, standardize_ligand
 from qsartools.latex import format_macros
 from qsartools.ligand_efficiency import ligand_efficiency_metrics
 
@@ -89,7 +89,10 @@ def run():
     t0 = time.time()
 
     df_train = pd.read_csv(TRAIN_FILE).dropna(subset=['Smiles', 'pIC50 Value'])
-    train_mols = [Chem.MolFromSmiles(s) for s in df_train['Smiles']]
+    # The compound modelled is the neutral largest fragment: counter-ions and solvents carry fingerprint bits, mass and
+    # atoms that are not the ligand's (half of the FDA library is a salt or a mixture), and a salt's charged form would
+    # otherwise get a different fingerprint from the free compound
+    train_mols = [standardize_ligand(s) for s in df_train['Smiles']]
     X_train_full = morgan_fingerprints(train_mols).astype(np.float32)
 
     # Similarity is computed on the full 2048-bit fingerprints (Sheridan et al.: all the descriptors)
@@ -127,11 +130,10 @@ def run():
         smi = row.get('isosmiles') or row.get('canonicalsmiles')
         if pd.isna(smi): continue
 
-        mol = Chem.MolFromSmiles(str(smi))
+        mol = standardize_ligand(str(smi))
         if mol is None: continue
 
-        mw = row.get('mw')
-        mw = Descriptors.MolWt(mol) if (pd.isna(mw) or mw == '') else float(mw)
+        mw = Descriptors.MolWt(mol)  # of the ligand, not of the PubChem record with its counter-ions
 
         if mw > MAX_MW or not contains_only_elements(mol, ALLOWED_ATOMS):
             continue
@@ -139,7 +141,7 @@ def run():
         fp = morgan_fingerprints([mol])[0].astype(np.float32)
         candidates.append({
             'CID': row.get('cid'), 'Name': row.get('cmpdname'),
-            'SMILES': str(smi), 'FP': fp,
+            'SMILES': str(smi), 'Ligand_SMILES': Chem.MolToSmiles(mol), 'FP': fp,
         })
 
     structural_retention = (len(candidates) / initial_fda_count) * 100
@@ -178,9 +180,9 @@ def run():
     # Result dataframe construction
     rows = []
     for i, c in enumerate(final):
-        metrics = ligand_efficiency_metrics(preds[i], c['SMILES'], decimals=2)
+        metrics = ligand_efficiency_metrics(preds[i], c['Ligand_SMILES'], decimals=2)
         rows.append({
-            'CID': c['CID'], 'Name': c['Name'], 'SMILES': c['SMILES'],
+            'CID': c['CID'], 'Name': c['Name'], 'SMILES': c['SMILES'], 'Ligand_SMILES': c['Ligand_SMILES'],
             'pIC50_pred': round(float(preds[i]), 4),
             **metrics,
             'AD_similarity': round(float(fda_similarity[i]), 4),
@@ -217,12 +219,17 @@ def run():
         LLE = pIC50 minus logP, >= 5 suggests potency is not just coming from greasiness (lipophilicity); SEI = potency per
         polar surface area. A high pIC50 with poor LE/LLE usually means a big or greasy molecule that is a weaker lead.
     """)
+    # One row per ligand: the same compound listed as a free base and as several salts is ranked once (the shortest name)
+    unique_ligands = (df_res.assign(_name_length=df_res['Name'].astype(str).str.len())
+                      .sort_values(['pIC50_pred', '_name_length'], ascending=[False, True])
+                      .drop_duplicates('Ligand_SMILES').drop(columns='_name_length'))
+
     print("\n" + "-" * 100)
-    print("REPORT B: Top 10 FDA Candidates (Sorted by Predicted Affinity)")
+    print("REPORT B: Top 10 FDA Candidates (One Row per Ligand, Sorted by Predicted Affinity)")
     print("-" * 100)
     print(f"{'Rank':<5} {'Compound Name':<30} {'pIC50':>7} {'LE':>6} {'BEI':>7} {'LLE':>6} {'SEI':>6}")
     print("-" * 100)
-    for rank, (_, r) in enumerate(df_res.head(10).iterrows(), 1):
+    for rank, (_, r) in enumerate(unique_ligands.head(10).iterrows(), 1):
         name = str(r['Name'])[:28]
         print(f"{rank:<5} {name:<30} {r['pIC50_pred']:>7.4f} {r['LE']:>6.2f} "
               f"{r['BEI']:>7.2f} {r['LLE']:>6.2f} {r['SEI']:>6.2f}")
@@ -230,10 +237,10 @@ def run():
     # Safe export
     paper_top_mask = df_res['Name'].str.contains('|'.join(PAPER_TOP), case=False, na=False)
 
-    top10 = df_res.head(10).copy()
+    top10 = unique_ligands.head(10).copy()
     top10['Type'] = '[TOP_ML]'
 
-    refs = df_res[paper_top_mask].copy()
+    refs = df_res[paper_top_mask & ~df_res['Ligand_SMILES'].isin(top10['Ligand_SMILES'])].copy()  # not twice
     refs['Type'] = '[REFERENCE]'
 
     combined = pd.concat([top10, refs]).drop_duplicates('CID').sort_values('pIC50_pred', ascending=False)

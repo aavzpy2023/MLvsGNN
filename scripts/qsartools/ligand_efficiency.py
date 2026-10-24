@@ -14,7 +14,8 @@ The metrics describe the ligand, so by default only the largest fragment of a sa
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import Descriptors
-from rdkit.Chem.MolStandardize import rdMolStandardize
+
+from qsartools.featurization import largest_fragment as _largest_fragment
 
 METRICS = ("LE", "BEI", "LLE", "SEI")
 
@@ -39,7 +40,7 @@ def ligand_efficiency_metrics(pic50, molecule, decimals=None, largest_fragment=T
     if mol is None:
         return dict.fromkeys(METRICS, np.nan)
     if largest_fragment:
-        mol = rdMolStandardize.LargestFragmentChooser().choose(mol)
+        mol = _largest_fragment(mol)
     hac = sum(1 for atom in mol.GetAtoms() if atom.GetAtomicNum() != 1)
     mw, logp, tpsa = Descriptors.MolWt(mol), Descriptors.MolLogP(mol), Descriptors.TPSA(mol)
     values = {"LE": le_factor * pic50 / hac if hac > 0 else np.nan,

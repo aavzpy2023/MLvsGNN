@@ -6,6 +6,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from rdkit import Chem
 from rdkit.Chem import AllChem, Descriptors, Descriptors3D, rdFingerprintGenerator
+from rdkit.Chem.MolStandardize import rdMolStandardize
 
 RDKIT_2D_NAMES = [name for name, _ in Descriptors._descList]
 RDKIT_3D_FUNCTIONS = {
@@ -27,6 +28,31 @@ def to_mol(molecule):
     if isinstance(molecule, Chem.Mol):
         return molecule
     return Chem.MolFromSmiles(str(molecule))
+
+
+def largest_fragment(molecule):
+    """The largest fragment (by number of heavy atoms, RDKit's LargestFragmentChooser) of a salt or mixture, as an RDKit
+    molecule; None if the molecule cannot be parsed. A single-fragment molecule is returned as it is. Counter-ions and
+    solvents carry fingerprint bits, mass and atoms that do not belong to the compound whose activity is modelled.
+
+    Args:
+        molecule: SMILES string or RDKit molecule.
+    """
+    mol = to_mol(molecule)
+    return None if mol is None else rdMolStandardize.LargestFragmentChooser().choose(mol)
+
+
+def standardize_ligand(molecule, neutralize=True):
+    """The compound whose activity is modelled: the largest fragment of a salt or mixture (largest_fragment) and, with
+    `neutralize`, its neutral form (RDKit's Uncharger), so that the same ligand has the same fingerprint whether it comes
+    as a free base, a hydrochloride or a sodium salt. Returns an RDKit molecule, or None if it cannot be parsed.
+
+    Args:
+        molecule: SMILES string or RDKit molecule.
+        neutralize: if True, charges that can be removed by adding or removing a proton are neutralized.
+    """
+    mol = largest_fragment(molecule)
+    return mol if (mol is None or not neutralize) else rdMolStandardize.Uncharger().uncharge(mol)
 
 
 def _check_on_invalid(on_invalid):
