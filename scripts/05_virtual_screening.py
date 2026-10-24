@@ -52,11 +52,10 @@ def run():
         Uses the trained model from step 04 to predict how strongly each FDA-approved drug would inhibit the parasite enzyme
         TgDHFR (Toxoplasma gondii dihydrofolate reductase), without doing any lab work (virtual screening).
 
-        1) Load the model. 2) Learn what the training molecules look like and flag drugs that are too different from them
-        (Applicability Domain, via an Isolation Forest): the model is only trustworthy for molecules similar to those it was
-        trained on, so unusual drugs are dropped instead of receiving a made-up prediction. 3) Drop drugs that are very large
-        (MW above the limit) or contain atoms outside the allowed set (H, C, N, O, F, P, S, Cl, Br, I). 4) Predict pIC50.
-        5) Report and export the ranking.
+        1) Load the model. 2) Measure how similar each drug is to the training molecules (Applicability Domain: the model is
+        only trustworthy for molecules similar to those it was trained on); drugs far from them are still scored, but flagged.
+        3) Drop drugs that are very large (MW above the limit) or contain atoms outside the allowed set (H, C, N, O, F, P, S,
+        Cl, Br, I). 4) Predict pIC50. 5) Report and export the ranking with each drug's similarity to the training set.
 
         pIC50 = -log10(IC50 in molar). Higher means more potent: 6 is IC50 = 1 uM, 7 is 100 nM, 8 is 10 nM.
         Candidates are later confirmed by docking (step 07) and filtered for drug-likeness/safety (step 08).
