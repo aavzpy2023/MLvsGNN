@@ -48,3 +48,26 @@ def test_parallel_equals_serial():
     a = oof_permutation_importance(model, X, Y, n_folds=3, n_repeats=2, n_jobs=1)
     b = oof_permutation_importance(model, X, Y, n_folds=3, n_repeats=2, n_jobs=3)
     np.testing.assert_array_equal(a, b)
+
+
+def test_selector_reproduces_oof_selection_and_is_refitted_in_a_pipeline():
+    from sklearn.pipeline import Pipeline
+    from qsartools.feature_selection import PermutationImportanceSelector
+    rng = np.random.default_rng(3)
+    Xs = rng.normal(size=(100, 6))
+    ys = 2 * Xs[:, 0] - Xs[:, 1] + rng.normal(0, 0.1, 100)
+    selector = PermutationImportanceSelector(LinearRegression(), n_folds=4, n_repeats=3, seed=1).fit(Xs, ys)
+    expected = select_by_importance(oof_permutation_importance(LinearRegression(), Xs, ys, 4, 3, 1))
+    np.testing.assert_array_equal(selector.get_support(), expected)
+    assert selector.get_support()[:2].all() and not selector.fallback_
+    pipe = Pipeline([("select", PermutationImportanceSelector(LinearRegression(), n_folds=4, n_repeats=3, seed=1)),
+                     ("model", LinearRegression())]).fit(Xs[:60], ys[:60])
+    assert pipe.named_steps["select"].importances_.shape == (6,) and pipe.predict(Xs[60:]).shape == (40,)
+
+
+def test_selector_keeps_every_feature_when_none_passes():
+    from qsartools.feature_selection import PermutationImportanceSelector
+    rng = np.random.default_rng(4)
+    Xs, ys = rng.normal(size=(60, 5)), rng.normal(size=60)
+    selector = PermutationImportanceSelector(LinearRegression(), n_folds=3, n_repeats=2, tol=1e9).fit(Xs, ys)
+    assert selector.fallback_ and selector.get_support().all() and selector.transform(Xs).shape == (60, 5)

@@ -14,6 +14,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import *
 from logger_utils import setup_logger, explain
 
+from sklearn.pipeline import Pipeline
+
+from qsartools.feature_selection import PermutationImportanceSelector
 from qsartools.featurization import morgan_fingerprints
 from qsartools.latex import format_macros
 from qsartools.models import base_regressors, stacking_regressor
@@ -25,9 +28,15 @@ logger = logging.getLogger(__name__)
 # =========================================================
 # 1. DYNAMIC DISCOVERY OF THE BEST MODEL
 # =========================================================
-# Architecture of the deployed screening model (DEPLOYED_ARCHITECTURE in paths_config, shared with step 04), evaluated on
-# all 2048 Morgan bits: this validates the architecture, not the feature-selected model deployed in step 05.
+# Architecture of the deployed screening model (DEPLOYED_ARCHITECTURE in paths_config, shared with step 04)
 DEPLOYED_MODE = 'morgan'
+# Rucker et al. (2007): y-randomization must repeat the whole model-building procedure, and its result is compared with
+# models built on random pseudodescriptors. "architecture" is the stacking on all 2048 bits; "procedure" adds the
+# out-of-fold permutation-importance bit selection of step 04 in front of it, redone inside every training set.
+TESTS = [("YRandom", "architecture", "y_permutation"), ("YRandomPseudo", "architecture", "pseudodescriptors"),
+         ("YRandomProc", "procedure", "y_permutation"), ("YRandomProcPseudo", "procedure", "pseudodescriptors")]
+# Verdict by the permutation p-value; with 100 randomizations the smallest attainable value is 1/101
+ALPHA = 0.01
 
 
 def main():
@@ -68,44 +77,50 @@ def main():
 
     base_models = base_regressors(seed=RANDOM_STATE)
     model = stacking_regressor({k: base_models[k] for k in DEPLOYED_ARCHITECTURE}, cv=CV_FOLDS)
+    procedures = {
+        "architecture": model,
+        "procedure": Pipeline([("select", PermutationImportanceSelector(model, n_folds=PI_CV_FOLDS, seed=RANDOM_STATE)),
+                               ("model", model)]),
+    }
 
-    logger.info(f"Evaluating the unpermuted model and {N_PERMUTATIONS} target permutations "
-                f"({CV_FOLDS}-fold CV, {N_JOBS} worker processes)...")
-    start_time = time.time()
-    res = y_randomization(model, X, y_true, n_permutations=N_PERMUTATIONS, n_folds=CV_FOLDS, seed=RANDOM_STATE,
-                          n_jobs=N_JOBS)
-    true_r2, random_scores = res["true_r2"], res["permuted_r2"]
-    logger.info(f"Baseline Unpermuted R2: {true_r2:.4f}")
+    explain("The four tests", f"""
+        Rucker et al. (2007) define y-randomization as permuting the potencies and repeating the WHOLE model-building
+        procedure, because the risk of chance correlation comes mainly from selecting a few descriptors out of many. They
+        also propose a second comparison, with descriptors replaced by random ones (pseudodescriptors), because real
+        descriptors are intercorrelated and shuffled potencies alone give lower chance scores.
 
-    elapsed_time = time.time() - start_time
-    df_random = pd.DataFrame({'Permuted_R2': random_scores})
-    csv_path = os.path.join(RESULTS_DIR, "03_y_randomization_scores.csv")
-    df_random.to_csv(csv_path, index=False)
-    logger.info(f"Y-randomization distribution saved to {csv_path}")
-
-    mean_random, std_random, z_score = res["permuted_mean"], res["permuted_sd"], res["z"]
-
-    explain("How to read the report below", f"""
-        'Baseline R2' is the real model ({true_r2:.2f}). 'Random R2' is what the same model achieves when potencies are shuffled
-        ({mean_random:.2f} on average over {N_PERMUTATIONS} shuffles). The Z-score counts how many standard deviations the real
-        result sits above the shuffled results; the pass criterion used here is real R2 > mean + 2.33 SD (~99% confidence).
-
-        If the verdict is PASSED, the predictive signal is not a chance correlation. Note that this test uses Morgan
-        fingerprints and the stacking architecture of the deployed screening model (RF+XGB+SVM, as in step 04).
+        Each test is run on the stacking alone ("architecture", all 2048 bits) and on the procedure that produces the
+        screening model ("procedure": the out-of-fold permutation-importance bit selection of step 04, redone in every
+        training set, then the stacking). Scores are {CV_FOLDS}-fold cross-validated R2: tree ensembles fit even random
+        potencies almost perfectly, so the R2 of the fit would not discriminate. A test passes when the permutation
+        p-value is <= {ALPHA}.
     """)
-    logger.info("-" * 80)
-    logger.info("Y-RANDOMIZATION INTEGRITY REPORT")
-    logger.info("-" * 80)
-    logger.info(f"  Baseline R2 (True Target) : {true_r2:.4f}")
-    logger.info(f"  Random R2 (Mean)          : {mean_random:.4f}")
-    logger.info(f"  Random R2 (Std)           : {std_random:.4f}")
-    logger.info(f"  Z-Score                   : {z_score:.2f}")
+    rows, values = [], {}
+    start_time = time.time()
+    for prefix, procedure, variant in TESTS:
+        logger.info(f"[{prefix}] {procedure} / {variant}: real data and {N_PERMUTATIONS} randomizations "
+                    f"({CV_FOLDS}-fold CV, {N_JOBS} worker processes)...")
+        t0 = time.time()
+        res = y_randomization(procedures[procedure], X, y_true, n_permutations=N_PERMUTATIONS, n_folds=CV_FOLDS,
+                              seed=RANDOM_STATE, n_jobs=N_JOBS, variant=variant, statistic="cv_r2")
+        passed = res["p_empirical"] <= ALPHA
+        logger.info(f"[{prefix}] real R2 = {res['true_r2']:.4f} | randomized R2 = {res['permuted_mean']:.4f} "
+                    f"± {res['permuted_sd']:.4f} | Z = {res['z']:.1f} | p = {res['p_empirical']:.4f} -> "
+                    f"{'PASSED' if passed else 'FAILED'} ({time.time() - t0:.0f}s)")
+        rows += [{"Test": prefix, "Procedure": procedure, "Variant": variant, "Randomization": i, "R2": r2}
+                 for i, r2 in enumerate(res["permuted_r2"])]
+        values.update({f"{prefix}TrueRTwo": f"{res['true_r2']:.4f}", f"{prefix}MeanRTwo": f"{res['permuted_mean']:.4f}",
+                       f"{prefix}StdRTwo": f"{res['permuted_sd']:.4f}", f"{prefix}ZScore": f"{res['z']:.1f}",
+                       f"{prefix}PValue": f"{res['p_empirical']:.4f}", f"{prefix}Passed": "true" if passed else "false"})
+    elapsed_time = time.time() - start_time
 
-    # 99% confidence interval threshold (~2.33 std deviations)
-    if true_r2 > (mean_random + 2.33 * std_random):
-        logger.info("ACADEMIC VERDICT: PASSED. Model performance on true target is significantly superior to random chance (no memory leakage/overfitting).")
-    else:
-        logger.warning("ACADEMIC VERDICT: FAILED. High risk of chance correlation or data leakage.")
+    csv_path = os.path.join(RESULTS_DIR, "03_y_randomization_scores.csv")
+    pd.DataFrame(rows).to_csv(csv_path, index=False)
+    logger.info(f"Randomized scores of the four tests saved to {csv_path}")
+
+    values.update({"YRandomArchitecture": best_architecture, "YRandomNPermutations": N_PERMUTATIONS,
+                   "YRandomCVFolds": CV_FOLDS, "YRandomAlpha": ALPHA,
+                   "YRandomMinPValue": f"{1 / (N_PERMUTATIONS + 1):.4f}"})
 
     # 5. Export Variables to LaTeX
     latex_file = os.path.join(LATEX_DIR, "yrandom_variables.tex")
@@ -113,15 +128,7 @@ def main():
     try:
         os.makedirs(os.path.dirname(latex_file), exist_ok=True)
         with open(latex_file, 'w', encoding='utf-8') as f:
-            f.write(format_macros({
-                "YRandomTrueRTwo": f"{true_r2:.4f}",
-                "YRandomMeanRTwo": f"{mean_random:.4f}",
-                "YRandomStdRTwo": f"{std_random:.4f}",
-                "YRandomZScore": f"{z_score:.1f}",
-                "YRandomArchitecture": best_architecture,
-                "YRandomNPermutations": N_PERMUTATIONS,
-                "YRandomCVFolds": CV_FOLDS,
-            }, header="Auto-generated by 03_y_randomization.py"))
+            f.write(format_macros(values, header="Auto-generated by 03_y_randomization.py"))
         logger.info("LaTeX variable export completed successfully.")
     except Exception as e:
         logger.error(f"Failed to export LaTeX variables: {e}")

@@ -5,7 +5,8 @@ The importance of a feature is the mean increase in squared error when that feat
 data later used to report performance it leaks that data into the selection (see oof_permutation_importance).
 """
 import numpy as np
-from sklearn.base import clone
+from sklearn.base import BaseEstimator, clone
+from sklearn.feature_selection import SelectorMixin
 from sklearn.inspection import permutation_importance
 from sklearn.model_selection import KFold
 
@@ -64,3 +65,46 @@ def select_by_importance(importances, tol=1e-9):
         tol: features with an importance above this value are kept.
     """
     return np.asarray(importances) > tol
+
+
+class PermutationImportanceSelector(SelectorMixin, BaseEstimator):
+    """Transformer that keeps the features with an out-of-fold permutation importance above `tol`
+    (oof_permutation_importance followed by select_by_importance), computed on the data it is fitted on. Placed first in
+    a Pipeline, the selection is redone inside every training set the pipeline is fitted on, which is what a test of
+    the whole model-building procedure (cross-validation, y-randomization) requires.
+
+    If no feature passes `tol`, which can happen with a randomized response, all features are kept (no selection) and
+    `fallback_` is True, so that the procedure still yields a model and the fitted selector records the event.
+
+    Args:
+        estimator: unfitted regressor whose permutation importance ranks the features (cloned, never modified).
+        n_folds: folds of the out-of-fold importance.
+        n_repeats: permutations of each feature per fold.
+        tol: features with an importance above this value are kept.
+        seed: random_state of the folds and of the permutations.
+        n_jobs: processes over features.
+
+    Attributes:
+        importances_: importance of every feature, from the last fit.
+        fallback_: True if no feature passed `tol` and all were kept.
+    """
+
+    def __init__(self, estimator, n_folds=5, n_repeats=5, tol=1e-9, seed=42, n_jobs=1):
+        self.estimator = estimator
+        self.n_folds = n_folds
+        self.n_repeats = n_repeats
+        self.tol = tol
+        self.seed = seed
+        self.n_jobs = n_jobs
+
+    def fit(self, X, y):
+        self.importances_ = oof_permutation_importance(self.estimator, X, y, self.n_folds, self.n_repeats, self.seed,
+                                                       self.n_jobs)
+        support = select_by_importance(self.importances_, self.tol)
+        self.fallback_ = not support.any()
+        self.support_ = np.ones_like(support) if self.fallback_ else support
+        self.n_features_in_ = len(support)
+        return self
+
+    def _get_support_mask(self):
+        return self.support_
