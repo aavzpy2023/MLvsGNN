@@ -125,6 +125,12 @@ mode_labels = {
 # =========================================================
 N_PERMUTATIONS = 100
 
+# Inner cross-validation of the nested CV (Krstajic et al., 2014, Algorithm 1): number of repeats of the inner K-fold (Nexp1)
+# and how a candidate is scored ('pooled': all out-of-fold predictions of a repeat together; 'fold_mean': mean of per-fold
+# scores). MLGNN_INNER_REPEATS=1 MLGNN_INNER_SCORE=fold_mean reproduces the protocol of the results before 2026-10-24.
+INNER_N_REPEATS = int(os.environ.get('MLGNN_INNER_REPEATS', '5'))
+INNER_SCORE = os.environ.get('MLGNN_INNER_SCORE', 'pooled')
+
 # Dynamically extract CV_FOLDS and N_JOBS from the active profile
 ACTIVE_CFG = PROFILES[PROFILE]
 CV_FOLDS = ACTIVE_CFG.get('OUTER_N_SPLITS', 5)

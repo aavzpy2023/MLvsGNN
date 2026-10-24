@@ -28,7 +28,7 @@ from qsartools.featurization import (RDKIT_2D_NAMES, RDKIT_3D_NAMES, morgan_fing
                                      rdkit_3d_shape_descriptors)
 from qsartools.latex import newcommand as macro
 from qsartools.models import base_regressors, combination_id, descriptor_pipeline, model_combinations, stacking_regressor
-from qsartools.nested_cv import nested_cv
+from qsartools.nested_cv import nested_cv, repeat_scores
 from qsartools.splits import outer_splits
 from qsartools.stats import corrected_ttest
 
@@ -201,9 +201,8 @@ def nested_cv_for_mode(mode, df_clean, cfg):
         print(f"[{mode}] Fold {record['Fold'] + 1}/{total_folds} -> Best: {record['Selected_Model']:<15} | "
               f"R2_outer: {record['R2_outer']:.4f} | MAE: {record['MAE_outer']:.4f} ({record['Time_s']:.1f}s)", flush=True)
 
-    # inner_repeats=1 and inner_score="fold_mean" are the inner protocol of the existing results (to be revised)
     nested_cv({combination_id(c): c for c in all_combos}, X, y, outer_cv, inner_folds=cfg['INNER_N_SPLITS'],
-              inner_repeats=1, seed=RANDOM_STATE, inner_score="fold_mean",
+              inner_repeats=INNER_N_REPEATS, seed=RANDOM_STATE, inner_score=INNER_SCORE,
               make_estimator=partial(build_pipeline, is_binary=is_binary), clip_margin=CLIP_MARGIN,
               n_jobs=cfg['N_JOBS'], task_cost=_combo_cost, skip_folds=done_folds, on_fold=save_fold)
 
@@ -237,7 +236,7 @@ def record_feature_qc(mode, X, feat_names, featurization_s):
     pd.concat([qc, pd.DataFrame([row])], ignore_index=True).to_csv(FEATURE_QC_FILE, index=False)
 
 
-def generate_latex_file(df_all, summary, df_ttest, top2_modes, paired_stats):
+def generate_latex_file(df_all, summary, df_ttest, top2_modes, paired_stats, repeat_summary=None):
     with open(LATEX_PAPER, 'w', encoding='utf-8') as f:
         f.write("% =====================================================\n")
         f.write("% Nested CV Benchmark Variables (Auto-generated)\n")
@@ -324,6 +323,14 @@ def generate_latex_file(df_all, summary, df_ttest, top2_modes, paired_stats):
         newcommand(f, "WinnerMode", blabel)
         newcommand(f, "WinnerRTwoMean", f"{best_row['mean']:.4f}")
         newcommand(f, "WinnerRTwoStd", f"{best_row['std']:.4f}")
+
+        # Krstajic et al. (2014), Algorithm 2: error of each outer repeat on all its test predictions together
+        newcommand(f, "InnerRepeats", INNER_N_REPEATS)
+        for mode, rs in (repeat_summary or {}).items():
+            label = MODE_LATEX_LABEL.get(mode, mode)
+            for metric, tag in (("R2", "RTwo"), ("MAE", "Mae")):
+                for stat, name in (("mean", "Mean"), ("min", "Min"), ("max", "Max")):
+                    newcommand(f, f"{label}Pooled{tag}{name}", f"{rs[f'{metric}_{stat}']:.4f}")
 
     print(f"[LATEX] Variables successfully exported to: {LATEX_PAPER}", flush=True)
 
@@ -421,7 +428,18 @@ def summarize_and_test():
             """)
 
     # Export to LaTeX and generate figure
-    generate_latex_file(df, summary, df_ttest, top2, paired_stats)
+    repeat_summary = {}
+    if os.path.exists(OOF_PREDICTIONS_FILE):
+        oof = pd.read_csv(OOF_PREDICTIONS_FILE)
+        rows = []
+        for mode, p in oof.groupby('Mode'):
+            per_repeat, repeat_summary[mode] = repeat_scores(p, CFG['OUTER_N_SPLITS'])
+            rows.append(per_repeat.assign(Mode=mode))
+        if rows:
+            pd.concat(rows).to_csv(os.path.join(RESULTS_DIR, '01_nested_cv_repeat_scores.csv'), index=False)
+            print("\nNested CV error of each outer repeat on its pooled test predictions (Krstajic et al., 2014):", flush=True)
+            print(pd.DataFrame(repeat_summary).T.round(4).to_string(), flush=True)
+    generate_latex_file(df, summary, df_ttest, top2, paired_stats, repeat_summary)
 
 
 def run_benchmark():
