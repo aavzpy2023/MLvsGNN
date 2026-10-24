@@ -145,6 +145,12 @@ def append_checkpoint(row):
     df_row.to_csv(CHECKPOINT_FILE, mode='a', header=header, index=False)
 
 
+def append_oof_predictions(predictions, mode):
+    predictions = predictions.assign(Mode=mode)
+    header = not os.path.exists(OOF_PREDICTIONS_FILE)
+    predictions.to_csv(OOF_PREDICTIONS_FILE, mode='a', header=header, index=False)
+
+
 def append_selection_log(df_inner, mode, fold_idx):
     df_inner = df_inner.assign(Mode=mode, Fold=fold_idx)
     header = not os.path.exists(SELECTION_LOG_FILE)
@@ -175,8 +181,9 @@ def nested_cv_for_mode(mode, df_clean, cfg):
     if done_folds:
         print(f"[CHECKPOINT] {len(done_folds)}/{total_folds} folds already completed for '{mode}', resuming...", flush=True)
 
-    def save_fold(record, ranking, model):
+    def save_fold(record, ranking, model, predictions):
         append_selection_log(ranking, mode, record['Fold'])
+        append_oof_predictions(predictions, mode)
         n_selected = n_features_total
         if not is_binary:
             try:
@@ -194,8 +201,10 @@ def nested_cv_for_mode(mode, df_clean, cfg):
         print(f"[{mode}] Fold {record['Fold'] + 1}/{total_folds} -> Best: {record['Selected_Model']:<15} | "
               f"R2_outer: {record['R2_outer']:.4f} | MAE: {record['MAE_outer']:.4f} ({record['Time_s']:.1f}s)", flush=True)
 
+    # inner_repeats=1 and inner_score="fold_mean" reproduce the protocol the existing results were computed with
     nested_cv({combination_id(c): c for c in all_combos}, X, y, outer_cv, inner_folds=cfg['INNER_N_SPLITS'],
-              seed=RANDOM_STATE, make_estimator=partial(build_pipeline, is_binary=is_binary), clip_margin=CLIP_MARGIN,
+              inner_repeats=1, seed=RANDOM_STATE, inner_score="fold_mean",
+              make_estimator=partial(build_pipeline, is_binary=is_binary), clip_margin=CLIP_MARGIN,
               n_jobs=cfg['N_JOBS'], task_cost=_combo_cost, skip_folds=done_folds, on_fold=save_fold)
 
 

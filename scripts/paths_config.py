@@ -37,6 +37,7 @@ RECEPTOR_PDBQT= os.path.join(RECEPTOR_DIR, "receptor.pdbqt")
 # Result files
 CHECKPOINT_FILE      = os.path.join(RESULTS_DIR, "01_nested_cv_checkpoint.csv")
 SELECTION_LOG_FILE   = os.path.join(RESULTS_DIR, "01_nested_cv_selection_log.csv")
+OOF_PREDICTIONS_FILE = os.path.join(RESULTS_DIR, "01_nested_cv_oof_predictions.csv")
 FINAL_RESULTS_FILE   = os.path.join(RESULTS_DIR, "01_nested_cv_final_results.csv")
 MODEL_FILE           = os.path.join(RESULTS_DIR, "04_best_model.joblib")
 MASK_FILE            = os.path.join(RESULTS_DIR, "04_selected_features_mask.npy")
