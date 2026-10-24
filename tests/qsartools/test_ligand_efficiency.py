@@ -33,3 +33,20 @@ def test_zero_denominators_and_invalid():
     m = ligand_efficiency_metrics(5.0, "C")
     assert m["LE"] == pytest.approx(1.37 * 5) and np.isnan(m["SEI"])
     assert all(np.isnan(v) for v in ligand_efficiency_metrics(5.0, "not_a_smiles").values())
+
+
+def test_salts_use_the_largest_fragment_only():
+    sulfate = PYRIMETHAMINE + ".OS(=O)(=O)O"
+    base = ligand_efficiency_metrics(6.56, PYRIMETHAMINE)
+    assert ligand_efficiency_metrics(6.56, sulfate) == pytest.approx(base)
+    whole = ligand_efficiency_metrics(6.56, sulfate, largest_fragment=False)
+    assert whole["LE"] < base["LE"] and whole["BEI"] < base["BEI"]
+    assert whole["LE"] == pytest.approx(1.37 * 6.56 / (17 + 5))
+
+
+def test_hopkins_worked_example_and_le_factor():
+    # Hopkins et al. (2004): a 10 nM compound (-Delta G = 10.99 kcal/mol, pK = 8) with 38 heavy atoms has 0.29
+    mol = "C" * 38
+    assert ligand_efficiency_metrics(8.0, mol)["LE"] == pytest.approx(0.29, abs=0.005)
+    assert ligand_efficiency_metrics(8.0, mol, le_factor=1.0)["LE"] == pytest.approx(8.0 / 38)
+    assert 1.37 == pytest.approx(0.0019872 * 300 * np.log(10), abs=0.005)  # 1.37 is the rounded 1.3727
