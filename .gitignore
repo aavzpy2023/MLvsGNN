@@ -120,3 +120,6 @@ SKDEV_tree.txt
 
 # Local copies of the papers listed in scripts/qsartools/REFERENCES.md (publisher copyright; used to check the code)
 scripts/qsartools/references/
+
+# Manual backup copy of results/
+results copy/
