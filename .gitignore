@@ -117,3 +117,6 @@ SKDEV_tree.txt
 # Local-only files (third-party PDF, console dump)
 /karimova2025.pdf
 /console_output.txt
+
+# Local copies of the papers listed in scripts/qsartools/REFERENCES.md (publisher copyright; used to check the code)
+scripts/qsartools/references/
