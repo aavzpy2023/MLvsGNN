@@ -1,5 +1,11 @@
 """Train/test partitions for molecular data: repeated random K-fold, repeated scaffold-grouped K-fold and a hold-out split.
 
+A molecule's scaffold is its Bemis-Murcko framework (Bemis & Murcko, 1996, J. Med. Chem. 39:2887-2893): its ring systems
+and the linkers that join them, with the side chains removed. They analysed frameworks at two levels, as molecular
+graphs only (without regard to atom type, hybridization and bond order) and with those properties considered; both are
+offered. Bemis & Murcko describe frameworks, not splits: grouping molecules by framework for cross-validation, and the
+way the groups are dealt out to the folds below, are choices of this package.
+
 All functions return positional indices into the input list, so the same partitions can be reused by every model that is
 compared (paired evaluation).
 """
@@ -9,19 +15,28 @@ from rdkit.Chem.Scaffolds import MurckoScaffold
 from sklearn.model_selection import RepeatedKFold, train_test_split
 
 
-def murcko_scaffolds(smiles):
-    """Bemis-Murcko scaffold SMILES (without stereochemistry) of each molecule, as an array of strings.
+def murcko_scaffolds(smiles, generic=False):
+    """Bemis-Murcko framework SMILES (without stereochemistry) of each molecule, as an array of strings.
 
     Acyclic molecules have the empty scaffold "" and therefore all share one group; a SMILES that cannot be parsed also
     gets "".
 
     Args:
         smiles: sequence of SMILES strings.
+        generic: False keeps atom types, hybridization and bond orders (the second level of Bemis & Murcko, 2506
+            frameworks in their 5120 drugs); True reduces the framework to its molecular graph, every atom becoming a
+            carbon and every bond single (their first level, 1179 frameworks), which groups more molecules together.
     """
     out = []
     for s in smiles:
         mol = Chem.MolFromSmiles(s)
-        out.append(MurckoScaffold.MurckoScaffoldSmiles(mol=mol, includeChirality=False) if mol is not None else "")
+        if mol is None:
+            out.append("")
+            continue
+        scaffold = MurckoScaffold.GetScaffoldForMol(mol)
+        if generic:
+            scaffold = MurckoScaffold.MakeScaffoldGeneric(scaffold)
+        out.append(Chem.MolToSmiles(scaffold, isomericSmiles=False))
     return np.array(out)
 
 

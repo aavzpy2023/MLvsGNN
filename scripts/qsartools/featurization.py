@@ -70,6 +70,11 @@ def _parse(molecule, on_invalid):
 def morgan_fingerprints(molecules, radius=2, n_bits=2048, on_invalid="raise"):
     """Morgan bit vectors (ECFP4 for radius 2), without chirality, as an (n, n_bits) uint8 array of 0/1.
 
+    Extended-connectivity fingerprints (Rogers & Hahn, 2010, J. Chem. Inf. Model. 50:742-754) name the largest feature by
+    its diameter, twice the number of iterations: ECFP_4 is radius 2 and ECFP_6 is radius 3. The identifiers are hashed
+    into a fixed number of bits (folding), whose size is arbitrary; Rogers & Hahn give 1024 as an example. RDKit's Morgan
+    fingerprint follows the ECFP algorithm but is not bit-identical to the Pipeline Pilot implementation they describe.
+
     Args:
         molecules: sequence of SMILES strings or RDKit molecules.
         radius: Morgan radius in bonds (2 gives ECFP4, 3 gives ECFP6).

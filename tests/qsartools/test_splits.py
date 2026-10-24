@@ -56,3 +56,12 @@ def test_holdout_equals_train_test_split():
     tr, te = holdout_split(100, test_size=0.15, seed=42)
     ref_tr, ref_te = train_test_split(np.arange(100), test_size=0.15, random_state=42)
     assert np.array_equal(tr, ref_tr) and np.array_equal(te, ref_te) and len(te) == 15
+
+
+def test_generic_scaffold_groups_heteroatom_variants_together():
+    from qsartools.splits import murcko_scaffolds
+    smiles = ["c1ccccc1CC", "c1ccncc1CC", "C1CCCCC1CC", "CCCC"]
+    specific = murcko_scaffolds(smiles)
+    generic = murcko_scaffolds(smiles, generic=True)
+    assert len(set(specific[:3])) == 3 and len(set(generic[:3])) == 1
+    assert specific[0] == "c1ccccc1" and generic[0] == "C1CCCCC1" and generic[3] == "" == specific[3]
