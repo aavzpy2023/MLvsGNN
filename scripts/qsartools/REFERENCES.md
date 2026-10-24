@@ -26,6 +26,9 @@ is kept in references/, a folder ignored by git. OA = open access.
 | `Nadeau_2003_corrected_ttest.pdf` | Nadeau C, Bengio Y. Inference for the generalization error. Machine Learning 52:239-281 (2003). | 10.1023/A:1024068626366 | no |
 | `Holm_1979_sequential_rejection.pdf` | Holm S. A simple sequentially rejective multiple test procedure. Scand J Stat 6:65-70 (1979). | https://www.jstor.org/stable/4615733 | no |
 | `Schuirmann_1987_tost.pdf` | Schuirmann DJ. A comparison of the two one-sided tests procedure and the power approach for assessing the equivalence of average bioavailability. J Pharmacokinet Biopharm 15:657-680 (1987). | 10.1007/BF01068419 | no |
+| `Bouckaert_2004_corrected_repeated_kfold.pdf` | Bouckaert RR, Frank E. Evaluating the replicability of significance tests for comparing learning algorithms. PAKDD 2004, LNCS 3056:3-12. | 10.1007/978-3-540-24775-3_3 | no |
+| `Wright_1992_adjusted_pvalues.pdf` | Wright SP. Adjusted P-values for simultaneous inference. Biometrics 48:1005-1013 (1992). | 10.2307/2532694 | no |
+| `Efron_1993_bootstrap.pdf` | Efron B, Tibshirani RJ. An Introduction to the Bootstrap. Chapman & Hall, New York (1993). ISBN 0-412-04231-2. | 10.1201/9780429246593 | no |
 
 ## Other modules
 

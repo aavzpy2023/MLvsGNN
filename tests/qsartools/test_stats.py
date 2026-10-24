@@ -3,7 +3,7 @@ import pytest
 from scipy import stats
 from sklearn.metrics import r2_score
 
-from qsartools.stats import (bootstrap_distribution, bootstrap_p_value, corrected_ttest, corrected_welch_test, holm,
+from qsartools.stats import (bootstrap_distribution, bootstrap_p_value, corrected_ttest, holm,
                              percentile_interval, r2)
 
 RNG = np.random.default_rng(0)
@@ -47,18 +47,6 @@ class TestCorrectedTtest:
         res = corrected_ttest(np.full(10, 0.25), n_train=4, n_test=1, margin=0.5)
         assert res["p"] == 1.0 and res["p_equiv"] == 0.0
         assert corrected_ttest(np.full(10, 0.5), n_train=4, n_test=1, margin=0.25)["p_equiv"] == 1.0
-
-
-class TestWelch:
-    def test_formula_and_antisymmetry(self):
-        a, b = RNG.normal(0.75, 0.04, 25), RNG.normal(0.73, 0.05, 25)
-        res = corrected_welch_test(a, b, n_train=687, n_test=172)
-        inflation = 1 / 25 + 172 / 687
-        se = np.sqrt(inflation * a.var(ddof=1) + inflation * b.var(ddof=1))
-        assert res["mean_diff"] == pytest.approx(b.mean() - a.mean()) and res["se"] == pytest.approx(se)
-        assert res["p"] == pytest.approx(2 * stats.t.sf(abs((b.mean() - a.mean()) / se), 48))
-        swapped = corrected_welch_test(b, a, n_train=687, n_test=172)
-        assert swapped["t"] == pytest.approx(-res["t"]) and swapped["p"] == pytest.approx(res["p"])
 
 
 class TestHolm:

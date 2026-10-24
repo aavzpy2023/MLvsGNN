@@ -1,8 +1,11 @@
 """Statistics for comparing models evaluated by (repeated) cross-validation or on one test set.
 
-Corrected resampled t-tests (Nadeau & Bengio, 2003, Machine Learning 52:239-281): in repeated k-fold cross-validation the
-training sets overlap, so the per-fold scores are correlated and the naive standard error of their mean is too small.
-The variance of the mean is inflated from s^2/J to (1/J + n_test/n_train) s^2, where J is the number of folds.
+Corrected resampled t-test (Nadeau & Bengio, 2003, Machine Learning 52:239-281, Table 1, statistic 6): the training sets
+of resampled splits overlap, so the per-split scores are correlated and the naive standard error of their mean is too
+small; the variance of the mean is taken as (1/J + n_test/n_train) s^2 instead of s^2/J, with a t distribution on J - 1
+degrees of freedom. Nadeau & Bengio derive it for J independent random train/test splits; its use with the J = K x R
+folds of repeated K-fold cross-validation is the corrected repeated k-fold cv test of Bouckaert & Frank (2004, PAKDD,
+LNCS 3056:3-12).
 """
 import numpy as np
 from scipy import stats
@@ -17,7 +20,9 @@ def corrected_ttest(diff, n_train, n_test, popmean=0.0, margin=None):
     """Corrected resampled t-test of the mean of per-fold values `diff` against `popmean`.
 
     For a paired comparison of two models scored on the same folds, pass the per-fold differences (A minus B) and
-    popmean 0.
+    popmean 0. The equivalence test is the two one-sided tests procedure of Schuirmann (1987, J. Pharmacokinet.
+    Biopharm. 15:657-680), here on the corrected standard error: equivalence at level alpha is declared exactly when the
+    1 - 2 alpha interval lies inside (-margin, margin).
 
     Args:
         diff: per-fold values (one per fold of every repeat), e.g. score of model A minus score of model B.
@@ -51,31 +56,10 @@ def corrected_ttest(diff, n_train, n_test, popmean=0.0, margin=None):
     return out
 
 
-def corrected_welch_test(a, b, n_train, n_test):
-    """Corrected test for two sets of per-fold scores that are NOT paired (e.g. two cross-validations on different data).
-
-    Each variance is inflated as in corrected_ttest, with the fold sizes of the first set, and the two are added.
-
-    Args:
-        a: per-fold scores of the first cross-validation.
-        b: per-fold scores of the second cross-validation.
-        n_train: number of training samples of a fold of `a` (the mean, if folds differ in size).
-        n_test: number of test samples of a fold of `a` (the mean, if folds differ in size).
-
-    Returns:
-        Dict with mean_diff (mean(b) - mean(a)), se, t, df (len(a) + len(b) - 2) and the two-sided p.
-    """
-    a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
-    inflation = 1.0 / len(a) + n_test / n_train
-    se = float(np.sqrt(inflation * a.var(ddof=1) + inflation * b.var(ddof=1)))
-    mean = float(b.mean() - a.mean())
-    df = len(a) + len(b) - 2
-    t = mean / se if se > 0 else 0.0
-    return {"mean_diff": mean, "se": se, "t": t, "df": df, "p": 2 * stats.t.sf(abs(t), df=df) if se > 0 else 1.0}
-
-
 def holm(p_values):
-    """Holm step-down adjusted p-values, returned in the input order (Holm, 1979).
+    """Holm-adjusted p-values, returned in the input order: p_adj(i) = max over j <= i of min(1, (n - j + 1) p(j)) for
+    the p-values sorted in increasing order (adjusted p-values: Wright, 1992, Biometrics 48:1005-1013). Rejecting every
+    hypothesis with p_adj <= alpha is the sequentially rejective Bonferroni test of Holm (1979, Scand. J. Stat. 6:65-70).
 
     Args:
         p_values: raw p-values of the family of tests to be corrected together.
