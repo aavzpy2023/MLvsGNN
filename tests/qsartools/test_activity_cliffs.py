@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from rdkit import Chem, DataStructs
 from rdkit.Chem import rdFingerprintGenerator
 
@@ -48,3 +49,17 @@ def test_halogen_swap_is_a_cliff_only_with_a_large_potency_gap():
     sim = tanimoto_matrix(X)[0, 1]
     assert len(activity_cliff_pairs(X, [8.0, 6.0], similarity_threshold=sim)) == 1
     assert len(activity_cliff_pairs(X, [8.0, 7.5], similarity_threshold=sim)) == 0
+
+
+def test_a_tenfold_difference_is_not_more_than_tenfold():
+    X = np.array([[1, 1, 1, 1], [1, 1, 1, 1]])
+    assert len(activity_cliff_pairs(X, [5.3, 6.3])) == 0  # float difference 1.0000000000000009
+    assert len(activity_cliff_pairs(X, [5.0, 6.2])) == 1
+
+
+def test_a_pair_passes_if_any_metric_reaches_the_threshold():
+    X = np.array([[1, 1, 0, 0], [0, 0, 1, 1]])  # fingerprint similarity 0
+    scaffold = np.array([[1.0, 0.95], [0.95, 1.0]])
+    assert len(activity_cliff_pairs(X, [8.0, 6.0])) == 0
+    pairs = activity_cliff_pairs(X, [8.0, 6.0], extra_similarities=[scaffold])
+    assert len(pairs) == 1 and pairs[0, 2] == pytest.approx(0.95)
