@@ -39,13 +39,19 @@ def _randomized_score(estimator, X, y, variant, statistic, n_folds, seed):
     return _score(estimator, _shuffle_columns(X, rng), y, statistic, n_folds, seed)
 
 
+def _indexed_randomized_score(i, estimator, X, y, variant, statistic, n_folds, seed):
+    return i, _randomized_score(estimator, X, y, variant, statistic, n_folds, seed + i)
+
+
 def y_randomization(estimator, X, y, n_permutations=100, n_folds=5, seed=42, n_jobs=1, variant="y_permutation",
-                    statistic="fit_r2"):
+                    statistic="fit_r2", true_r2=None, done=None, on_result=None):
     """Score of `estimator` on the real data and on n_permutations randomized versions of it.
 
     Randomization i (i = 0..n-1) uses numpy.random.default_rng(seed + i) and, with statistic="cv_r2", the folds
     KFold(n_folds, shuffle=True, random_state=seed + i); the real-data score uses the folds of `seed`. Every result is
-    reproducible and independent of n_jobs; the estimator is cloned for every fit and never modified.
+    reproducible and independent of n_jobs; the estimator is cloned for every fit and never modified. Because every
+    score depends only on its own seed, a run interrupted part way can be resumed with `true_r2` and `done` from the
+    scores already obtained, and gives the same result as an uninterrupted one.
 
     Args:
         estimator: unfitted regressor containing the whole model-building procedure (descriptor selection included).
@@ -63,6 +69,11 @@ def y_randomization(estimator, X, y, n_permutations=100, n_folds=5, seed=42, n_j
         statistic: "fit_r2" (R2 of the model fitted to all the data, as in Rucker et al.'s multilinear regression) or
             "cv_r2" (mean K-fold cross-validated R2). Use "cv_r2" for flexible models such as tree ensembles, which fit
             even a random response almost perfectly and would make "fit_r2" uninformative.
+        true_r2: real-data score already computed by an earlier run with the same arguments; None computes it.
+        done: mapping randomization index -> score already computed by an earlier run with the same arguments; those
+            randomizations are not run again. None runs them all.
+        on_result: optional callable on_result(i, score), called as soon as randomization i is scored (i = -1 for the
+            real data), in completion order, so that the caller can save every score before the others finish.
 
     Returns:
         Dict: true_r2; permuted_r2 (array of n_permutations scores of the randomized data); permuted_mean; permuted_sd
@@ -74,10 +85,18 @@ def y_randomization(estimator, X, y, n_permutations=100, n_folds=5, seed=42, n_j
     if statistic not in STATISTICS:
         raise ValueError(f"statistic must be one of {STATISTICS}, not {statistic!r}")
     y = np.asarray(y)
-    true_r2 = _score(estimator, X, y, statistic, n_folds, seed, n_jobs=n_jobs)
-    permuted = np.array(Parallel(n_jobs=n_jobs)(
-        delayed(_randomized_score)(estimator, X, y, variant, statistic, n_folds, seed + i)
-        for i in range(n_permutations)))
+    if true_r2 is None:
+        true_r2 = _score(estimator, X, y, statistic, n_folds, seed, n_jobs=n_jobs)
+        if on_result is not None:
+            on_result(-1, true_r2)
+    scores = dict(done or {})
+    todo = [i for i in range(n_permutations) if i not in scores]
+    for i, score in Parallel(n_jobs=n_jobs, return_as="generator_unordered")(
+            delayed(_indexed_randomized_score)(i, estimator, X, y, variant, statistic, n_folds, seed) for i in todo):
+        scores[i] = score
+        if on_result is not None:
+            on_result(i, score)
+    permuted = np.array([scores[i] for i in range(n_permutations)])
     mean, sd = float(permuted.mean()), float(permuted.std())
     return {"true_r2": true_r2, "permuted_r2": permuted, "permuted_mean": mean, "permuted_sd": sd,
             "z": (true_r2 - mean) / sd if sd > 0 else 0.0,

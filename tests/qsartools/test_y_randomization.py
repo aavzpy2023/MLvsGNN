@@ -46,6 +46,20 @@ def test_reproducible_and_independent_of_n_jobs():
     assert a["true_r2"] == b["true_r2"]
 
 
+def test_resumed_run_equals_an_uninterrupted_one():
+    full = y_randomization(Ridge(), X, Y_SIGNAL, n_permutations=6, seed=2, statistic="cv_r2")
+    saved = {}
+    y_randomization(Ridge(), X, Y_SIGNAL, n_permutations=6, seed=2, statistic="cv_r2", n_jobs=2,
+                    on_result=saved.__setitem__)
+    assert sorted(saved) == [-1, 0, 1, 2, 3, 4, 5] and saved[-1] == full["true_r2"]
+    rerun = []
+    resumed = y_randomization(Ridge(), X, Y_SIGNAL, n_permutations=6, seed=2, statistic="cv_r2", true_r2=saved[-1],
+                              done={i: saved[i] for i in (0, 3, 4)}, on_result=lambda i, s: rerun.append(i))
+    assert sorted(rerun) == [1, 2, 5]
+    np.testing.assert_array_equal(resumed["permuted_r2"], full["permuted_r2"])
+    assert resumed["p_empirical"] == full["p_empirical"]
+
+
 def test_estimator_is_not_modified():
     model = Ridge()
     y_randomization(model, X, Y_SIGNAL, n_permutations=2)

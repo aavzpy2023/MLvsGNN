@@ -13,17 +13,83 @@ importance is significant against a null distribution obtained by permuting the 
 Sander & Lengauer, 2010, Bioinformatics 26:1340-1347).
 """
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.base import BaseEstimator, clone
 from sklearn.feature_selection import SelectorMixin
 from sklearn.inspection import permutation_importance
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import KFold
+from sklearn.utils import check_random_state
 
 
-def permutation_importance_mean(estimator, X_fit, y_fit, X_eval, y_eval, n_repeats=5, seed=42, n_jobs=1):
+def _permutation_orders(n_samples, n_repeats, seed):
+    # scikit-learn's permutation_importance draws one seed from `seed` and gives every feature a fresh RandomState of
+    # it, whose shuffles are applied cumulatively to the already-permuted column: repeat r shows the rows in order[r]
+    random_seed = check_random_state(seed).randint(np.iinfo(np.int32).max + 1)
+    rng, shuffling, order, orders = np.random.RandomState(random_seed), np.arange(n_samples), np.arange(n_samples), []
+    for _ in range(n_repeats):
+        rng.shuffle(shuffling)
+        order = order[shuffling]
+        orders.append(order)
+    return orders
+
+
+def _changed_rows_importances(fitted, X_eval, y_eval, columns, n_repeats, seed, batch_rows):
+    n, d = X_eval.shape
+    orders = _permutation_orders(n, n_repeats, seed)
+    as_input = (lambda A: A) if columns is None else (lambda A: pd.DataFrame(A, columns=columns))
+    base_pred = fitted.predict(as_input(X_eval))
+    baseline = -mean_squared_error(y_eval, base_pred)
+    importances = np.empty((d, n_repeats))
+    pending = []
+
+    def flush():
+        # one predict for the changed rows of every pending (feature, repeat); the other rows keep base_pred
+        if not pending:
+            return
+        blocks = []
+        for j, _, rows, values in pending:
+            block = X_eval[rows]
+            block[:, j] = values
+            blocks.append(block)
+        offsets = np.cumsum([0] + [len(block) for block in blocks])
+        pred_batch = fitted.predict(as_input(np.concatenate(blocks)))
+        for k, (j, r, rows, _) in enumerate(pending):
+            pred = base_pred.copy()
+            pred[rows] = pred_batch[offsets[k]:offsets[k + 1]]
+            importances[j, r] = baseline - -mean_squared_error(y_eval, pred)
+        pending.clear()
+
+    n_pending = 0
+    for j in range(d):
+        for r in range(n_repeats):
+            permuted = X_eval[orders[r], j]
+            rows = np.flatnonzero(permuted != X_eval[:, j])
+            if len(rows) == 0:
+                importances[j, r] = 0.0
+                continue
+            pending.append((j, r, rows, permuted[rows]))
+            n_pending += len(rows)
+            if n_pending >= batch_rows:
+                flush()
+                n_pending = 0
+    flush()
+    return np.mean(importances, axis=1)
+
+
+def permutation_importance_mean(estimator, X_fit, y_fit, X_eval, y_eval, n_repeats=5, seed=42, n_jobs=1,
+                                batch_rows=20000):
     """Fit a clone of `estimator` on (X_fit, y_fit) and return the mean permutation importance of every feature on
     (X_eval, y_eval), with scoring negative MSE (so a positive importance means the feature reduces the error).
+
+    The result is that of scikit-learn's permutation_importance(scoring="neg_mean_squared_error").importances_mean:
+    same permutations, same scores. By default only the rows whose value of the permuted feature actually changes are
+    predicted again, many (feature, repeat) pairs per call; the other rows keep their unpermuted prediction. For sparse
+    binary features such as fingerprint bits few rows change, which makes this many times faster. The importances are
+    identical for any estimator that predicts every row independently of the others (scikit-learn's regressors,
+    XGBoost, LightGBM).
 
     Args:
         estimator: unfitted regressor (it is cloned, never modified).
@@ -33,12 +99,19 @@ def permutation_importance_mean(estimator, X_fit, y_fit, X_eval, y_eval, n_repea
         y_eval: target values of X_eval.
         n_repeats: number of permutations of each feature; their score drops are averaged.
         seed: random_state of the permutations.
-        n_jobs: processes over features; with single-threaded estimators the result does not depend on it.
+        n_jobs: processes over features of scikit-learn's permutation_importance (batch_rows=None only); with
+            single-threaded estimators the result does not depend on it.
+        batch_rows: changed rows accumulated before a predict call (a call may exceed it by the rows of one feature);
+            memory grows with it. None calls scikit-learn's permutation_importance, one predict of the whole X_eval
+            per feature and repeat.
     """
     fitted = clone(estimator).fit(X_fit, y_fit)
-    result = permutation_importance(fitted, X_eval, y_eval, scoring="neg_mean_squared_error", n_repeats=n_repeats,
-                                    random_state=seed, n_jobs=n_jobs)
-    return result.importances_mean
+    if batch_rows is None:
+        result = permutation_importance(fitted, X_eval, y_eval, scoring="neg_mean_squared_error", n_repeats=n_repeats,
+                                        random_state=seed, n_jobs=n_jobs)
+        return result.importances_mean
+    columns = X_eval.columns if hasattr(X_eval, "columns") else None
+    return _changed_rows_importances(fitted,np.asarray(X_eval), np.asarray(y_eval), columns, n_repeats, seed, batch_rows)
 
 
 def oof_permutation_importance(estimator, X, y, n_folds=5, n_repeats=5, seed=42, n_jobs=1):

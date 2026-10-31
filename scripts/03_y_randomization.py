@@ -95,14 +95,36 @@ def main():
         potencies almost perfectly, so the R2 of the fit would not discriminate. A test passes when the permutation
         p-value is <= {ALPHA}.
     """)
+    # Every score is saved as soon as it is computed (Randomization -1 is the real data) and reused by a later run, so an
+    # interruption costs only the randomizations in progress. Delete the checkpoint when the procedure changes.
+    saved = {}
+    if os.path.exists(YRANDOM_CHECKPOINT_FILE):
+        for row in pd.read_csv(YRANDOM_CHECKPOINT_FILE, float_precision="round_trip").itertuples():
+            saved.setdefault(row.Test, {})[int(row.Randomization)] = float(row.R2)
+        logger.info(f"Resuming from {YRANDOM_CHECKPOINT_FILE}: "
+                    + ", ".join(f"{k} {len(v)} scores" for k, v in saved.items()))
+    else:
+        os.makedirs(os.path.dirname(YRANDOM_CHECKPOINT_FILE), exist_ok=True)
+        with open(YRANDOM_CHECKPOINT_FILE, "w") as f:
+            f.write("Test,Randomization,R2\n")
+
+    def checkpoint(prefix):
+        def save(i, score):
+            with open(YRANDOM_CHECKPOINT_FILE, "a") as f:
+                f.write(f"{prefix},{i},{score!r}\n")
+        return save
+
     rows, values = [], {}
     start_time = time.time()
     for prefix, procedure, variant in TESTS:
+        done = saved.get(prefix, {})
         logger.info(f"[{prefix}] {procedure} / {variant}: real data and {N_PERMUTATIONS} randomizations "
-                    f"({CV_FOLDS}-fold CV, {N_JOBS} worker processes)...")
+                    f"({CV_FOLDS}-fold CV, {N_JOBS} worker processes; {len(done)} scores from the checkpoint)...")
         t0 = time.time()
         res = y_randomization(procedures[procedure], X, y_true, n_permutations=N_PERMUTATIONS, n_folds=CV_FOLDS,
-                              seed=RANDOM_STATE, n_jobs=N_JOBS, variant=variant, statistic="cv_r2")
+                              seed=RANDOM_STATE, n_jobs=N_JOBS, variant=variant, statistic="cv_r2",
+                              true_r2=done.get(-1), done={i: s for i, s in done.items() if i >= 0},
+                              on_result=checkpoint(prefix))
         passed = res["p_empirical"] <= ALPHA
         logger.info(f"[{prefix}] real R2 = {res['true_r2']:.4f} | randomized R2 = {res['permuted_mean']:.4f} "
                     f"± {res['permuted_sd']:.4f} | Z = {res['z']:.1f} | p = {res['p_empirical']:.4f} -> "

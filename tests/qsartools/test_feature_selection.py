@@ -1,8 +1,10 @@
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
+from sklearn.svm import SVR
 
 from qsartools.feature_selection import oof_permutation_importance, permutation_importance_mean, select_by_importance
 
@@ -17,6 +19,24 @@ def test_matches_sklearn_and_ranks_informative_features():
                                  scoring="neg_mean_squared_error", n_repeats=5, random_state=1).importances_mean
     np.testing.assert_array_equal(imp, ref)
     assert imp[0] > imp[1] > max(imp[2:]) and imp[0] > 1
+
+
+def test_repredicting_only_changed_rows_gives_sklearn_importances_exactly():
+    # Sparse bits (an all-zero one included, whose permutation changes no row) as in a fingerprint, an SVR and a forest,
+    # several batch sizes, and a DataFrame that keeps its column names
+    bits = (RNG.random((150, 8)) < 0.08).astype(np.int8)
+    bits[:, -1] = 0
+    y = 2.0 * bits[:, 0] - bits[:, 1] + RNG.normal(0, 0.1, 150)
+    frame = pd.DataFrame(bits, columns=[f"fp_{i}" for i in range(8)])
+    for model in (SVR(), RandomForestRegressor(n_estimators=10, random_state=0)):
+        for data in (bits, frame):
+            ref = permutation_importance(model.fit(data[:100], y[:100]), data[100:], y[100:],
+                                         scoring="neg_mean_squared_error", n_repeats=3, random_state=7).importances_mean
+            for batch_rows in (1, 7, 20000, None):
+                imp = permutation_importance_mean(model, data[:100], y[:100], data[100:], y[100:], n_repeats=3, seed=7,
+                                                  batch_rows=batch_rows)
+                np.testing.assert_array_equal(imp, ref)
+    assert ref[-1] == 0.0
 
 
 def test_oof_is_the_mean_of_per_fold_importances():
