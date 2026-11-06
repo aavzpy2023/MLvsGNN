@@ -1,4 +1,4 @@
-=== START LOG: 01_nested_cv_stacking.py [2026-10-23 07:33:20] ===
+=== START LOG: 01_nested_cv_stacking.py [2026-11-01 17:18:40] ===
 
 [INFO] Active profile: workstation | N_JOBS=46 | Outer folds=5x5=25
 [DATA] /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup_with_outliers.csv: 861 rows read, 861 usable (SMILES and pIC50 present). pIC50 range 1.56 - 11.68, mean 6.37, SD 1.28.
@@ -35,23 +35,119 @@
 ####################################################################################################
 # NESTED CV (5x5=25 Folds) — REPRESENTATION: morgan
 ####################################################################################################
-[CHECKPOINT] 25/25 folds already completed for 'morgan', resuming...
+[morgan] Fold 1/25 -> Best: XGB+SVM+kNN     | R2_outer: 0.8058 | MAE: 0.4262 (2014.6s)
+[morgan] Fold 2/25 -> Best: RF+SVM          | R2_outer: 0.6923 | MAE: 0.4860 (1946.8s)
+[morgan] Fold 3/25 -> Best: LGBM+XGB+kNN    | R2_outer: 0.7164 | MAE: 0.4460 (1931.0s)
+[morgan] Fold 4/25 -> Best: XGB+SVM         | R2_outer: 0.7787 | MAE: 0.4169 (1905.5s)
+[morgan] Fold 5/25 -> Best: XGB+SVM+kNN     | R2_outer: 0.7266 | MAE: 0.4703 (1837.9s)
+[morgan] Fold 6/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7853 | MAE: 0.4427 (1943.2s)
+[morgan] Fold 7/25 -> Best: RF+SVM          | R2_outer: 0.7000 | MAE: 0.4912 (1920.3s)
+[morgan] Fold 8/25 -> Best: LGBM+XGB+SVM    | R2_outer: 0.7852 | MAE: 0.4339 (1914.8s)
+[morgan] Fold 9/25 -> Best: RF+SVM          | R2_outer: 0.8202 | MAE: 0.3881 (1945.6s)
+[morgan] Fold 10/25 -> Best: RF+XGB+SVM      | R2_outer: 0.6671 | MAE: 0.5084 (1982.5s)
+[morgan] Fold 11/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7688 | MAE: 0.4210 (2016.4s)
+[morgan] Fold 12/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7679 | MAE: 0.4343 (1962.5s)
+[morgan] Fold 13/25 -> Best: RF+XGB+SVM      | R2_outer: 0.6985 | MAE: 0.4681 (1873.6s)
+[morgan] Fold 14/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7394 | MAE: 0.4521 (1956.6s)
+[morgan] Fold 15/25 -> Best: LGBM+XGB+SVM    | R2_outer: 0.7772 | MAE: 0.4494 (1901.4s)
+[morgan] Fold 16/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7144 | MAE: 0.5063 (1954.1s)
+[morgan] Fold 17/25 -> Best: RF+LGBM+XGB     | R2_outer: 0.8153 | MAE: 0.4026 (1940.3s)
+[morgan] Fold 18/25 -> Best: RF+SVM          | R2_outer: 0.6818 | MAE: 0.4915 (1928.5s)
+[morgan] Fold 19/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7580 | MAE: 0.4399 (1987.2s)
+[morgan] Fold 20/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7908 | MAE: 0.4033 (1972.2s)
+[morgan] Fold 21/25 -> Best: RF+XGB+SVM      | R2_outer: 0.6821 | MAE: 0.4578 (1853.8s)
+[morgan] Fold 22/25 -> Best: LGBM+XGB+SVM    | R2_outer: 0.7895 | MAE: 0.4362 (1951.2s)
+[morgan] Fold 23/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7890 | MAE: 0.4311 (1995.4s)
+[morgan] Fold 24/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7227 | MAE: 0.4890 (1958.0s)
+[morgan] Fold 25/25 -> Best: RF+XGB+SVM      | R2_outer: 0.7648 | MAE: 0.4437 (1969.1s)
 
 ####################################################################################################
 # NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d
 ####################################################################################################
-[CHECKPOINT] 25/25 folds already completed for 'rdkit2d', resuming...
+[rdkit2d] Fold 1/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7674 | MAE: 0.4655 (1182.9s)
+[rdkit2d] Fold 2/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.6596 | MAE: 0.4939 (1174.4s)
+[rdkit2d] Fold 3/25 -> Best: ET+LGBM         | R2_outer: 0.6930 | MAE: 0.4867 (1183.3s)
+[rdkit2d] Fold 4/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7282 | MAE: 0.4786 (1178.0s)
+[rdkit2d] Fold 5/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.6933 | MAE: 0.4986 (1185.9s)
+[rdkit2d] Fold 6/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7384 | MAE: 0.4921 (1188.0s)
+[rdkit2d] Fold 7/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.6658 | MAE: 0.5110 (1173.9s)
+[rdkit2d] Fold 8/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7544 | MAE: 0.4558 (1181.5s)
+[rdkit2d] Fold 9/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7940 | MAE: 0.4041 (1179.8s)
+[rdkit2d] Fold 10/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.6161 | MAE: 0.5482 (1176.9s)
+[rdkit2d] Fold 11/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7550 | MAE: 0.4534 (1186.3s)
+[rdkit2d] Fold 12/25 -> Best: RF+ET+SVM       | R2_outer: 0.7073 | MAE: 0.4933 (1213.1s)
+[rdkit2d] Fold 13/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.6586 | MAE: 0.4957 (1174.5s)
+[rdkit2d] Fold 14/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.6738 | MAE: 0.5238 (1174.9s)
+[rdkit2d] Fold 15/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.6820 | MAE: 0.5088 (1190.2s)
+[rdkit2d] Fold 16/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7269 | MAE: 0.4876 (1181.8s)
+[rdkit2d] Fold 17/25 -> Best: RF+ET+SVM       | R2_outer: 0.7808 | MAE: 0.4042 (1218.5s)
+[rdkit2d] Fold 18/25 -> Best: RF+ET+SVM       | R2_outer: 0.5880 | MAE: 0.5584 (1219.2s)
+[rdkit2d] Fold 19/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7180 | MAE: 0.4657 (1182.0s)
+[rdkit2d] Fold 20/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7579 | MAE: 0.4544 (1187.3s)
+[rdkit2d] Fold 21/25 -> Best: ET+SVM          | R2_outer: 0.6347 | MAE: 0.4842 (1173.4s)
+[rdkit2d] Fold 22/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7859 | MAE: 0.4342 (1193.3s)
+[rdkit2d] Fold 23/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7211 | MAE: 0.4747 (1182.4s)
+[rdkit2d] Fold 24/25 -> Best: RF+ET+SVM       | R2_outer: 0.7211 | MAE: 0.4706 (1221.9s)
+[rdkit2d] Fold 25/25 -> Best: RF+ET+SVM       | R2_outer: 0.7057 | MAE: 0.5058 (1213.0s)
 
 ####################################################################################################
 # NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d_fp
 ####################################################################################################
-[CHECKPOINT] 25/25 folds already completed for 'rdkit2d_fp', resuming...
+[rdkit2d_fp] Fold 1/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.8021 | MAE: 0.4301 (2536.4s)
+[rdkit2d_fp] Fold 2/25 -> Best: ET+SVM          | R2_outer: 0.7183 | MAE: 0.4472 (2469.3s)
+[rdkit2d_fp] Fold 3/25 -> Best: ET+SVM          | R2_outer: 0.7287 | MAE: 0.4424 (2526.9s)
+[rdkit2d_fp] Fold 4/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7690 | MAE: 0.4200 (2502.0s)
+[rdkit2d_fp] Fold 5/25 -> Best: ET+SVM          | R2_outer: 0.7340 | MAE: 0.4422 (2524.9s)
+[rdkit2d_fp] Fold 6/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7790 | MAE: 0.4495 (2547.6s)
+[rdkit2d_fp] Fold 7/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7082 | MAE: 0.4712 (2491.8s)
+[rdkit2d_fp] Fold 8/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7983 | MAE: 0.4174 (2501.0s)
+[rdkit2d_fp] Fold 9/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.8279 | MAE: 0.3823 (2511.8s)
+[rdkit2d_fp] Fold 10/25 -> Best: ET+SVM          | R2_outer: 0.6849 | MAE: 0.4947 (2508.7s)
+[rdkit2d_fp] Fold 11/25 -> Best: ET+SVM          | R2_outer: 0.7609 | MAE: 0.4180 (2534.4s)
+[rdkit2d_fp] Fold 12/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7893 | MAE: 0.4138 (2495.2s)
+[rdkit2d_fp] Fold 13/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7141 | MAE: 0.4366 (2479.1s)
+[rdkit2d_fp] Fold 14/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7324 | MAE: 0.4490 (2508.2s)
+[rdkit2d_fp] Fold 15/25 -> Best: ET+SVM          | R2_outer: 0.7432 | MAE: 0.4557 (2534.2s)
+[rdkit2d_fp] Fold 16/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7321 | MAE: 0.4808 (2515.8s)
+[rdkit2d_fp] Fold 17/25 -> Best: ET+XGB+SVM      | R2_outer: 0.8150 | MAE: 0.3896 (2504.9s)
+[rdkit2d_fp] Fold 18/25 -> Best: ET+XGB+SVM      | R2_outer: 0.6958 | MAE: 0.4820 (2512.3s)
+[rdkit2d_fp] Fold 19/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7496 | MAE: 0.4475 (2528.1s)
+[rdkit2d_fp] Fold 20/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.8130 | MAE: 0.3869 (2561.5s)
+[rdkit2d_fp] Fold 21/25 -> Best: ET+SVM+kNN      | R2_outer: 0.6852 | MAE: 0.4386 (2470.8s)
+[rdkit2d_fp] Fold 22/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.8171 | MAE: 0.4017 (2557.0s)
+[rdkit2d_fp] Fold 23/25 -> Best: ET+XGB+SVM      | R2_outer: 0.7552 | MAE: 0.4490 (2540.1s)
+[rdkit2d_fp] Fold 24/25 -> Best: ET+XGB+SVM      | R2_outer: 0.7310 | MAE: 0.4707 (2541.4s)
+[rdkit2d_fp] Fold 25/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7421 | MAE: 0.4630 (2467.9s)
 
 ####################################################################################################
 # NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d3d_fp
 ####################################################################################################
     [INFO] Generating 3D conformers (ETKDGv3 + MMFF)...
-[CHECKPOINT] 25/25 folds already completed for 'rdkit2d3d_fp', resuming...
+[rdkit2d3d_fp] Fold 1/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7996 | MAE: 0.4341 (2637.7s)
+[rdkit2d3d_fp] Fold 2/25 -> Best: ET+SVM          | R2_outer: 0.7170 | MAE: 0.4438 (2556.8s)
+[rdkit2d3d_fp] Fold 3/25 -> Best: ET+SVM          | R2_outer: 0.7288 | MAE: 0.4443 (2622.2s)
+[rdkit2d3d_fp] Fold 4/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7707 | MAE: 0.4197 (2603.3s)
+[rdkit2d3d_fp] Fold 5/25 -> Best: ET+SVM          | R2_outer: 0.7298 | MAE: 0.4466 (2627.1s)
+[rdkit2d3d_fp] Fold 6/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7825 | MAE: 0.4489 (2639.3s)
+[rdkit2d3d_fp] Fold 7/25 -> Best: RF+ET+SVM       | R2_outer: 0.7061 | MAE: 0.4666 (2655.9s)
+[rdkit2d3d_fp] Fold 8/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.8112 | MAE: 0.4005 (2600.2s)
+[rdkit2d3d_fp] Fold 9/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.8157 | MAE: 0.3981 (2606.2s)
+[rdkit2d3d_fp] Fold 10/25 -> Best: ET+SVM          | R2_outer: 0.6828 | MAE: 0.5011 (2599.6s)
+[rdkit2d3d_fp] Fold 11/25 -> Best: ET+SVM          | R2_outer: 0.7602 | MAE: 0.4203 (2626.4s)
+[rdkit2d3d_fp] Fold 12/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7944 | MAE: 0.4116 (2599.8s)
+[rdkit2d3d_fp] Fold 13/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7114 | MAE: 0.4475 (2575.9s)
+[rdkit2d3d_fp] Fold 14/25 -> Best: RF+ET+SVM       | R2_outer: 0.7364 | MAE: 0.4488 (2673.3s)
+[rdkit2d3d_fp] Fold 15/25 -> Best: ET+SVM          | R2_outer: 0.7518 | MAE: 0.4496 (2634.4s)
+[rdkit2d3d_fp] Fold 16/25 -> Best: ET+XGB+SVM      | R2_outer: 0.7302 | MAE: 0.4817 (2613.1s)
+[rdkit2d3d_fp] Fold 17/25 -> Best: ET+XGB+SVM      | R2_outer: 0.8116 | MAE: 0.3971 (2602.3s)
+[rdkit2d3d_fp] Fold 18/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7024 | MAE: 0.4791 (2608.5s)
+[rdkit2d3d_fp] Fold 19/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7439 | MAE: 0.4477 (2626.0s)
+[rdkit2d3d_fp] Fold 20/25 -> Best: ET+SVM          | R2_outer: 0.8170 | MAE: 0.3803 (2645.1s)
+[rdkit2d3d_fp] Fold 21/25 -> Best: ET+SVM+kNN      | R2_outer: 0.6842 | MAE: 0.4420 (2570.7s)
+[rdkit2d3d_fp] Fold 22/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.8090 | MAE: 0.4049 (2648.0s)
+[rdkit2d3d_fp] Fold 23/25 -> Best: ET+XGB+SVM      | R2_outer: 0.7746 | MAE: 0.4329 (2634.0s)
+[rdkit2d3d_fp] Fold 24/25 -> Best: ET+XGB+SVM      | R2_outer: 0.7285 | MAE: 0.4784 (2630.7s)
+[rdkit2d3d_fp] Fold 25/25 -> Best: ET+LGBM+SVM     | R2_outer: 0.7410 | MAE: 0.4685 (2567.1s)
 
 ====================================================================================================
 RESULTS SUMMARY (Nested CV 5x5)
@@ -76,28 +172,28 @@ RESULTS SUMMARY (Nested CV 5x5)
 
 Table 1. R² by molecular representation:
         Mode     mean      std  count
-rdkit2d3d_fp 0.747156 0.044300     25
-      morgan 0.746301 0.042682     25
-  rdkit2d_fp 0.744283 0.043122     25
-     rdkit2d 0.704397 0.053149     25
+rdkit2d3d_fp 0.753629 0.042704     25
+  rdkit2d_fp 0.753052 0.042673     25
+      morgan 0.749504 0.045858     25
+     rdkit2d 0.709081 0.053349     25
 
 Table 2. t-tests (Nadeau-Bengio Corrected) vs Original Publication:
         Mode Paper_reference_label  Paper_R2  Our_R2_mean  Our_R2_std    t_stat  p_value  Significant_p<0.05
-      morgan         PaperBaseline      0.75     0.746301    0.041820 -0.160937 0.873490               False
-      morgan         PaperSelected      0.82     0.746301    0.041820 -3.206379 0.003782                True
-      morgan            PaperFinal      0.85     0.746301    0.041820 -4.511568 0.000144                True
-     rdkit2d         PaperBaseline      0.75     0.704397    0.052075 -1.593295 0.124180               False
-     rdkit2d         PaperSelected      0.82     0.704397    0.052075 -4.038988 0.000477                True
-     rdkit2d            PaperFinal      0.85     0.704397    0.052075 -5.087142 0.000033                True
-  rdkit2d_fp         PaperBaseline      0.75     0.744283    0.042251 -0.246181 0.807636               False
-  rdkit2d_fp         PaperSelected      0.82     0.744283    0.042251 -3.260547 0.003316                True
-  rdkit2d_fp            PaperFinal      0.85     0.744283    0.042251 -4.552418 0.000130                True
-rdkit2d3d_fp         PaperBaseline      0.75     0.747156    0.043405 -0.119226 0.906089               False
-rdkit2d3d_fp         PaperSelected      0.82     0.747156    0.043405 -3.053472 0.005463                True
-rdkit2d3d_fp            PaperFinal      0.85     0.747156    0.043405 -4.311006 0.000240                True
+      morgan         PaperBaseline      0.75     0.749504    0.044931 -0.020087 0.984140               False
+      morgan         PaperSelected      0.82     0.749504    0.044931 -2.854653 0.008742                True
+      morgan            PaperFinal      0.85     0.749504    0.044931 -4.069467 0.000442                True
+     rdkit2d         PaperBaseline      0.75     0.709081    0.052271 -1.424277 0.167240               False
+     rdkit2d         PaperSelected      0.82     0.709081    0.052271 -3.860796 0.000748                True
+     rdkit2d            PaperFinal      0.85     0.709081    0.052271 -4.905019 0.000053                True
+  rdkit2d_fp         PaperBaseline      0.75     0.753052    0.041811  0.132796 0.895462               False
+  rdkit2d_fp         PaperSelected      0.82     0.753052    0.041811 -2.913331 0.007618                True
+  rdkit2d_fp            PaperFinal      0.85     0.753052    0.041811 -4.218814 0.000303                True
+rdkit2d3d_fp         PaperBaseline      0.75     0.753629    0.041841  0.157793 0.875940               False
+rdkit2d3d_fp         PaperSelected      0.82     0.753629    0.041841 -2.886114 0.008121                True
+rdkit2d3d_fp            PaperFinal      0.85     0.753629    0.041841 -4.190646 0.000325                True
 
-Paired comparison (Nadeau-Bengio) between rdkit2d3d_fp and morgan:
-  t = 0.090, p = 0.9294
+Paired comparison (Nadeau-Bengio) between rdkit2d3d_fp and rdkit2d_fp:
+  t = 0.163, p = 0.8718
 
 [SUPPLEMENTARY CSV] Selection frequency exported to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/sensitivity/results/01_architecture_selection_frequency.csv
 
@@ -110,6 +206,13 @@ Paired comparison (Nadeau-Bengio) between rdkit2d3d_fp and morgan:
   good). Step 03 uses the most frequent winner. SVM appearing very often                 suggests
   smooth, similarity-based models fit this dataset well.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Nested CV error of each outer repeat on its pooled test predictions (Krstajic et al., 2014):
+              R2_mean  R2_min  R2_max  MAE_mean  MAE_min  MAE_max
+morgan         0.7508  0.7468  0.7535    0.4494   0.4450   0.4528
+rdkit2d        0.7109  0.6972  0.7174    0.4820   0.4739   0.4950
+rdkit2d3d_fp   0.7547  0.7495  0.7615    0.4398   0.4355   0.4453
+rdkit2d_fp     0.7541  0.7483  0.7618    0.4392   0.4346   0.4446
 [LATEX] Variables successfully exported to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/sensitivity/latex/paper_variables.tex
 
 === END LOG: 01_nested_cv_stacking.py [EXIT CODE: 0] ===

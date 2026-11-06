@@ -1,4 +1,4 @@
-=== START LOG: 18_karimova_audit.py [2026-10-23 07:33:17] ===
+=== START LOG: 18_karimova_audit.py [2026-11-06 12:18:06] ===
 
 =========================================================================================================
 18_karimova_audit.py — Audit of the original deep network: reproduction, leakage ladder and shared-fold comparison
@@ -55,14 +55,14 @@ Leak-free original network on the shared folds:
   dnn_baseline R2 = 0.6733 ± 0.0862 | MAE = 0.4808
   dnn_full     R2 = 0.7151 ± 0.0766 | MAE = 0.4568
   model      other Metric  mean_diff  p_raw  ci90_low  ci90_high  p_equiv
-DnnFull GnnDefault   RTwo    -0.0097 0.8325   -0.0874     0.0680   0.1919
-DnnFull GnnDefault    Mae    -0.0180 0.3831   -0.0526     0.0167   0.0636
+DnnFull GnnDefault   RTwo    -0.0098 0.8259   -0.0854     0.0658   0.1861
+DnnFull GnnDefault    Mae    -0.0177 0.3626   -0.0504     0.0150   0.0520
 DnnFull   GnnTuned   RTwo    -0.0111 0.7995   -0.0851     0.0629   0.1888
 DnnFull   GnnTuned    Mae    -0.0136 0.4551   -0.0441     0.0170   0.0263
 DnnFull    DnnBase   RTwo     0.0417 0.4138   -0.0441     0.1276   0.4353
 DnnFull    DnnBase    Mae    -0.0241 0.1684   -0.0531     0.0049   0.0697
-DnnBase GnnDefault   RTwo    -0.0514 0.2635   -0.1283     0.0254   0.5127
-DnnBase GnnDefault    Mae     0.0061 0.7583   -0.0274     0.0395   0.0171
+DnnBase GnnDefault   RTwo    -0.0516 0.2454   -0.1256     0.0225   0.5142
+DnnBase GnnDefault    Mae     0.0064 0.7302   -0.0248     0.0375   0.0123
 DnnBase   GnnTuned   RTwo    -0.0528 0.2433   -0.1284     0.0227   0.5254
 DnnBase   GnnTuned    Mae     0.0105 0.5336   -0.0180     0.0390   0.0130
 

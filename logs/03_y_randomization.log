@@ -1,8 +1,8 @@
-=== START LOG: 03_y_randomization.py [2026-10-23 08:07:36] ===
+=== START LOG: 03_y_randomization.py [2026-10-31 20:57:01] ===
 
-2026-10-23 08:07:38,436 | INFO | ================================================================================
-2026-10-23 08:07:38,436 | INFO | 03_y_randomization.py — Model Robustness Test (Y-Randomization)
-2026-10-23 08:07:38,436 | INFO | ================================================================================
+2026-10-31 20:57:03,728 | INFO | ================================================================================
+2026-10-31 20:57:03,728 | INFO | 03_y_randomization.py — Model Robustness Test (Y-Randomization)
+2026-10-31 20:57:03,729 | INFO | ================================================================================
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] What this step does
@@ -16,37 +16,39 @@
   R2 is the fraction of the variation in potency that the model explains: 1.0 is perfect, 0 is no
   better than always         predicting the average potency, negative is worse than that.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2026-10-23 08:07:38,437 | INFO | Deployed model -> representation: 'morgan', architecture: 'RF+XGB+SVM'
-2026-10-23 08:07:38,437 | INFO | Loading training data from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
-2026-10-23 08:07:38,445 | INFO | Successfully loaded 859 valid SMILES and target values.
-2026-10-23 08:07:38,445 | INFO | Generating feature matrix X for representation mode 'morgan'...
-2026-10-23 08:07:38,751 | INFO | Feature matrix dimensions: (859, 2048)
-2026-10-23 08:07:38,753 | INFO | Evaluating the unpermuted model and 100 target permutations (5-fold CV, 46 worker processes)...
-2026-10-23 09:01:32,857 | INFO | Baseline Unpermuted R2: 0.7649
-2026-10-23 09:01:32,866 | INFO | Y-randomization distribution saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/03_y_randomization_scores.csv
+2026-10-31 20:57:03,729 | INFO | Deployed model -> representation: 'morgan', architecture: 'RF+XGB+SVM'
+2026-10-31 20:57:03,729 | INFO | Loading training data from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
+2026-10-31 20:57:03,737 | INFO | Successfully loaded 859 valid SMILES and target values.
+2026-10-31 20:57:03,737 | INFO | Generating feature matrix X for representation mode 'morgan'...
+2026-10-31 20:57:04,041 | INFO | Feature matrix dimensions: (859, 2048)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[EXPLAIN] How to read the report below
+[EXPLAIN] The four tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  'Baseline R2' is the real model (0.76). 'Random R2' is what the same model achieves when
-  potencies are shuffled         (-0.01 on average over 100 shuffles). The Z-score counts how many
-  standard deviations the real         result sits above the shuffled results; the pass criterion
-  used here is real R2 > mean + 2.33 SD (~99% confidence).
-  If the verdict is PASSED, the predictive signal is not a chance correlation. Note that this test
-  uses Morgan         fingerprints and the stacking architecture of the deployed screening model
-  (RF+XGB+SVM, as in step 04).
+  Rucker et al. (2007) define y-randomization as permuting the potencies and repeating the WHOLE
+  model-building         procedure, because the risk of chance correlation comes mainly from
+  selecting a few descriptors out of many. They         also propose a second comparison, with
+  descriptors replaced by random ones (pseudodescriptors), because real         descriptors are
+  intercorrelated and shuffled potencies alone give lower chance scores.
+  Each test is run on the stacking alone ("architecture", all 2048 bits) and on the procedure that
+  produces the         screening model ("procedure": the out-of-fold permutation-importance bit
+  selection of step 04, redone in every         training set, then the stacking). Scores are
+  5-fold cross-validated R2: tree ensembles fit even random         potencies almost perfectly, so
+  the R2 of the fit would not discriminate. A test passes when the permutation         p-value is
+  <= 0.01.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2026-10-23 09:01:32,867 | INFO | --------------------------------------------------------------------------------
-2026-10-23 09:01:32,868 | INFO | Y-RANDOMIZATION INTEGRITY REPORT
-2026-10-23 09:01:32,868 | INFO | --------------------------------------------------------------------------------
-2026-10-23 09:01:32,868 | INFO |   Baseline R2 (True Target) : 0.7649
-2026-10-23 09:01:32,868 | INFO |   Random R2 (Mean)          : -0.0138
-2026-10-23 09:01:32,868 | INFO |   Random R2 (Std)           : 0.0081
-2026-10-23 09:01:32,868 | INFO |   Z-Score                   : 96.13
-2026-10-23 09:01:32,869 | INFO | ACADEMIC VERDICT: PASSED. Model performance on true target is significantly superior to random chance (no memory leakage/overfitting).
-2026-10-23 09:01:32,869 | INFO | Exporting Y-Randomization LaTeX variables to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/yrandom_variables.tex
-2026-10-23 09:01:32,870 | INFO | LaTeX variable export completed successfully.
-2026-10-23 09:01:32,870 | INFO | Total execution time: 3234.1 seconds
+2026-10-31 20:57:04,044 | INFO | [YRandom] architecture / y_permutation: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
+2026-10-31 21:51:08,914 | INFO | [YRandom] real R2 = 0.7787 | randomized R2 = -0.0136 ± 0.0084 | Z = 93.9 | p = 0.0099 -> PASSED (3245s)
+2026-10-31 21:51:08,915 | INFO | [YRandomPseudo] architecture / pseudodescriptors: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
+2026-10-31 22:37:06,707 | INFO | [YRandomPseudo] real R2 = 0.7787 | randomized R2 = -0.0136 ± 0.0083 | Z = 95.7 | p = 0.0099 -> PASSED (2758s)
+2026-10-31 22:37:06,707 | INFO | [YRandomProc] procedure / y_permutation: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
+2026-11-01 07:27:25,557 | INFO | [YRandomProc] real R2 = 0.7722 | randomized R2 = -0.0365 ± 0.0169 | Z = 47.8 | p = 0.0099 -> PASSED (31819s)
+2026-11-01 07:27:25,558 | INFO | [YRandomProcPseudo] procedure / pseudodescriptors: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
+2026-11-01 16:01:11,196 | INFO | [YRandomProcPseudo] real R2 = 0.7722 | randomized R2 = -0.0959 ± 0.0322 | Z = 27.0 | p = 0.0099 -> PASSED (30826s)
+2026-11-01 16:01:11,216 | INFO | Randomized scores of the four tests saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/03_y_randomization_scores.csv
+2026-11-01 16:01:11,216 | INFO | Exporting Y-Randomization LaTeX variables to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/yrandom_variables.tex
+2026-11-01 16:01:11,217 | INFO | LaTeX variable export completed successfully.
+2026-11-01 16:01:11,217 | INFO | Total execution time: 68647.2 seconds
 
 === END LOG: 03_y_randomization.py [EXIT CODE: 0] ===
 

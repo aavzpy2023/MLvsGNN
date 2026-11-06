@@ -1,4 +1,4 @@
-=== START LOG: 12_gnn_tuned.py [2026-10-23 07:33:13] ===
+=== START LOG: 12_gnn_tuned.py [2026-11-06 12:18:02] ===
 
 =========================================================================================================
 12_gnn_tuned.py — D-MPNN with hyperparameter search inside every outer fold (nested)
@@ -27,14 +27,14 @@ h300_d3_p0.2     2
 h600_d3_p0.2     1
 h300_d3_p0.0     1
 Metric    Classical             Label  mean_diff_model_minus_classical       t  p_raw  ci90_low  ci90_high  equiv_margin  p_equiv  p_holm
-  RTwo       morgan            Morgan                          -0.0330 -1.9573 0.0620   -0.0619    -0.0042          0.05   0.1627  0.1241
-  RTwo      rdkit2d         RdkitTwoD                           0.0037  0.1753 0.8623   -0.0321     0.0394          0.05   0.0182  0.8623
-  RTwo   rdkit2d_fp       RdkitTwoDFp                          -0.0438 -2.2783 0.0319   -0.0767    -0.0109          0.05   0.3748  0.0957
-  RTwo rdkit2d3d_fp RdkitTwoDThreeDFp                          -0.0419 -2.4265 0.0231   -0.0714    -0.0123          0.05   0.3208  0.0925
-   Mae       morgan            Morgan                           0.0226  1.5057 0.1452   -0.0031     0.0484          0.05   0.0407  0.2904
-   Mae      rdkit2d         RdkitTwoD                          -0.0008 -0.0516 0.9593   -0.0277     0.0261          0.05   0.0023  0.9593
-   Mae   rdkit2d_fp       RdkitTwoDFp                           0.0398  2.4408 0.0224    0.0119     0.0677          0.05   0.2695  0.0800
-   Mae rdkit2d3d_fp RdkitTwoDThreeDFp                           0.0388  2.4921 0.0200    0.0122     0.0655          0.05   0.2402  0.0800
+  RTwo       morgan            Morgan                          -0.0427 -2.5933 0.0159   -0.0708    -0.0145          0.05   0.3301  0.0436
+  RTwo      rdkit2d         RdkitTwoD                          -0.0019 -0.0946 0.9254   -0.0365     0.0327          0.05   0.0129  0.9254
+  RTwo   rdkit2d_fp       RdkitTwoDFp                          -0.0473 -2.6342 0.0145   -0.0781    -0.0166          0.05   0.4415  0.0436
+  RTwo rdkit2d3d_fp RdkitTwoDThreeDFp                          -0.0479 -2.7870 0.0102   -0.0773    -0.0185          0.05   0.4523  0.0409
+   Mae       morgan            Morgan                           0.0362  2.4272 0.0231    0.0107     0.0617          0.05   0.1816  0.0462
+   Mae      rdkit2d         RdkitTwoD                           0.0022  0.1450 0.8860   -0.0235     0.0279          0.05   0.0020  0.8860
+   Mae   rdkit2d_fp       RdkitTwoDFp                           0.0426  2.9264 0.0074    0.0177     0.0676          0.05   0.3089  0.0232
+   Mae rdkit2d3d_fp RdkitTwoDThreeDFp                           0.0425  3.0288 0.0058    0.0185     0.0665          0.05   0.2993  0.0232
 [EXPORT] LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_tuned_variables.tex
 [DONE] 12_gnn_tuned.py complete.
 

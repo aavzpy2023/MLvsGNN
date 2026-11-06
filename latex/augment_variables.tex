@@ -7,40 +7,40 @@
 \newcommand{\ExpNTest}{129}
 
 % --- Experiment A: Baseline Stacking (No Feat Sel, No Aug) ---
-\newcommand{\ExpARTwoMean}{0.7341}
-\newcommand{\ExpAMae}{0.4378}
-\newcommand{\ExpARTwoCILow}{0.6278}
-\newcommand{\ExpARTwoCIHigh}{0.8176}
+\newcommand{\ExpARTwoMean}{0.7327}
+\newcommand{\ExpAMae}{0.4407}
+\newcommand{\ExpARTwoCILow}{0.6269}
+\newcommand{\ExpARTwoCIHigh}{0.8171}
 
 % --- Experiment B: Permutation Importance Selection ---
-\newcommand{\ExpBRTwoMean}{0.7409}
-\newcommand{\ExpBMae}{0.4376}
-\newcommand{\ExpBRTwoCILow}{0.6394}
-\newcommand{\ExpBRTwoCIHigh}{0.8218}
+\newcommand{\ExpBRTwoMean}{0.7479}
+\newcommand{\ExpBMae}{0.4334}
+\newcommand{\ExpBRTwoCILow}{0.6474}
+\newcommand{\ExpBRTwoCIHigh}{0.8292}
 \newcommand{\ExpBNFeaturesTotal}{2048}
-\newcommand{\ExpBNFeaturesSelected}{765}
+\newcommand{\ExpBNFeaturesSelected}{747}
 
 % --- Experiment C: Feature Selection + Gaussian Augmentation ---
-\newcommand{\ExpCRTwoMean}{0.7233}
-\newcommand{\ExpCMae}{0.4485}
-\newcommand{\ExpCRTwoCILow}{0.6119}
-\newcommand{\ExpCRTwoCIHigh}{0.8115}
+\newcommand{\ExpCRTwoMean}{0.7319}
+\newcommand{\ExpCMae}{0.4386}
+\newcommand{\ExpCRTwoCILow}{0.6225}
+\newcommand{\ExpCRTwoCIHigh}{0.8200}
 \newcommand{\ExpCAugFactor}{3}
 \newcommand{\ExpCAugSizeTrain}{2190}
 \newcommand{\ExpCNoiseLevels}{0.01, 0.001}
 
 % --- Diagnostic: Experiments B/C with selection on the test set (leaky, original-study protocol) ---
-\newcommand{\ExpBleakyRTwoMean}{0.8303}
-\newcommand{\ExpBleakyMae}{0.3507}
-\newcommand{\ExpBleakyRTwoCILow}{0.7521}
-\newcommand{\ExpBleakyRTwoCIHigh}{0.8900}
-\newcommand{\ExpBleakyNFeaturesSelected}{463}
-\newcommand{\ExpCleakyRTwoMean}{0.8315}
-\newcommand{\ExpCleakyMae}{0.3563}
-\newcommand{\ExpCleakyRTwoCILow}{0.7555}
-\newcommand{\ExpCleakyRTwoCIHigh}{0.8881}
-\newcommand{\ExpCleakyNFeaturesSelected}{463}
-\newcommand{\ExpLeakyMaskJaccard}{0.3319}
+\newcommand{\ExpBleakyRTwoMean}{0.8361}
+\newcommand{\ExpBleakyMae}{0.3563}
+\newcommand{\ExpBleakyRTwoCILow}{0.7609}
+\newcommand{\ExpBleakyRTwoCIHigh}{0.8920}
+\newcommand{\ExpBleakyNFeaturesSelected}{446}
+\newcommand{\ExpCleakyRTwoMean}{0.8265}
+\newcommand{\ExpCleakyMae}{0.3654}
+\newcommand{\ExpCleakyRTwoCILow}{0.7479}
+\newcommand{\ExpCleakyRTwoCIHigh}{0.8853}
+\newcommand{\ExpCleakyNFeaturesSelected}{446}
+\newcommand{\ExpLeakyMaskJaccard}{0.3197}
 
 % --- Reference Benchmarks ---
 \providecommand{\PaperBaselineRTwo}{0.75}
@@ -49,73 +49,73 @@
 
 % --- Rigorous Statistical Evaluations vs Benchmarks ---
 \newcommand{\ExpAVsPaperBaselineInCI}{true}
-\newcommand{\ExpAVsPaperBaselinePBoot}{0.7230}
+\newcommand{\ExpAVsPaperBaselinePBoot}{0.6950}
 \newcommand{\ExpAVsPaperBaselineSig}{false}
 \newcommand{\ExpAVsPaperSelectedInCI}{false}
-\newcommand{\ExpAVsPaperSelectedPBoot}{0.0470}
+\newcommand{\ExpAVsPaperSelectedPBoot}{0.0440}
 \newcommand{\ExpAVsPaperSelectedSig}{true}
 \newcommand{\ExpAVsPaperFinalInCI}{false}
 \newcommand{\ExpAVsPaperFinalPBoot}{0.0050}
 \newcommand{\ExpAVsPaperFinalSig}{true}
 \newcommand{\ExpBVsPaperBaselineInCI}{true}
-\newcommand{\ExpBVsPaperBaselinePBoot}{0.8260}
+\newcommand{\ExpBVsPaperBaselinePBoot}{0.9480}
 \newcommand{\ExpBVsPaperBaselineSig}{false}
 \newcommand{\ExpBVsPaperSelectedInCI}{true}
-\newcommand{\ExpBVsPaperSelectedPBoot}{0.0610}
+\newcommand{\ExpBVsPaperSelectedPBoot}{0.0850}
 \newcommand{\ExpBVsPaperSelectedSig}{false}
 \newcommand{\ExpBVsPaperFinalInCI}{false}
-\newcommand{\ExpBVsPaperFinalPBoot}{0.0060}
+\newcommand{\ExpBVsPaperFinalPBoot}{0.0110}
 \newcommand{\ExpBVsPaperFinalSig}{true}
 \newcommand{\ExpCVsPaperBaselineInCI}{true}
-\newcommand{\ExpCVsPaperBaselinePBoot}{0.5930}
+\newcommand{\ExpCVsPaperBaselinePBoot}{0.7100}
 \newcommand{\ExpCVsPaperBaselineSig}{false}
-\newcommand{\ExpCVsPaperSelectedInCI}{false}
-\newcommand{\ExpCVsPaperSelectedPBoot}{0.0280}
-\newcommand{\ExpCVsPaperSelectedSig}{true}
+\newcommand{\ExpCVsPaperSelectedInCI}{true}
+\newcommand{\ExpCVsPaperSelectedPBoot}{0.0510}
+\newcommand{\ExpCVsPaperSelectedSig}{false}
 \newcommand{\ExpCVsPaperFinalInCI}{false}
-\newcommand{\ExpCVsPaperFinalPBoot}{0.0040}
+\newcommand{\ExpCVsPaperFinalPBoot}{0.0050}
 \newcommand{\ExpCVsPaperFinalSig}{true}
 \newcommand{\ExpBleakyVsPaperBaselineInCI}{false}
-\newcommand{\ExpBleakyVsPaperBaselinePBoot}{0.0440}
+\newcommand{\ExpBleakyVsPaperBaselinePBoot}{0.0250}
 \newcommand{\ExpBleakyVsPaperBaselineSig}{true}
 \newcommand{\ExpBleakyVsPaperSelectedInCI}{true}
-\newcommand{\ExpBleakyVsPaperSelectedPBoot}{0.7580}
+\newcommand{\ExpBleakyVsPaperSelectedPBoot}{0.6280}
 \newcommand{\ExpBleakyVsPaperSelectedSig}{false}
 \newcommand{\ExpBleakyVsPaperFinalInCI}{true}
-\newcommand{\ExpBleakyVsPaperFinalPBoot}{0.5450}
+\newcommand{\ExpBleakyVsPaperFinalPBoot}{0.6640}
 \newcommand{\ExpBleakyVsPaperFinalSig}{false}
-\newcommand{\ExpCleakyVsPaperBaselineInCI}{false}
-\newcommand{\ExpCleakyVsPaperBaselinePBoot}{0.0340}
-\newcommand{\ExpCleakyVsPaperBaselineSig}{true}
+\newcommand{\ExpCleakyVsPaperBaselineInCI}{true}
+\newcommand{\ExpCleakyVsPaperBaselinePBoot}{0.0560}
+\newcommand{\ExpCleakyVsPaperBaselineSig}{false}
 \newcommand{\ExpCleakyVsPaperSelectedInCI}{true}
-\newcommand{\ExpCleakyVsPaperSelectedPBoot}{0.7330}
+\newcommand{\ExpCleakyVsPaperSelectedPBoot}{0.8640}
 \newcommand{\ExpCleakyVsPaperSelectedSig}{false}
 \newcommand{\ExpCleakyVsPaperFinalInCI}{true}
-\newcommand{\ExpCleakyVsPaperFinalPBoot}{0.5450}
+\newcommand{\ExpCleakyVsPaperFinalPBoot}{0.4580}
 \newcommand{\ExpCleakyVsPaperFinalSig}{false}
 
 % --- Paired bootstrap R2 differences (same resampled test indices) ---
-\newcommand{\ExpCvsADeltaRTwo}{-0.0108}
-\newcommand{\ExpCvsADeltaCILow}{-0.0431}
-\newcommand{\ExpCvsADeltaCIHigh}{+0.0152}
-\newcommand{\ExpCvsADeltaPBoot}{0.4300}
-\newcommand{\ExpBvsADeltaRTwo}{+0.0068}
-\newcommand{\ExpBvsADeltaCILow}{-0.0223}
-\newcommand{\ExpBvsADeltaCIHigh}{+0.0326}
-\newcommand{\ExpBvsADeltaPBoot}{0.6140}
-\newcommand{\ExpCvsBDeltaRTwo}{-0.0176}
-\newcommand{\ExpCvsBDeltaCILow}{-0.0360}
-\newcommand{\ExpCvsBDeltaCIHigh}{-0.0018}
-\newcommand{\ExpCvsBDeltaPBoot}{0.0250}
-\newcommand{\ExpBleakyvsADeltaRTwo}{+0.0962}
-\newcommand{\ExpBleakyvsADeltaCILow}{+0.0548}
-\newcommand{\ExpBleakyvsADeltaCIHigh}{+0.1471}
+\newcommand{\ExpCvsADeltaRTwo}{-0.0008}
+\newcommand{\ExpCvsADeltaCILow}{-0.0270}
+\newcommand{\ExpCvsADeltaCIHigh}{+0.0200}
+\newcommand{\ExpCvsADeltaPBoot}{0.9890}
+\newcommand{\ExpBvsADeltaRTwo}{+0.0151}
+\newcommand{\ExpBvsADeltaCILow}{-0.0134}
+\newcommand{\ExpBvsADeltaCIHigh}{+0.0433}
+\newcommand{\ExpBvsADeltaPBoot}{0.2740}
+\newcommand{\ExpCvsBDeltaRTwo}{-0.0160}
+\newcommand{\ExpCvsBDeltaCILow}{-0.0361}
+\newcommand{\ExpCvsBDeltaCIHigh}{-0.0004}
+\newcommand{\ExpCvsBDeltaPBoot}{0.0460}
+\newcommand{\ExpBleakyvsADeltaRTwo}{+0.1033}
+\newcommand{\ExpBleakyvsADeltaCILow}{+0.0570}
+\newcommand{\ExpBleakyvsADeltaCIHigh}{+0.1591}
 \newcommand{\ExpBleakyvsADeltaPBoot}{0.0000}
-\newcommand{\ExpBleakyvsBDeltaRTwo}{+0.0894}
-\newcommand{\ExpBleakyvsBDeltaCILow}{+0.0458}
-\newcommand{\ExpBleakyvsBDeltaCIHigh}{+0.1424}
+\newcommand{\ExpBleakyvsBDeltaRTwo}{+0.0882}
+\newcommand{\ExpBleakyvsBDeltaCILow}{+0.0468}
+\newcommand{\ExpBleakyvsBDeltaCIHigh}{+0.1389}
 \newcommand{\ExpBleakyvsBDeltaPBoot}{0.0000}
-\newcommand{\ExpCleakyvsCDeltaRTwo}{+0.1082}
-\newcommand{\ExpCleakyvsCDeltaCILow}{+0.0615}
-\newcommand{\ExpCleakyvsCDeltaCIHigh}{+0.1676}
+\newcommand{\ExpCleakyvsCDeltaRTwo}{+0.0945}
+\newcommand{\ExpCleakyvsCDeltaCILow}{+0.0457}
+\newcommand{\ExpCleakyvsCDeltaCIHigh}{+0.1527}
 \newcommand{\ExpCleakyvsCDeltaPBoot}{0.0000}
