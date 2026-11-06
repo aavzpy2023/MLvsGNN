@@ -1,6 +1,6 @@
 import os
 import sys
-
+os.environ["PYTHONWARNINGS"] = "ignore::UserWarning:sklearn.utils.validation"
 # Prevent C/C++ sublibraries from generating extra threads inside joblib worker processes
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"

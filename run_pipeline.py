@@ -14,6 +14,8 @@ Usage (from any directory):
 Environment variables (optional): MLGNN_PROFILE (laptop|workstation), MLGNN_N_JOBS,
     MLGNN_TF_PYTHON (python of the separate TensorFlow environment, needed only by the scripts/tf/ steps).
 """
+
+
 import argparse
 import importlib.util
 import os
@@ -244,7 +246,9 @@ def execute_and_log(script_path, master_log_path, extra_env=None):
     # MLGNN_LOG_MANAGED: tells logger_utils not to open the step log itself (this runner owns it)
     # MPLBACKEND=Agg: figure scripts must not need a display (headless/SSH runs crash with the Tk backend)
     env = dict(os.environ, MLGNN_LOG_MANAGED="1", PYTHONUNBUFFERED="1", PYTHONIOENCODING="utf-8",
-               MPLBACKEND="Agg", **(extra_env or {}))
+               MPLBACKEND="Agg",
+               PYTHONWARNINGS="ignore::UserWarning:sklearn.utils.validation",
+               **(extra_env or {}))
 
     python = TF_PYTHON if is_tf_step(script_path) else sys.executable
     process = subprocess.Popen(
