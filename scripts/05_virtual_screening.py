@@ -219,10 +219,12 @@ def run():
         LLE = pIC50 minus logP, >= 5 suggests potency is not just coming from greasiness (lipophilicity); SEI = potency per
         polar surface area. A high pIC50 with poor LE/LLE usually means a big or greasy molecule that is a weaker lead.
     """)
-    # One row per ligand: the same compound listed as a free base and as several salts is ranked once (the shortest name)
-    unique_ligands = (df_res.assign(_name_length=df_res['Name'].astype(str).str.len())
-                      .sort_values(['pIC50_pred', '_name_length'], ascending=[False, True])
-                      .drop_duplicates('Ligand_SMILES').drop(columns='_name_length'))
+    # One row per ligand: the same compound listed as a free base and as several salts is ranked once. The surviving row
+    # carries the shortest name, except that a PubChem entry without a title ("CID 336805") never wins over a named one.
+    _names = df_res['Name'].astype(str)
+    unique_ligands = (df_res.assign(_untitled=_names.str.fullmatch(r"CID \d+"), _name_length=_names.str.len())
+                      .sort_values(['pIC50_pred', '_untitled', '_name_length'], ascending=[False, True, True])
+                      .drop_duplicates('Ligand_SMILES').drop(columns=['_untitled', '_name_length']))
 
     print("\n" + "-" * 100)
     print("REPORT B: Top 10 FDA Candidates (One Row per Ligand, Sorted by Predicted Affinity)")
