@@ -172,6 +172,9 @@ def main():
             values[f"{split}{label}Mae"] = f"{r[f'{split.lower()}_MAE_mean']:.4f}"
         values[f"Scaffold{label}DropRTwo"] = f"{r['drop_R2']:.4f}"
 
+    values["ScaffoldDropMin"] = f"{summary['drop_R2'].astype(float).min():.2f}"
+    values["ScaffoldDropMax"] = f"{summary['drop_R2'].astype(float).max():.2f}"
+
     pairwise = classical_pairwise(scaffold_ckpt, sc_modes)
     pairwise.to_csv(PAIRWISE_CSV, index=False)
     print("\nClassical representations against each other on the scaffold folds:")
