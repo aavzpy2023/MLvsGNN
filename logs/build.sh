@@ -5,6 +5,9 @@
 #   logs/build.sh                 every document
 #   logs/build.sh paper_reading   just that one
 #
+# Everything is driven through latexmk so that .latexmkrc applies: the auxiliary files stay in build/ and only the
+# PDF is copied back to the root, where it is versioned. Calling pdflatex directly bypasses that and litters the root.
+#
 # Documents:
 #   paper_reading   plain article, figures and tables next to the text they belong to. For reading and review.
 #   paper_ML_GNN    Elsevier cas-sc. Its class collects the figures at the end, which is the submission layout.
@@ -17,14 +20,12 @@ export BSTINPUTS=".//:./templates/springer/bst//:"
 DOCS=${*:-"paper_reading paper_ML_GNN paper_springer supplementary_ML_GNN"}
 STATUS=0
 for doc in $DOCS; do
-  pdflatex -interaction=nonstopmode "$doc.tex" > "logs/${doc}_build.log" 2>&1
-  bibtex "$doc" >> "logs/${doc}_build.log" 2>&1
-  pdflatex -interaction=nonstopmode "$doc.tex" >> "logs/${doc}_build.log" 2>&1
-  pdflatex -interaction=nonstopmode "$doc.tex" > "logs/${doc}_build.log" 2>&1
-  errors=$(grep -cE '^! ' "logs/${doc}_build.log")
-  undefined=$(grep -cE 'Citation .* undefined|Reference .* undefined' "logs/${doc}_build.log")
-  pages=$(grep -oE '\([0-9]+ pages' "logs/${doc}_build.log" | head -1 | tr -d '(')
+  latexmk -pdf -interaction=nonstopmode -halt-on-error=false "$doc.tex" > "build/${doc}_build.log" 2>&1
+  log="build/${doc}.log"
+  errors=$(grep -cE '^! ' "$log" 2>/dev/null); errors=${errors:-0}
+  undefined=$(grep -cE 'Citation .* undefined|Reference .* undefined' "$log" 2>/dev/null); undefined=${undefined:-0}
+  pages=$(pdfinfo "$doc.pdf" 2>/dev/null | awk '/^Pages/{print $2" pages"}')
   printf "  %-22s errors=%-3s undefined=%-3s %s\n" "$doc" "$errors" "$undefined" "$pages"
-  [ "$errors" != "0" ] || [ "$undefined" != "0" ] && STATUS=1
+  if [ "$errors" != "0" ] || [ "$undefined" != "0" ]; then STATUS=1; fi
 done
 exit $STATUS
