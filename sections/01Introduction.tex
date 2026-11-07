@@ -6,37 +6,93 @@
 
 \subsection{Predictive Modeling in Low-Data Bioactivity Regimes}
 
-Predictive modeling in quantitative structure-activity relationships (QSAR) operates under strict constraints when data is scarce \cite{winkler2026}. Under these conditions, simpler interpretable approaches—such as multivariate linear regression or classical tree-based ensembles—frequently match or exceed the prediction reliability of complex artificial neural networks \cite{hadas2023, xiewt2023}. These parsimonious models maintain higher bias and lower variance. They resist the extreme sensitivity to random fluctuations that plagues overparameterized algorithms, particularly when supplied with robust, quantum-chemically derived descriptors \cite{xiewt2023}.
+Quantitative structure--activity relationship (QSAR) modeling is constrained when few labeled compounds are available
+\citep{winkler2026}. In that regime, simpler and more interpretable approaches, such as multivariate linear regression
+or classical tree-based ensembles, often match or exceed the predictive reliability of neural networks
+\citep{hadas2023, xiewt2023}. These models carry more bias and less variance, and they are less sensitive to the random
+composition of the training sample than overparameterized alternatives, particularly when they are given descriptors
+derived from quantum-chemical calculations \citep{xiewt2023}.
 
-Small datasets inherently invite overfitting. This bottleneck worsens exponentially when the dimensionality of molecular descriptors exceeds the available sample size \cite{hawkins2004, godarzi2013}. To circumvent data sparsity, contemporary workflows frequently deploy data augmentation (DAU) or synthetic sample generation to artificially expand the training manifold \cite{gerz2026, tyler2025}. However, these interventions demand substantial computational overhead \cite{tyler2025, calle2025}. More critically, improper DAU application obscures the true predictive capacity of the base algorithms. When augmentation precedes dataset partitioning (the ``augment-then-split'' fallacy), it violates independent and identically distributed (i.i.d.) assumptions. Models memorize synthetic artifacts and latent data dependencies rather than learning genuine physicochemical rules, yielding artificially inflated performance metrics \cite{gerz2026, john2025, kannoth2024}.
+Small data sets invite overfitting, and the risk grows as the number of molecular descriptors approaches or exceeds
+the number of compounds \citep{hawkins2004, godarzi2013}. One common response is to enlarge the training set by data
+augmentation or synthetic sample generation \citep{gerz2026, tyler2025}, which costs computation \citep{tyler2025,
+calle2025} and, applied carelessly, obscures what the base algorithm can do on its own. When augmentation precedes
+partitioning, the ``augment-then-split'' fallacy, perturbed copies of a test molecule reach the training set; the
+partitions are then no longer independent and the reported metrics are inflated \citep{gerz2026, john2025,
+kannoth2024}. Augmentation therefore has to stay inside the training folds of a partition fixed beforehand
+\citep{gerz2026, john2025}.
 
-Evaluating complex architectures in these regimes requires strict separation between model building and model assessment. Hyperparameter tuning on small samples with large parameter spaces inevitably leads to model selection bias \cite{cawley2010}. Consequently, assessing machine learning architectures in isolation provides zero evidence of real-world utility unless the model selection procedure itself undergoes rigorous validation. Double (or nested) cross-validation is the accepted way to decouple model building from performance estimation \cite{bauman2014, cawley2010}. Standard k-fold cross-validation systematically overestimates explorative capabilities \cite{kyrali2022, xiong2020}, and generative deep learning struggles to extrapolate within sparse, discrete chemical spaces like Simplified Molecular-Input Line-Entry System (SMILES) strings \cite{yifan2023}. To preserve methodological integrity, any generative or augmentative process must remain strictly confined to the training folds after establishing an independent partition \cite{gerz2026, john2025}.
+Evaluating complex architectures in this regime also requires separating model building from model assessment. Tuning
+hyperparameters on a small sample with a large search space biases the selection \citep{cawley2010}, so an architecture
+scored on the same data that chose it says little about its behavior on unseen compounds. Double, or nested,
+cross-validation is the established way to decouple the two \citep{bauman2014, cawley2010}. Even then, a random
+$k$-fold partition measures interpolation among related compounds rather than extrapolation to new chemotypes
+\citep{kyrali2022, xiong2020}, and generative deep learning extrapolates poorly in the sparse, discrete space of
+Simplified Molecular-Input Line-Entry System (SMILES) strings \citep{yifan2023}.
 
-To safely harness overparameterized models \cite{winkler2026} without succumbing to the overfitting trap, empirical safeguards against chance correlation are non-negotiable. Techniques such as y-randomization (response shuffling) explicitly verify that the algorithm maps true chemical relationships rather than memorizing random noise \cite{rucker2007}. Although frequently recommended in literature, its empirical execution is routinely omitted in modern deep learning QSAR studies; running this check is therefore advisable before advancing candidates to virtual screening, as it makes chance correlation unlikely. When descriptors undergo meticulous curation and pass these randomization checks, machine learning effectively guides rational design—successfully discriminating potent bioactives, such as Amyloid-$\beta$ aggregation inhibitors, from decoys \cite{avantika2025}. 
+A model fitted to few compounds can also reach a good score by chance correlation, which an empirical check can
+detect. In y-randomization the response is permuted and the model refitted, so that a score close to the one obtained
+with the true responses points to chance correlation rather than to a learned relationship \citep{rucker2007}. R\"ucker
+et al.\ prescribe more than permuting the response: the whole model-building procedure, descriptor selection included,
+should be repeated inside each randomization, and the result compared with models built on random descriptors
+\citep{rucker2007}. Where curated descriptors pass these checks, machine learning has been used to rank candidate
+compounds, for instance to separate amyloid-$\beta$ aggregation inhibitors from decoys \citep{avantika2025}.
 
-Alternatively, transfer learning bypasses data scarcity by adapting base networks optimized on massive source domains \cite{samuel2023}. By enforcing reduced learning rates during fine-tuning \cite{damilola2025} and prioritizing efficient convolutional architectures over heavier Transformer models \cite{riza2025}, researchers can navigate class imbalance and model selection bias in low-resource settings.
+Transfer learning offers a different route around data scarcity, by adapting networks trained on a large source domain
+\citep{samuel2023}. Reduced learning rates during fine-tuning \citep{damilola2025} and lighter convolutional
+architectures in place of Transformers \citep{riza2025} have been reported to help with class imbalance and selection
+bias in low-resource settings.
 
 % ==========================================
 % 1. SECTION 1.2
 % ==========================================
 \subsection{Domain-Engineered Features versus End-to-End Representation Learning}
 
-Traditional feature-based machine learning relies on domain-engineered descriptors and molecular fingerprints \cite{rajesh2026}. Representations such as Morgan (ECFP4) encode structural topologies, while physicochemical and 3D descriptors capture specific molecular interactions deterministically without requiring massive training corpora \cite{avantika2025, beatrice2026, xiewt2023}. Embedding theoretical chemistry directly into the model ensures high interpretability and algorithmic transparency \cite{xiewt2023}. However, accumulating these handcrafted features generates highly dimensional, redundant matrices \cite{godarzi2013, hadas2023}. In restricted datasets, this redundancy amplifies computational costs and exacerbates the feature selection bottleneck \cite{godarzi2013, hadas2023}.
+Feature-based machine learning relies on domain-engineered descriptors and molecular fingerprints \citep{rajesh2026}.
+Morgan (ECFP4) fingerprints encode local substructures, while physicochemical and 3D descriptors quantify specific
+molecular properties; both are computed deterministically and need no large training corpus \citep{avantika2025,
+beatrice2026, xiewt2023}. Their drawback is dimensionality: accumulating handcrafted features produces large and
+redundant matrices \citep{godarzi2013, hadas2023}, which on restricted data sets raises computational cost and makes
+feature selection itself a source of error \citep{godarzi2013, hadas2023}.
 
-End-to-end representation learning bypasses manual feature selection. Deep learning paradigms—including variational autoencoders (VAEs), Generative Adversarial Networks (GANs), and Graph Neural Networks (GNNs)—autonomously map discrete molecular topologies into continuous latent spaces to model complex, nonlinear interactions \cite{abul2026, rajesh2026, yifan2023}. Similarly, Chemical Language Processing (CLP) applies natural language techniques to string representations like SMILES \cite{riza2025}. Yet, learning representations in discrete chemical spaces remains intrinsically fragile. Altering a single character in a SMILES string can irreparably invalidate the entire molecular structure \cite{yifan2023}.
+End-to-end representation learning avoids manual feature engineering. Variational autoencoders (VAEs), generative
+adversarial networks (GANs) and graph neural networks (GNNs) map molecular topologies into continuous latent spaces
+and model nonlinear interactions without a predefined descriptor set \citep{abul2026, rajesh2026, yifan2023}, and
+chemical language processing (CLP) applies the same idea to string representations such as SMILES \citep{riza2025}. The
+discrete nature of those strings is a weakness of the approach, since altering a single character can produce an
+invalid structure \citep{yifan2023}.
 
-The utility of deep learning complexity in low-data regimes remains highly contested. These algorithms require dense data manifolds, rendering representation learning ineffective when ground-truth labels are scarce \cite{sotirios2025}. To circumvent this limitation in \textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR) inhibition, recent studies deploy highly complex pipelines. Karimova and Senanayake \cite{karimova2025} employed Gaussian noise-based data augmentation and deep neural network (DNN) ensembles to stabilize training on a restricted dataset, elevating their baseline $R^2$ from \PaperBaselineRTwo{} to \PaperFinalRTwo{}. This intervention prompts a critical evaluation: is synthetic data generation strictly necessary to achieve predictive reliability? Parsimonious classical ensembles are reported to match or exceed the predictive fidelity of deep architectures in data-scarce scenarios, although such comparisons are rarely run on identical, leakage-free folds \cite{beatrice2026, hadas2023, rajesh2026, salman2023, samuel2023, xiewt2023}.
+How much this flexibility is worth when labels are scarce remains unsettled. Representation learning needs enough
+examples to recover what a descriptor encodes by construction, which makes it less effective as the labeled set
+shrinks \citep{sotirios2025}. For inhibitors of \textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR), \citet{karimova2025} addressed this limitation with Gaussian noise-based data augmentation and ensembles
+of deep neural networks, raising their baseline $R^2$ from \PaperBaselineRTwo{} to \PaperFinalRTwo{}, and released
+both the curated data set and the code that produced it. Their result poses the question this study takes up: on a set
+of this size, is synthetic data generation necessary for predictive reliability? Classical ensembles are reported to
+match or exceed deep architectures when data are scarce \citep{beatrice2026, hadas2023, rajesh2026, salman2023,
+samuel2023, xiewt2023}, although such comparisons are rarely run on identical, leakage-free folds.
 
-Traditional skepticism toward nonlinear models in limited-data scenarios is evolving \cite{Dalmau2025}. Properly regularized nonlinear algorithms, hybridized with structured linear priors, achieve competitive results comparable to robust classical methods \cite{Dalmau2025, salman2023}. Transfer learning serves as a primary catalyst for this shift. Fine-tuning pretrained networks like ChemBERTa allows researchers to extract accurate representation learning predictions using only dozens of target data points \cite{latefa2025, samuel2023}.
+Opinion on nonlinear models in limited-data settings is itself shifting \citep{Dalmau2025}. Regularized nonlinear
+algorithms combined with structured linear priors reach results comparable to classical methods \citep{Dalmau2025,
+salman2023}, and fine-tuning pretrained networks such as ChemBERTa has produced usable predictions from a few dozen
+labeled compounds \citep{latefa2025, samuel2023}.
 
 % ==========================================
 % 1. SECTION 1.3
 % ==========================================
-\subsection{Methodological Rigor and the Threat of Data Leakage in Molecular Modeling}
+\subsection{Data Leakage in Low-Data Molecular Modeling}
 
-Data leakage—the unintended introduction of test data information into the training process—is a statistically silent error that fundamentally undermines the validity of machine learning evaluations by inflating metrics without triggering code warnings \cite{brva2026, gerz2026}. In low-data QSAR modeling, this vulnerability frequently manifests across two primary vectors: preprocessing and model selection. When transformations like feature scaling, imputation, or variance-based filtering are applied globally across an entire dataset, the algorithm gains illicit knowledge of the test distribution. This violation of the independent and identically distributed (i.i.d.) assumption yields spuriously high performance estimates \cite{correa2025, lewis2023}.
+Data leakage, the entry of test-set information into the training process, inflates performance estimates without
+producing an error or a warning \citep{brva2026, gerz2026}. In low-data QSAR it arises most often in two places. The
+first is preprocessing: when scaling, imputation or variance-based filtering is fitted on the complete data set, the
+model is given information about the distribution of the test compounds, the independence of the partitions is lost,
+and the resulting estimate is optimistic \citep{correa2025, lewis2023}.
 
-Similarly, traditional internal validation often suffers from model selection bias. If a validation set continuously influences hyperparameter tuning, it loses its statistical independence. Highly parameterized architectures, such as deep neural networks, are particularly prone to exploiting this overlap. They adapt to noise and produce deceptively optimistic metrics that severely underestimate true generalization errors \cite{bauman2014, sotirios2025}. To preserve methodological integrity, model selection and preprocessing must operate as strictly encapsulated components of the fitting process. Insufficient reporting of these partitioning mechanics often confounds scientific literature, leading researchers to incorrectly attribute high performance to novel complex architectures when the success actually stems from silent data leakage \cite{rojas2026}.
+The second is model selection. A validation set that repeatedly guides hyperparameter choices stops being independent
+of the model, and highly parameterized architectures such as deep neural networks are the best placed to exploit that
+overlap, fitting noise and returning optimistic estimates of the generalization error \citep{bauman2014, sotirios2025}.
+Both paths are closed by fitting every transformation and every selection step inside the training partition at hand.
+Because the details of the partitioning are often reported incompletely, performance is sometimes attributed to a new
+architecture when it comes from leakage instead \citep{rojas2026}.
 
 % ==========================================
 % 1. SECTION 1.4
@@ -55,7 +111,7 @@ This study asks whether, on one small and well-characterized bioactivity set (\N
 
 	\item \textbf{Audit of the original pipeline:} Re-execution of the published code, followed by the removal of one information leak at a time, which quantifies what each leak contributes to the reported $R^2$ and how much of it survives.
 
-	\item \textbf{Replication of the original study's gains:} A test of whether the feature selection and Gaussian-noise augmentation reported by Karimova and Senanayake \cite{karimova2025} (from $R^2 = \PaperBaselineRTwo{}$ to $\PaperFinalRTwo{}$ on a single hold-out split) transfer to a classical learner under nested cross-validation, with and without the leak that the original selection contains.
+	\item \textbf{Replication of the original study's gains:} A test of whether the feature selection and Gaussian-noise augmentation reported by \citet{karimova2025}, which took their $R^2$ from \PaperBaselineRTwo{} to \PaperFinalRTwo{} on a single hold-out split, transfer to a classical learner under nested cross-validation, with and without the leak that the original selection contains.
 
 	\item \textbf{Robustness checks:} Repetition of the benchmark under scaffold-grouped splits and with the extreme-potency records retained, to quantify how much the conclusions depend on the splitting scheme and on the curation.
 
