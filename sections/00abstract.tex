@@ -1,5 +1,26 @@
 \begin{abstract}
-	Small bioactivity data sets make it easy to overstate the benefit of complex models, through data leakage and through model selection that is rarely evaluated on unseen data. We re-examined this for inhibitors of \textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR, $N = \NCompounds$ curated compounds), comparing classical stacking ensembles on four molecular representations with a Directed Message Passing Neural Network (D-MPNN) on the same \TotalOuterFolds\ folds of a repeated nested cross-validation. Ensembles on Morgan fingerprints reached $R^2 = \MorganRTwoMean \pm \MorganRTwoStd$, and adding ten 3D shape descriptors to the best descriptor set changed nothing detectable ($\Delta R^2 = \NBdiffRTwoTwoDFpVsTwoDThreeDFp$). The D-MPNN reached $R^2 = \ChemPropDMPNNFoldRTwoMean$ with default settings and $\GnnTunedRTwoMean$ after a nested hyperparameter search, trailing the fingerprint-based ensembles by a small margin that reached significance only narrowly after multiple-comparison correction (smallest adjusted $p = \GnnTunedVsMinPRTwo$ for $R^2$), and statistically indistinguishable from, and equivalent to, the 2D descriptors alone. Equivalence with the Morgan ensemble could not be established in either metric. Averaging five networks recovered part of the gap, and a D-MPNN initialized from a pretrained foundation model closed it ($R^2 = \ChemeleonRTwoMean$, equivalent to the Morgan ensemble in both metrics) at roughly eight times the computational cost; no model exceeded the fingerprint ensembles. Re-running the original study's published code and removing its information leaks one at a time lowered the $R^2$ of its published protocol from \KarLadderRungZeroRTwoMean\ to \KarLadderRungFourRTwoMean, the level of a model with no feature selection at all; the largest single contribution came from a feature importance computed on the test molecules. Feature selection and Gaussian-noise augmentation did not improve a classical learner either, and reproduced the reported gain only when the selection was allowed to see the test data. With scaffold-grouped splits every model lost between \ScaffoldDropMin\ and \ScaffoldDropMax\ units of $R^2$, least of all the pretrained network. The classical protocol was not the cheapest either: a default network trained in a fraction of its time. Applying the deployed model, a feature-selected Morgan-fingerprint ensemble, to an FDA-approved library (\ScreenNLibrary\ compounds) and docking \ScreenNCandidates\ candidates gave \AdmetNConsensus\ consensus hits, \AdmetNConsensusSurvivors\ of which passed in silico ADMET filters; potency--docking agreement was weak ($\rho = \DockSpearmanRho$) and selectivity over human DHFR was not assessed. For this target, a fixed-fingerprint ensemble was sufficient; we make no claim beyond it.
+	Small bioactivity data sets make it easy to overstate the benefit of complex models, through data leakage and
+	through model selection that is rarely evaluated on unseen data. We re-examined both for inhibitors of
+	\textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR, $N = \NCompounds$ curated compounds). Removing the
+	information leaks of the original study's code one at a time lowered its $R^2$ from
+	\KarLadderRungZeroRTwoMean\ to \KarLadderRungFourRTwoMean, the level of a model with no feature selection; the
+	largest contribution was a feature importance computed on the test molecules. The same leak on a classical
+	learner reproduced the reported gain (\ExpBleakyRTwoMean\ against \ExpBRTwoMean\ when kept clean).
+
+	Leakage-free, four classical representations and seven neural models were scored on the same
+	\TotalOuterFolds\ outer folds of a repeated nested cross-validation. Morgan-fingerprint ensembles reached $R^2 =
+	\MorganRTwoMean \pm \MorganRTwoStd$, and ten 3D shape descriptors added to the best descriptor set changed
+	nothing ($\Delta R^2 = \NBdiffRTwoTwoDFpVsTwoDThreeDFp$). A Directed Message Passing Neural Network reached
+	\ChemPropDMPNNFoldRTwoMean\ by default and \GnnTunedRTwoMean\ after a nested search, below the fingerprint
+	ensembles by a margin that cleared multiple-comparison correction only narrowly (smallest adjusted $p =
+	\GnnTunedVsMinPRTwo$). Only a network initialized from a pretrained foundation model matched them
+	(\ChemeleonRTwoMean, equivalent in both metrics), at eight times the cost; none exceeded them. Scaffold-grouped
+	splits cost every model between \ScaffoldDropMin\ and \ScaffoldDropMax\ units of $R^2$.
+
+	On an FDA-approved library the deployed model placed only \ScreenNDomain\ of \ScreenNStructural\ scored compounds
+	inside its applicability domain (median similarity \ScreenADFdaMedian\ against \ScreenADTrainMedian\ internally), so its \AdmetNConsensus\ consensus hits, \AdmetNConsensusSurvivors\ of them passing ADMET filters,
+	are hypotheses rather than leads. For this target a fixed-fingerprint ensemble was sufficient; we make no claim
+	beyond it.
 \end{abstract}
 
 \textbf{Keywords:} 
