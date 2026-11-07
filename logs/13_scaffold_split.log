@@ -1,4 +1,4 @@
-=== START LOG: 13_scaffold_split.py [2026-11-06 12:18:15] ===
+=== START LOG: 13_scaffold_split.py [2026-11-06 22:07:04] ===
 
 =========================================================================================================
 13_scaffold_split.py — Performance under scaffold-grouped outer folds
@@ -21,7 +21,7 @@ Morgan                     0.7689         0.0406           0.4342            0.5
 RdkitTwoD                  0.7281         0.0484           0.4682            0.4919           0.1163             0.6730   0.2361
 RdkitTwoDFp                0.7735         0.0429           0.4277            0.5705           0.1035             0.6135   0.2030
 RdkitTwoDThreeDFp          0.7741         0.0410           0.4278            0.5738           0.1056             0.6122   0.2003
-Gnn                        0.7249         0.0426           0.4745            0.5260           0.1212             0.6428   0.1989
+Gnn                        0.7249         0.0426           0.4745            0.5210           0.1266             0.6470   0.2039
 DnnBase                    0.6733         0.0862           0.4808            0.4886           0.1692             0.6142   0.1847
 DnnFull                    0.7151         0.0766           0.4568            0.5103           0.1272             0.6108   0.2048
 DmpnnEns                   0.7409         0.0405           0.4599            0.5548           0.1127             0.6227   0.1861
@@ -44,14 +44,14 @@ Metric          A            B  mean_diff_a_minus_b       t  p_raw  p_holm
 
 Neural models against the classical representations on the scaffold folds (Holm within metric):
     model Metric    Classical  mean_diff_model_minus_classical  p_holm  p_equiv
-      Gnn   RTwo       morgan                          -0.0680  0.4469   0.6672
-      Gnn   RTwo      rdkit2d                           0.0340  0.8996   0.3599
-      Gnn   RTwo   rdkit2d_fp                          -0.0446  0.8996   0.4514
-      Gnn   RTwo rdkit2d3d_fp                          -0.0479  0.8996   0.4813
-      Gnn    Mae       morgan                           0.0445  0.5647   0.4262
-      Gnn    Mae      rdkit2d                          -0.0302  1.0000   0.2822
-      Gnn    Mae   rdkit2d_fp                           0.0293  1.0000   0.2805
-      Gnn    Mae rdkit2d3d_fp                           0.0306  1.0000   0.2965
+      Gnn   RTwo       morgan                          -0.0729  0.3676   0.7070
+      Gnn   RTwo      rdkit2d                           0.0291  0.7607   0.3161
+      Gnn   RTwo   rdkit2d_fp                          -0.0495  0.7607   0.4954
+      Gnn   RTwo rdkit2d3d_fp                          -0.0528  0.7607   0.5243
+      Gnn    Mae       morgan                           0.0486  0.4638   0.4820
+      Gnn    Mae      rdkit2d                          -0.0260  0.8935   0.2332
+      Gnn    Mae   rdkit2d_fp                           0.0335  0.8935   0.3096
+      Gnn    Mae rdkit2d3d_fp                           0.0348  0.8935   0.3228
   DnnBase   RTwo       morgan                          -0.1053  0.4470   0.8028
   DnnBase   RTwo      rdkit2d                          -0.0033  0.9594   0.2380
   DnnBase   RTwo   rdkit2d_fp                          -0.0819  0.6965   0.6765

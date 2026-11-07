@@ -1,0 +1,18 @@
+[18 20:43:02] queue started
+[18 21:02:38] download attempt 1: 34859448 bytes
+Seed set to 42
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+`Trainer.fit` stopped: `max_epochs=1` reached.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'predict_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+  chemeleon    fold  0 R2=0.0291 MAE=1.0612 (88s)
+[18 21:04:29] CheMeleon smoke test OK
+[18 21:04:29] waiting for steps 16 and 17
+[18 21:44:36] 18 exit code 0
+[19 18:07:41] 19 exit code 1 (variants: mlp_ecfp,dmpnn_ens5,dmpnn_rdkit,chemeleon)
+[20 04:03:04] SC01 exit code 0
+[20 04:03:04] queue finished

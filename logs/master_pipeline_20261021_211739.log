@@ -1,0 +1,117 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+=========================================================================================================
+13_scaffold_split.py — Performance under scaffold-grouped outer folds
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Random folds put close analogs of the same chemical series in both the training and the test
+  part, which can make a         model look better than it would be on a new series. The scaffold
+  runs (SC01, SC09, SC17, SC19) repeated the benchmark         with folds that keep every Bemis-
+  Murcko scaffold in a single fold, for the four classical representations and for the
+  neural models. This step puts every scaffold result next to its random-fold result, compares the
+  classical         representations with each other on the scaffold folds, and tests each neural
+  model against them. The scaffold results         are expected to be lower; the question is
+  whether the comparisons change.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  [NOTE] DmpnnEns: random or scaffold results not available yet (19_dmpnn_ens5_fold_scores.csv); left out.
+  [NOTE] Chemeleon: random or scaffold results not available yet (19_chemeleon_fold_scores.csv); left out.
+                   random_R2_mean  random_R2_std  random_MAE_mean  scaffold_R2_mean  scaffold_R2_std  scaffold_MAE_mean  drop_R2
+Morgan                     0.7592         0.0449           0.4477            0.5778           0.1015             0.6096   0.1814
+RdkitTwoD                  0.7225         0.0492           0.4711            0.4837           0.1240             0.6789   0.2388
+RdkitTwoDFp                0.7700         0.0467           0.4305            0.5518           0.1108             0.6226   0.2182
+RdkitTwoDThreeDFp          0.7680         0.0437           0.4315            0.5549           0.1163             0.6199   0.2131
+Gnn                        0.7248         0.0439           0.4748            0.5260           0.1212             0.6428   0.1988
+DnnBase                    0.6733         0.0862           0.4808            0.4886           0.1692             0.6142   0.1847
+DnnFull                    0.7151         0.0766           0.4568            0.5103           0.1272             0.6108   0.2048
+
+Classical representations against each other on the scaffold folds:
+Metric          A            B  mean_diff_a_minus_b       t  p_raw  p_holm
+  RTwo     morgan      rdkit2d               0.0941  3.1318 0.0045  0.0272
+  RTwo     morgan   rdkit2d_fp               0.0260  0.8453 0.4063  1.0000
+  RTwo     morgan rdkit2d3d_fp               0.0229  0.7052 0.4875  1.0000
+  RTwo    rdkit2d   rdkit2d_fp              -0.0681 -2.4641 0.0213  0.1064
+  RTwo    rdkit2d rdkit2d3d_fp              -0.0712 -2.2962 0.0307  0.1228
+  RTwo rdkit2d_fp rdkit2d3d_fp              -0.0031 -0.2662 0.7923  1.0000
+   Mae     morgan      rdkit2d              -0.0692 -2.8777 0.0083  0.0497
+   Mae     morgan   rdkit2d_fp              -0.0129 -0.4531 0.6546  1.0000
+   Mae     morgan rdkit2d3d_fp              -0.0103 -0.3586 0.7230  1.0000
+   Mae    rdkit2d   rdkit2d_fp               0.0563  2.7222 0.0119  0.0594
+   Mae    rdkit2d rdkit2d3d_fp               0.0589  2.5773 0.0165  0.0661
+   Mae rdkit2d_fp rdkit2d3d_fp               0.0026  0.2788 0.7828  1.0000
+
+Neural models against the classical representations on the scaffold folds (Holm within metric):
+  model Metric    Classical  mean_diff_model_minus_classical  p_holm  p_equiv
+    Gnn   RTwo       morgan                          -0.0518  0.8215   0.5182
+    Gnn   RTwo      rdkit2d                           0.0423  1.0000   0.4383
+    Gnn   RTwo   rdkit2d_fp                          -0.0258  1.0000   0.3082
+    Gnn   RTwo rdkit2d3d_fp                          -0.0290  1.0000   0.3332
+    Gnn    Mae       morgan                           0.0332  0.9434   0.2720
+    Gnn    Mae      rdkit2d                          -0.0360  0.9659   0.3491
+    Gnn    Mae   rdkit2d_fp                           0.0203  1.0000   0.2205
+    Gnn    Mae rdkit2d3d_fp                           0.0229  1.0000   0.2410
+DnnBase   RTwo       morgan                          -0.0892  0.7485   0.7218
+DnnBase   RTwo      rdkit2d                           0.0050  1.0000   0.2522
+DnnBase   RTwo   rdkit2d_fp                          -0.0632  1.0000   0.5747
+DnnBase   RTwo rdkit2d3d_fp                          -0.0663  1.0000   0.5887
+DnnBase    Mae       morgan                           0.0046  1.0000   0.0523
+DnnBase    Mae      rdkit2d                          -0.0647  0.3143   0.6597
+DnnBase    Mae   rdkit2d_fp                          -0.0084  1.0000   0.1318
+DnnBase    Mae rdkit2d3d_fp                          -0.0058  1.0000   0.1190
+DnnFull   RTwo       morgan                          -0.0675  0.6536   0.6439
+DnnFull   RTwo      rdkit2d                           0.0266  1.0000   0.3277
+DnnFull   RTwo   rdkit2d_fp                          -0.0415  1.0000   0.4329
+DnnFull   RTwo rdkit2d3d_fp                          -0.0447  1.0000   0.4586
+DnnFull    Mae       morgan                           0.0012  1.0000   0.1124
+DnnFull    Mae      rdkit2d                          -0.0681  0.4127   0.6715
+DnnFull    Mae   rdkit2d_fp                          -0.0118  1.0000   0.1886
+DnnFull    Mae rdkit2d3d_fp                          -0.0092  1.0000   0.1831
+[EXPORT] 202 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/scaffold_variables.tex
+[DONE] 13_scaffold_split.py complete.
+
+=== END LOG: 13_scaffold_split.py [EXIT CODE: 0] ===
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Final consistency check of the paper against the pipeline outputs. It lists every figure and
+  every included file the         manuscript refers to and confirms they exist, and it confirms
+  that each result variable used in the text was generated.         A failure here means the text
+  refers to something the pipeline did not produce (or no longer produces).
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[OK] figure figures/01_nested_cv_algorithm_selection.png
+[OK] figure figures/01_nested_cv_stability_boxplot.png
+[OK] figure figures/01_nested_cv_time_vs_performance.png
+[OK] figure figures/04_augment_r2_comparison.png
+[OK] figure figures/05_pIC50_vs_LE_scatter.png
+[OK] figure figures/07_docking_scatter.png
+[OK] figure figures/08_admet_quadrants.png
+[OK] figure figures/09_gnn_benchmark_comparison.png
+[OK] figure figures/S1_nested_cv_selection_full_heatmap.png
+
+[CHECK] 28 files followed, 9 figures, 780 project variables used, 0 undefined
+[OK] Every figure, included file, and variable used by the manuscript is produced by the pipeline.
+
+=== END LOG: 11_check_manuscript.py [EXIT CODE: 0] ===
+

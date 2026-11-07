@@ -1,0 +1,7 @@
+2026-11-06 20:01:57 START /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only SC09
+2026-11-06 21:25:39 END   exit=0 /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only SC09
+2026-11-06 21:25:39 START /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only 15
+2026-11-06 22:07:01 END   exit=0 /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only 15
+2026-11-06 22:07:01 START /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only 13 18 figures
+2026-11-06 22:07:30 END   exit=0 /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only 13 18 figures
+2026-11-06 22:07:30 ALL DONE

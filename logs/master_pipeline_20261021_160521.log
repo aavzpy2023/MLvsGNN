@@ -1,0 +1,38 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+=========================================================================================================
+17_dnn_nested_cv.py — Original deep network on the shared outer folds (split: scaffold, TensorFlow environment)
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The original study scored its network once, on one random 15% test set. Here the same network,
+  with the same         descriptors, preprocessing and training settings, is scored on the 25
+  outer folds used for every other model of this         study, so that its accuracy can be
+  compared with theirs fold by fold. Two versions are run: the baseline network on         all
+  descriptors, and the complete original pipeline (descriptor selection by importance plus noisy
+  copies of the         training molecules). In both, nothing about a test fold is used before
+  that fold is scored.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Original repository: /home/andrey/Projects/__GITHUB__aavzpy2023/karimova_pIC50_paper (commit 70e944619d0eb964bc8b4ef831bb27f12160d33c)
+  50 fold x model tasks to run (0 already in the checkpoint)
+  12 workers x 4 threads

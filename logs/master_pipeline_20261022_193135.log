@@ -1,0 +1,401 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+=========================================================================================================
+19_gnn_strong_baselines.py — Stronger neural baselines on the shared outer folds
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The graph network of steps 09 and 12 was trained from scratch, one network per fold. A fair
+  objection is that a         stronger neural model might have matched the classical ensembles.
+  This step tries four: an average of five graph         networks, a graph network that also
+  receives the RDKit descriptors, a graph network that starts from CheMeleon (a         model
+  pretrained on about a million PubChem molecules), and a plain neural network on the Morgan
+  fingerprints. All         are scored on the same 25 folds as every other model and compared with
+  the same corrected tests.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  50 variant x fold tasks to run (0 already in the checkpoint)
+  12 workers x 4 threads
+Seed set to 44
+Seed set to 46
+Seed set to 47
+Seed set to 49
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+Seed set to 45
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Seed set to 43
+Seed set to 51
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Seed set to 53
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Seed set to 42
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Seed set to 50
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Seed set to 48
+Seed set to 52
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+Seed set to 54
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+[rank: 0] Received SIGTERM: 15
+`Trainer.fit` stopped: `max_epochs=100` reached.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'predict_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+  chemeleon    fold 12 R2=0.5712 MAE=0.5324 (8225s)
+  [run_tasks] a worker died; 50 task(s) will be run again (round 1 of 3)
+Seed set to 51
+Seed set to 49
+Seed set to 47
+Seed set to 45
+Seed set to 48
+Seed set to 42
+Seed set to 46
+Seed set to 52
+Seed set to 44
+Seed set to 53
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Seed set to 50
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Seed set to 43
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+GPU available: False, used: False
+Loading `train_dataloader` to estimate number of stepping batches.
+TPU available: False, using: 0 TPU cores
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+Seed set to 54
+[rank: 0] Received SIGTERM: 15
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+`Trainer.fit` stopped: `max_epochs=100` reached.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'predict_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+  chemeleon    fold 12 R2=0.5712 MAE=0.5324 (7921s)
+  [run_tasks] a worker died; 50 task(s) will be run again (round 2 of 3)
+Seed set to 48
+Seed set to 53
+Seed set to 42
+Seed set to 43
+Seed set to 52
+Seed set to 49
+Seed set to 50
+Seed set to 51
+Seed set to 47
+Seed set to 46
+Seed set to 44
+Seed set to 45
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+Intel oneMKL WARNING: Support of Intel(R) Advanced Vector Extensions (Intel(R) AVX) enabled only processors has been deprecated. Intel oneAPI Math Kernel Library will use Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions instead.
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+Seed set to 54
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+`Trainer.fit` stopped: `max_epochs=100` reached.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'predict_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+  chemeleon    fold 12 R2=0.5712 MAE=0.5324 (8491s)
+  [run_tasks] a worker died; 50 task(s) will be run again (round 3 of 3)
+Traceback (most recent call last):
+  File "/home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scripts/19_gnn_strong_baselines.py", line 195, in <module>
+    main()
+  File "/home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scripts/19_gnn_strong_baselines.py", line 158, in main
+    run_tasks(run_task, tasks, n_workers, on_result=save)
+  File "/home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scripts/tools/parallel.py", line 43, in run_tasks
+    raise RuntimeError(f"{len(pending)} task(s) still unfinished after {max_rounds} rounds of worker crashes")
+RuntimeError: 50 task(s) still unfinished after 3 rounds of worker crashes
+
+=== END LOG: 19_gnn_strong_baselines.py [EXIT CODE: 1] ===
+

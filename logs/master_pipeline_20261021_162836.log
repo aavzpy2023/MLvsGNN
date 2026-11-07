@@ -1,0 +1,65 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+=========================================================================================================
+16_leakage_ladder.py — How much of the published R2 = 0.85 comes from information leaks (TensorFlow environment)
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The final model of the original study reached R2 = 0.85 on its test molecules. In its code,
+  those test molecules also         decided which descriptors were kept and when training stopped,
+  and part of them had been used to fit the data         preprocessing. Each of these lets the
+  model see information about the molecules it is scored on, which makes the         score
+  optimistic. This step removes the leaks one at a time (R0 = as published ... R4 = no leak left,
+  duplicates         removed) and re-scores the model after each change, with the same split and
+  the same random seeds. The drop between two         rungs is the part of the score that the
+  removed leak was responsible for.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Original repository: /home/andrey/Projects/__GITHUB__aavzpy2023/karimova_pIC50_paper (commit 70e944619d0eb964bc8b4ef831bb27f12160d33c)
+  R0 scoring set: 131.0 molecules, 20.0 from the original test set and 111.0 from the original training set (preprocessing fitted on them)
+  10 seeds on 10 workers x 4 threads
+  seed 2 done: R0_published/own_re R2=0.846 | R1_no_resplit/origin R2=0.821 | R1_no_resplit/common R2=0.820 | R2_internal_early_stopping/origin R2=0.800 | R2_internal_early_stopping/common R2=0.799 | R3_oof_importance/origin R2=0.746 | R3_oof_importance/common R2=0.744 | R4_no_duplicates/common R2=0.751 | clean_sel_G1234/common R2=0.723 | clean_sel_G123/common R2=0.719 | clean_baseline/common R2=0.740
+  seed 1 done: R0_published/own_re R2=0.848 | R1_no_resplit/origin R2=0.820 | R1_no_resplit/common R2=0.818 | R2_internal_early_stopping/origin R2=0.799 | R2_internal_early_stopping/common R2=0.797 | R3_oof_importance/origin R2=0.711 | R3_oof_importance/common R2=0.709 | R4_no_duplicates/common R2=0.756 | clean_sel_G1234/common R2=0.725 | clean_sel_G123/common R2=0.745 | clean_baseline/common R2=0.753
+  seed 5 done: R0_published/own_re R2=0.845 | R1_no_resplit/origin R2=0.826 | R1_no_resplit/common R2=0.825 | R2_internal_early_stopping/origin R2=0.802 | R2_internal_early_stopping/common R2=0.801 | R3_oof_importance/origin R2=0.758 | R3_oof_importance/common R2=0.756 | R4_no_duplicates/common R2=0.706 | clean_sel_G1234/common R2=0.704 | clean_sel_G123/common R2=0.707 | clean_baseline/common R2=0.745
+  seed 9 done: R0_published/own_re R2=0.853 | R1_no_resplit/origin R2=0.830 | R1_no_resplit/common R2=0.828 | R2_internal_early_stopping/origin R2=0.824 | R2_internal_early_stopping/common R2=0.823 | R3_oof_importance/origin R2=0.764 | R3_oof_importance/common R2=0.762 | R4_no_duplicates/common R2=0.724 | clean_sel_G1234/common R2=0.674 | clean_sel_G123/common R2=0.675 | clean_baseline/common R2=0.765
+  seed 8 done: R0_published/own_re R2=0.849 | R1_no_resplit/origin R2=0.827 | R1_no_resplit/common R2=0.826 | R2_internal_early_stopping/origin R2=0.790 | R2_internal_early_stopping/common R2=0.788 | R3_oof_importance/origin R2=0.773 | R3_oof_importance/common R2=0.772 | R4_no_duplicates/common R2=0.707 | clean_sel_G1234/common R2=0.678 | clean_sel_G123/common R2=0.676 | clean_baseline/common R2=0.747
+  seed 3 done: R0_published/own_re R2=0.862 | R1_no_resplit/origin R2=0.833 | R1_no_resplit/common R2=0.832 | R2_internal_early_stopping/origin R2=0.789 | R2_internal_early_stopping/common R2=0.788 | R3_oof_importance/origin R2=0.756 | R3_oof_importance/common R2=0.755 | R4_no_duplicates/common R2=0.770 | clean_sel_G1234/common R2=0.750 | clean_sel_G123/common R2=0.755 | clean_baseline/common R2=0.759
+  seed 10 done: R0_published/own_re R2=0.859 | R1_no_resplit/origin R2=0.823 | R1_no_resplit/common R2=0.822 | R2_internal_early_stopping/origin R2=0.792 | R2_internal_early_stopping/common R2=0.790 | R3_oof_importance/origin R2=0.741 | R3_oof_importance/common R2=0.739 | R4_no_duplicates/common R2=0.764 | clean_sel_G1234/common R2=0.737 | clean_sel_G123/common R2=0.750 | clean_baseline/common R2=0.748
+  seed 6 done: R0_published/own_re R2=0.860 | R1_no_resplit/origin R2=0.835 | R1_no_resplit/common R2=0.833 | R2_internal_early_stopping/origin R2=0.783 | R2_internal_early_stopping/common R2=0.782 | R3_oof_importance/origin R2=0.763 | R3_oof_importance/common R2=0.762 | R4_no_duplicates/common R2=0.738 | clean_sel_G1234/common R2=0.723 | clean_sel_G123/common R2=0.745 | clean_baseline/common R2=0.757
+  seed 7 done: R0_published/own_re R2=0.862 | R1_no_resplit/origin R2=0.821 | R1_no_resplit/common R2=0.819 | R2_internal_early_stopping/origin R2=0.817 | R2_internal_early_stopping/common R2=0.815 | R3_oof_importance/origin R2=0.749 | R3_oof_importance/common R2=0.747 | R4_no_duplicates/common R2=0.726 | clean_sel_G1234/common R2=0.694 | clean_sel_G123/common R2=0.735 | clean_baseline/common R2=0.748
+  seed 4 done: R0_published/own_re R2=0.849 | R1_no_resplit/origin R2=0.827 | R1_no_resplit/common R2=0.826 | R2_internal_early_stopping/origin R2=0.813 | R2_internal_early_stopping/common R2=0.811 | R3_oof_importance/origin R2=0.775 | R3_oof_importance/common R2=0.774 | R4_no_duplicates/common R2=0.763 | clean_sel_G1234/common R2=0.728 | clean_sel_G123/common R2=0.746 | clean_baseline/common R2=0.764
+                      rung         eval_set  n_seeds  n_test  n_features  r2_mean  r2_sd  mae_mean  mae_sd
+              R0_published own_resplit_test       10     131       941.5   0.8533 0.0070    0.3570  0.0118
+             R1_no_resplit    original_test       10     131       941.5   0.8264 0.0051    0.3769  0.0052
+             R1_no_resplit      common_test       10     130       941.5   0.8251 0.0052    0.3789  0.0050
+R2_internal_early_stopping    original_test       10     131       945.5   0.8009 0.0134    0.4055  0.0140
+R2_internal_early_stopping      common_test       10     130       945.5   0.7995 0.0133    0.4072  0.0133
+         R3_oof_importance    original_test       10     131       385.0   0.7536 0.0187    0.4427  0.0111
+         R3_oof_importance      common_test       10     130       385.0   0.7518 0.0188    0.4452  0.0109
+          R4_no_duplicates      common_test       10     130       330.0   0.7405 0.0238    0.4510  0.0175
+           clean_sel_G1234      common_test       10     130       336.0   0.7135 0.0252    0.4792  0.0173
+            clean_sel_G123      common_test       10     130       330.0   0.7253 0.0300    0.4661  0.0176
+            clean_baseline      common_test       10     130      1858.0   0.7525 0.0084    0.4513  0.0077
+  6598s -> /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/16_leakage_ladder.csv, /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/16_leakage_ladder_predictions.csv, /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/16_leakage_ladder_summary.csv
+
+=== END LOG: 16_leakage_ladder.py [EXIT CODE: 0] ===
+

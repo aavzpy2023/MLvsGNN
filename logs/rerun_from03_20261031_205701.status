@@ -1,0 +1,10 @@
+inner repeats: 5 | inner score: pooled
+2026-10-31 20:57:01 START /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only 03 04 05 07 08
+2026-11-01 17:18:40 END   exit=0 /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only 03 04 05 07 08
+2026-11-01 17:18:40 START /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only S01 S02
+2026-11-04 02:41:29 END   exit=0 /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only S01 S02
+2026-11-04 02:41:29 START /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only SC01
+2026-11-06 11:03:10 END   exit=0 /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only SC01
+2026-11-06 11:03:10 START /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only 09 12 14 19 18 10 13 figures
+2026-11-06 12:18:41 END   exit=1 /home/andrey/anaconda3/envs/mlvsgnn_repro/bin/python run_pipeline.py --only 09 12 14 19 18 10 13 figures
+2026-11-06 12:18:41 ALL DONE

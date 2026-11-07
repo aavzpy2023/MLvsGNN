@@ -1,0 +1,679 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+2026-10-31 20:57:03,728 | INFO | ================================================================================
+2026-10-31 20:57:03,728 | INFO | 03_y_randomization.py — Model Robustness Test (Y-Randomization)
+2026-10-31 20:57:03,729 | INFO | ================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Sanity check that the model really learned chemistry and did not just memorise noise or benefit
+  from a data leak.
+  Procedure (Y-randomization): the measured potencies (pIC50) are randomly shuffled between
+  molecules, which destroys any         true structure-activity relationship, and the same model
+  is trained and cross-validated again. This is repeated many         times. A healthy model
+  scores well on the real data and about R2 = 0 (or negative) on the shuffled data.
+  R2 is the fraction of the variation in potency that the model explains: 1.0 is perfect, 0 is no
+  better than always         predicting the average potency, negative is worse than that.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-10-31 20:57:03,729 | INFO | Deployed model -> representation: 'morgan', architecture: 'RF+XGB+SVM'
+2026-10-31 20:57:03,729 | INFO | Loading training data from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
+2026-10-31 20:57:03,737 | INFO | Successfully loaded 859 valid SMILES and target values.
+2026-10-31 20:57:03,737 | INFO | Generating feature matrix X for representation mode 'morgan'...
+2026-10-31 20:57:04,041 | INFO | Feature matrix dimensions: (859, 2048)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] The four tests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Rucker et al. (2007) define y-randomization as permuting the potencies and repeating the WHOLE
+  model-building         procedure, because the risk of chance correlation comes mainly from
+  selecting a few descriptors out of many. They         also propose a second comparison, with
+  descriptors replaced by random ones (pseudodescriptors), because real         descriptors are
+  intercorrelated and shuffled potencies alone give lower chance scores.
+  Each test is run on the stacking alone ("architecture", all 2048 bits) and on the procedure that
+  produces the         screening model ("procedure": the out-of-fold permutation-importance bit
+  selection of step 04, redone in every         training set, then the stacking). Scores are
+  5-fold cross-validated R2: tree ensembles fit even random         potencies almost perfectly, so
+  the R2 of the fit would not discriminate. A test passes when the permutation         p-value is
+  <= 0.01.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-10-31 20:57:04,044 | INFO | [YRandom] architecture / y_permutation: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
+2026-10-31 21:51:08,914 | INFO | [YRandom] real R2 = 0.7787 | randomized R2 = -0.0136 ± 0.0084 | Z = 93.9 | p = 0.0099 -> PASSED (3245s)
+2026-10-31 21:51:08,915 | INFO | [YRandomPseudo] architecture / pseudodescriptors: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
+2026-10-31 22:37:06,707 | INFO | [YRandomPseudo] real R2 = 0.7787 | randomized R2 = -0.0136 ± 0.0083 | Z = 95.7 | p = 0.0099 -> PASSED (2758s)
+2026-10-31 22:37:06,707 | INFO | [YRandomProc] procedure / y_permutation: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
+2026-11-01 07:27:25,557 | INFO | [YRandomProc] real R2 = 0.7722 | randomized R2 = -0.0365 ± 0.0169 | Z = 47.8 | p = 0.0099 -> PASSED (31819s)
+2026-11-01 07:27:25,558 | INFO | [YRandomProcPseudo] procedure / pseudodescriptors: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
+2026-11-01 16:01:11,196 | INFO | [YRandomProcPseudo] real R2 = 0.7722 | randomized R2 = -0.0959 ± 0.0322 | Z = 27.0 | p = 0.0099 -> PASSED (30826s)
+2026-11-01 16:01:11,216 | INFO | Randomized scores of the four tests saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/03_y_randomization_scores.csv
+2026-11-01 16:01:11,216 | INFO | Exporting Y-Randomization LaTeX variables to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/yrandom_variables.tex
+2026-11-01 16:01:11,217 | INFO | LaTeX variable export completed successfully.
+2026-11-01 16:01:11,217 | INFO | Total execution time: 68647.2 seconds
+
+=== END LOG: 03_y_randomization.py [EXIT CODE: 0] ===
+
+2026-11-01 16:01:13,858 | INFO | ================================================================================
+2026-11-01 16:01:13,858 | INFO | 04_augmentation_training.py — Feature Selection & Gaussian Augmentation Benchmark
+2026-11-01 16:01:13,858 | INFO | Evaluates classical ML pipeline parity against reported DNN benchmarks
+2026-11-01 16:01:13,858 | INFO | ================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Trains the final predictive model and tests variants on compounds the model never saw (15% of
+  the data is set         aside before anything else happens, so the test is honest):
+  Exp A - baseline: a stacking ensemble (several different algorithms whose predictions are
+  combined by a final model).         Exp B - A plus feature selection: keeps only the fingerprint
+  bits that actually help prediction (permutation         importance: a bit is useful if randomly
+  scrambling it makes predictions worse). The importance is computed out-of-fold         inside
+  the development set: each model is scored on molecules it was not fitted on, so a bit is kept
+  only if it helps         predict unseen molecules, not if the trees merely memorised it.
+  Exp C - B plus data augmentation: adds slightly noisy copies of the training molecules'
+  potencies (Gaussian noise) to         see whether this makes the model more robust.         Exp
+  Bleaky / Exp Cleaky - diagnostics only: the same as B and C, but the bits are selected by
+  permuting on the TEST         set, as the original study did. The test molecules then influence
+  the model, so these scores are optimistically         biased; comparing them with B and C
+  measures how much of a reported gain can come from that leak. They never feed         the saved
+  mask or models.
+  Metrics: R2 (1 = perfect, 0 = no better than predicting the mean potency) and MAE (average error
+  in pIC50 units;         0.5 means a typical error of ~3-fold in IC50). The 95% CI comes from
+  bootstrap resampling of the test set: it shows how         much the score would move if a
+  different sample of test molecules had been drawn. With so few test molecules the CI is
+  wide, so small R2 differences between experiments are often not meaningful.
+  Outputs used downstream: results/04_best_model.joblib (the un-augmented model used for the
+  virtual screening in step 05)         and results/04_selected_features_mask.npy (which
+  fingerprint bits are kept).
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-11-01 16:01:13,865 | INFO | Data Loaded: 859 compounds successfully loaded.
+2026-11-01 16:01:14,112 | INFO | Data Split: Dev=730 | Test held-out=129 (isolated from tuning/augmentation)
+2026-11-01 16:01:14,112 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:01:14,112 | INFO | EXPERIMENT A: ML Stacking Baseline (all fingerprint bits, original data only)
+2026-11-01 16:01:14,112 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:02:23,868 | INFO | Results Exp A -> R2=0.7327 | MAE=0.4407 | 95% CI [0.6269, 0.8171] | Time: 69.8s
+2026-11-01 16:02:23,868 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:02:23,868 | INFO | EXPERIMENT B: + Permutation Importance Feature Selection
+2026-11-01 16:02:23,868 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:02:23,869 | INFO | Computing out-of-fold Permutation Importance (folds=5, n_repeats=5, n_jobs=46)...
+2026-11-01 16:09:40,819 | INFO | [out-of-fold] Features selected (importance > 1e-09): 747/2048 (759 features have a numerically zero importance)
+2026-11-01 16:10:13,069 | INFO | Results Exp B -> R2=0.7479 | MAE=0.4334 | 95% CI [0.6474, 0.8292] | Time: 469.2s
+2026-11-01 16:10:13,070 | INFO | Feature mask saved to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_selected_features_mask.npy
+2026-11-01 16:10:13,070 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:10:13,070 | INFO | EXPERIMENT C: + Gaussian Data Augmentation
+2026-11-01 16:10:13,070 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:10:13,116 | INFO | Dataset expansion: 730 -> 2190 (noise levels: [0.01, 0.001])
+2026-11-01 16:34:03,654 | INFO | Results Exp C -> R2=0.7319 | MAE=0.4386 | 95% CI [0.6225, 0.8200] | Time: 1430.6s
+2026-11-01 16:34:03,654 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:34:03,654 | INFO | DIAGNOSTIC EXPERIMENTS Bleaky / Cleaky: feature selection on the test set (LEAKY, not for use)
+2026-11-01 16:34:03,654 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:34:03,656 | INFO | Computing LEAKY Permutation Importance (fit on dev, permute on test) — diagnostic only...
+2026-11-01 16:35:41,631 | INFO | [leaky] Features selected (importance > 1e-09): 446/2048 (1233 features have a numerically zero importance)
+2026-11-01 16:35:41,632 | INFO | Jaccard index between leaky and out-of-fold masks: 0.3197
+2026-11-01 16:35:41,632 | INFO | The leaky mask is NOT saved to MASK_FILE and does NOT feed any persisted model: MASK_FILE, MODEL_FILE and the augmented model are built from the out-of-fold mask (Exp B).
+2026-11-01 16:36:02,661 | INFO | Results Exp Bleaky -> R2=0.8361 | MAE=0.3563 | 95% CI [0.7609, 0.8920] | Time: 119.0s
+2026-11-01 16:36:02,687 | INFO | Dataset expansion: 730 -> 2190 (noise levels: [0.01, 0.001])
+2026-11-01 16:50:41,360 | INFO | Results Exp Cleaky -> R2=0.8265 | MAE=0.3654 | 95% CI [0.7479, 0.8853] | Time: 878.7s
+2026-11-01 16:50:41,361 | INFO | ================================================================================
+2026-11-01 16:50:41,361 | INFO | EXECUTIVE SUMMARY — RIGOROUS STATISTICAL AUDIT
+2026-11-01 16:50:41,361 | INFO | ================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] How to read the summary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Each experiment (including the leaky diagnostics Bleaky / Cleaky) is compared with R2 values
+  reported in the         original paper (PAPER_R2). 'NOT significantly different'         means
+  the published value lies inside our 95% CI, i.e. we reproduce it within sampling uncertainty.
+  p_boot is the         fraction of bootstrap resamples that fall on the other side of the
+  reference value (small = real difference).
+  The paired delta R2 lines then ask whether adding feature selection (B vs A) or augmentation (C
+  vs B / C vs A) truly         improved the model. If the CI of a delta includes 0, the
+  improvement cannot be distinguished from noise.         The leaky deltas (Bleaky vs A / B,
+  Cleaky vs C) show how much selecting bits on the test set inflates the score.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-11-01 16:50:41,361 | INFO | Exp A (baseline): R2=0.7327 | MAE=0.4407 | 95% CI [0.6269, 0.8171]
+2026-11-01 16:50:41,361 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0173 | p_boot=0.6950 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,362 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0873 | p_boot=0.0440 -> SIGNIFICANTLY different
+2026-11-01 16:50:41,362 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1173 | p_boot=0.0050 -> SIGNIFICANTLY different
+2026-11-01 16:50:41,362 | INFO | Exp B (+feat.sel.): R2=0.7479 | MAE=0.4334 | 95% CI [0.6474, 0.8292]
+2026-11-01 16:50:41,362 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0021 | p_boot=0.9480 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,362 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0721 | p_boot=0.0850 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,362 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1021 | p_boot=0.0110 -> SIGNIFICANTLY different
+2026-11-01 16:50:41,362 | INFO | Exp C (+augment.): R2=0.7319 | MAE=0.4386 | 95% CI [0.6225, 0.8200]
+2026-11-01 16:50:41,362 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): below by 0.0181 | p_boot=0.7100 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,362 | INFO |   vs After Permutation Importance selection (R2=0.82): below by 0.0881 | p_boot=0.0510 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,363 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.1181 | p_boot=0.0050 -> SIGNIFICANTLY different
+2026-11-01 16:50:41,363 | INFO | Exp Bleaky (leaky, diagnostic): R2=0.8361 | MAE=0.3563 | 95% CI [0.7609, 0.8920]
+2026-11-01 16:50:41,363 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): above by 0.0861 | p_boot=0.0250 -> SIGNIFICANTLY different
+2026-11-01 16:50:41,363 | INFO |   vs After Permutation Importance selection (R2=0.82): above by 0.0161 | p_boot=0.6280 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,363 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.0139 | p_boot=0.6640 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,363 | INFO | Exp Cleaky (leaky, diagnostic): R2=0.8265 | MAE=0.3654 | 95% CI [0.7479, 0.8853]
+2026-11-01 16:50:41,363 | INFO |   vs 2D/3D/FP, no feature selection (R2=0.75): above by 0.0765 | p_boot=0.0560 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,363 | INFO |   vs After Permutation Importance selection (R2=0.82): above by 0.0065 | p_boot=0.8640 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,363 | INFO |   vs Data augmentation + DNN ensemble (R2=0.85): below by 0.0235 | p_boot=0.4580 -> NOT significantly different (within 95% CI)
+2026-11-01 16:50:41,363 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:50:41,364 | INFO | PAIRED BOOTSTRAP DIFFERENCES (delta R2):
+2026-11-01 16:50:41,364 | INFO | Delta R2 (Exp C - Exp A): point=-0.0008 | boot mean=-0.0012 (95% CI [-0.0270, +0.0200], p_boot=0.9890)
+2026-11-01 16:50:41,364 | INFO | Delta R2 (Exp B - Exp A): point=+0.0151 | boot mean=+0.0149 (95% CI [-0.0134, +0.0433], p_boot=0.2740)
+2026-11-01 16:50:41,365 | INFO | Delta R2 (Exp C - Exp B): point=-0.0160 | boot mean=-0.0162 (95% CI [-0.0361, -0.0004], p_boot=0.0460)
+2026-11-01 16:50:41,365 | INFO | Delta R2 (Exp Bleaky - Exp A): point=+0.1033 | boot mean=+0.1043 (95% CI [+0.0570, +0.1591], p_boot=0.0000)
+2026-11-01 16:50:41,366 | INFO | Delta R2 (Exp Bleaky - Exp B): point=+0.0882 | boot mean=+0.0893 (95% CI [+0.0468, +0.1389], p_boot=0.0000)
+2026-11-01 16:50:41,366 | INFO | Delta R2 (Exp Cleaky - Exp C): point=+0.0945 | boot mean=+0.0956 (95% CI [+0.0457, +0.1527], p_boot=0.0000)
+2026-11-01 16:50:41,366 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:50:41,366 | INFO | PERSISTENCE AUDIT — Matching Section 2.5 Protocol
+2026-11-01 16:50:41,366 | INFO | --------------------------------------------------------------------------------
+2026-11-01 16:50:41,366 | INFO | Fitting clean baseline model (NO augmentation) on dev set for Virtual Screening...
+2026-11-01 16:51:09,830 | INFO | Saved unaugmented clean baseline model to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model.joblib
+2026-11-01 17:13:08,767 | INFO | Saved augmented model separately to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model_augmented.joblib
+2026-11-01 17:13:08,772 | INFO | Results summary saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_augmentation_summary.csv
+2026-11-01 17:13:08,790 | INFO | Delta R2, bootstrap distributions and test predictions saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results
+2026-11-01 17:13:08,792 | INFO | Variables successfully exported to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/augment_variables.tex
+2026-11-01 17:13:08,792 | INFO | 04_augmentation_training.py execution complete with Q1 statistical rigor.
+
+=== END LOG: 04_augmentation_training.py [EXIT CODE: 0] ===
+
+====================================================================================================
+VIRTUAL SCREENING PIPELINE — TgDHFR Inhibitor Search
+Timestamp: 2026-11-01 17:13:10
+====================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Uses the trained model from step 04 to predict how strongly each FDA-approved drug would inhibit
+  the parasite enzyme         TgDHFR (Toxoplasma gondii dihydrofolate reductase), without doing
+  any lab work (virtual screening).
+  1) Load the model. 2) Measure how similar each drug is to the training molecules (Applicability
+  Domain: the model is         only trustworthy for molecules similar to those it was trained on);
+  drugs far from them are still scored, but flagged.         3) Drop drugs that are very large (MW
+  above the limit) or contain atoms outside the allowed set (H, C, N, O, F, P, S,         Cl, Br,
+  I). 4) Predict pIC50. 5) Report and export the ranking with each drug's similarity to the
+  training set.
+  pIC50 = -log10(IC50 in molar). Higher means more potent: 6 is IC50 = 1 uM, 7 is 100 nM, 8 is 10
+  nM.         Candidates are later confirmed by docking (step 07) and filtered for drug-
+  likeness/safety (step 08).
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[1/5] ML ARCHITECTURE LOADING
+  [-] Model path: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model.joblib
+  [+] Ensembled model loaded successfully (0.12s)
+  [-] Mask path: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_selected_features_mask.npy
+  [+] Mask applied: 747 / 2048 features (36.47% retention)
+
+[2/5] APPLICABILITY DOMAIN CONFIGURATION (SIMILARITY TO THE TRAINING SET)
+  [-] Training source: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
+  [+] Training fingerprints generated: (859, 2048)
+  [+] Similarity domain fitted (k=5, z=0.5) in 0.84s: minimum mean similarity to the 5 nearest training molecules = 0.638 (training molecules, one against the others: median 0.695)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Applicability Domain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Prediction error grows as a molecule becomes less similar to the training set (Sheridan et al.,
+  2004). Each FDA drug         is given its mean Tanimoto similarity to its 5 most similar
+  training molecules. A drug is flagged as inside the         domain when that value is at least
+  0.638, which is 1 - (mean + 0.5 standard deviations) of the         same distance measured for
+  the 859 training molecules against each other (Sahigara et al., 2012). The         multiplier is
+  arbitrary: the literature gives no rule for it. No drug is excluded on this flag; it is reported
+  with         every candidate, because predictions outside the domain are extrapolations.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[3/5] FDA LIBRARY PROCESSING
+  [-] Screening source: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/PubChem_FDA-approved_NoInorganics.csv
+  [+] Raw compounds imported: 3378
+  [+] Physical/Structural Filtering (MW < 1000.0, Allowed Atoms): 3056 candidates retained (90.5%)
+  [+] Similarity to the training set of the 3056 candidates: median 0.170 (5th-95th percentile 0.109-0.257)
+  [+] Inside the applicability domain: 14 compounds (0.5%); all are scored, none is excluded
+  [+] Total filtering time: 5.81s
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Reading the filter counts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  3378 drugs in the library -> 3056 after size/atom filters, all scored -> 14         of them
+  inside the model's domain. Drugs lost at the first stage were never scored. A low share inside
+  the domain         means the FDA library is chemically far from the training set: the
+  predictions are then extrapolations and are         less reliable, however high they rank.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[4/5] ML INFERENCE - BIOACTIVITY PREDICTION (pIC50)
+  [+] Inferences completed in 1.048s
+  [-] Prediction Statistics -> Mean: 5.0003 | Max: 7.9272 | Min: 3.7468
+
+[5/5] PERFORMANCE REPORTS AND EXPORT
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Report A: sanity check against known drugs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Pyrimethamine and trimethoprim are classic DHFR inhibitors with known experimental pIC50. If the
+  model predicts them         close to the lab value it is behaving sensibly. Status: absolute
+  error < 0.5 = EXCELLENT, < 1.0 = ACCEPTABLE, else ALERT.         Caution: if these drugs (or
+  close analogues) are in the training set, a good match is partly memorisation and not a
+  true test of generalisation.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+--------------------------------------------------------------------------------
+REPORT A: Internal Validation vs Known TgDHFR Controls
+--------------------------------------------------------------------------------
+Drug               |   pIC50 Exp. |  pIC50 Pred. |  Abs Error | Status
+--------------------------------------------------------------------------------
+Pyrimethamine      |         6.56 |       6.5705 |     0.0105 | EXCELLENT
+Trimethoprim       |         5.57 |       5.6710 |     0.1010 | EXCELLENT
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Report B: ranking and efficiency metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Besides predicted potency (pIC50), the table gives metrics that judge whether the potency is
+  'earned' efficiently:         LE (ligand efficiency) = potency per heavy atom, >= 0.3 is
+  generally considered good; BEI = potency per kDa of mass;         LLE = pIC50 minus logP, >= 5
+  suggests potency is not just coming from greasiness (lipophilicity); SEI = potency per
+  polar surface area. A high pIC50 with poor LE/LLE usually means a big or greasy molecule that is
+  a weaker lead.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+----------------------------------------------------------------------------------------------------
+REPORT B: Top 10 FDA Candidates (One Row per Ligand, Sorted by Predicted Affinity)
+----------------------------------------------------------------------------------------------------
+Rank  Compound Name                    pIC50     LE     BEI    LLE    SEI
+----------------------------------------------------------------------------------------------------
+1     CID 336805                      7.9272   0.40   21.46   5.19   6.74
+2     Methotrexate                    7.4448   0.31   16.38   7.18   3.54
+3     Triamterene                     7.0081   0.51   27.67   6.17   5.41
+4     Pralatrexate                    7.0034   0.27   14.67   6.02   3.38
+5     Pyrimethamine                   6.5705   0.53   26.42   4.05   8.44
+6     Folic Acid                      6.3379   0.27   14.36   6.38   2.97
+7     Naldemedine Tosylate            6.0892   0.20   10.67   2.61   4.31
+8     Bendamustine Hydrochloride      6.0850   0.36   16.98   2.82  10.43
+9     Levomefolate Calcium            6.0732   0.25   13.22   6.33   3.00
+10    Letermovir                      5.9681   0.20   10.42   0.26   7.67
+
+====================================================================================================
+[SUCCESS] 17 candidates safely exported to:
+        -> /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/05_FDA_Candidates_For_Docking.csv
+        Logs saved in: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/logs/05_virtual_screening.log
+        Total execution time: 10.88s
+====================================================================================================
+
+=== END LOG: 05_virtual_screening.py [EXIT CODE: 0] ===
+
+==========================================================================================
+07_molecular_docking.py — Fully Agnostic Docking Pipeline
+Receptor: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/receptor/receptor.pdbqt
+Active site center: [3.689, 39.992, -62.818]
+Box: 20.0A | Exhaustiveness: 32
+Log file: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/logs/07_molecular_docking.log
+==========================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Second, independent opinion on the drugs ranked by the machine-learning model. The top 15
+  candidates         from step 05, plus the reference/control drugs, are physically docked into
+  the TgDHFR active site with AutoDock Vina:         each molecule is converted to 3D, many
+  positions/orientations are tried inside the search box, and the best-scoring         poses are
+  kept (3 per drug). ML looks at chemical similarity to known inhibitors; docking looks at 3D
+  shape/chemical fit to the real protein pocket, so agreement between the two is stronger evidence
+  than either alone.
+  Docking score (kcal/mol): more negative = predicted tighter binding. Rule of thumb used here:
+  below -8.0         = binding confirmed. Scores are approximate (errors of 1-2 kcal/mol are
+  normal) and rank-ordering is more reliable         than absolute values. LE here is score per
+  heavy atom (more negative = more efficient binder).
+  'Agreement' column: VALIDATED (+) = ML says active (pIC50 > 6.5) AND docking confirms; VALIDATED
+  (-) =         both say inactive; ML FALSE POSITIVE = ML active but docking does not confirm; ML
+  FALSE NEGATIVE = the reverse;         Neutral = in between. Energy_Gap_P1_Pn is how much worse
+  the 3rd pose is than the 1st (small gap = several similar         alternative poses, i.e. a less
+  defined binding mode). Max_RMSD_UB is how different the extra poses are (Å).         Limitation:
+  the receptor is rigid and water/protonation states are not modelled.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[INFO] 17 candidates selected for docking
+Computing Vina grid ... done.
+
+Compound                  |     LE | Dock (kcal/mol) | Time (s)
+-----------------------------------------------------------------
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -8.763          0          0
+   2       -8.698     0.2496       2.48
+   3       -8.543      1.404      3.176
+CID 336805                | -0.325 |           -8.76 |    12.31s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -8.659          0          0
+   2       -8.595      4.051      7.984
+   3       -8.545      3.975      8.081
+Methotrexate              | -0.262 |           -8.66 |    34.16s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -8.075          0          0
+   2       -7.899      1.538      2.873
+   3       -7.785      2.192      3.325
+Triamterene               | -0.425 |           -8.07 |     4.54s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -8.678          0          0
+   2        -8.48      4.021      7.605
+   3       -8.384      1.503      2.288
+Pralatrexate              | -0.248 |           -8.68 |    40.61s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -7.619          0          0
+   2       -7.208      4.082      6.241
+   3       -7.098       2.51       3.78
+Pyrimethamine             | -0.448 |           -7.62 |     4.00s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -9.426          0          0
+   2       -8.734      2.777      9.064
+   3       -8.727      2.763       9.01
+Folic Acid                | -0.295 |           -9.43 |    28.26s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -9.389          0          0
+   2       -9.343      1.964      3.669
+   3       -8.954      1.508      1.976
+Naldemedine Tosylate      | -0.224 |           -9.39 |    42.87s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1        -6.72          0          0
+   2       -6.697     0.5395      2.292
+   3       -6.535      2.453      3.859
+Bendamustine Hydrochlori  | -0.292 |           -6.72 |    11.56s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1        -8.89          0          0
+   2       -8.809     0.9433      2.765
+   3       -8.588      1.866      3.519
+Levomefolate Calcium      | -0.269 |           -8.89 |    27.52s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -7.148          0          0
+   2       -6.724      2.366      3.546
+   3       -6.652      4.013      7.065
+Letermovir                | -0.174 |           -7.15 |    44.43s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -7.559          0          0
+   2        -7.54     0.2917      2.784
+   3       -7.118      1.871      2.508
+Sulfamethoxazole; Trimet  | -0.360 |           -7.56 |     7.97s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -7.559          0          0
+   2        -7.54     0.2917      2.784
+   3       -7.118      1.871      2.508
+Trimethoprim sulfate      | -0.360 |           -7.56 |     7.86s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -7.559          0          0
+   2        -7.54     0.2917      2.784
+   3       -7.118      1.871      2.508
+Trimethoprim Hydrochlori  | -0.360 |           -7.56 |     7.76s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -7.559          0          0
+   2        -7.54     0.2917      2.784
+   3       -7.118      1.871      2.508
+Trimethoprim              | -0.360 |           -7.56 |     7.73s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -8.051          0          0
+   2        -7.71      2.665      6.462
+   3       -7.684      2.024      5.231
+Finerenone                | -0.288 |           -8.05 |    11.01s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1        -7.77          0          0
+   2       -7.613      2.844       5.01
+   3        -7.47       2.66      4.199
+Etodolac                  | -0.370 |           -7.77 |     5.36s
+WARNING: At low exhaustiveness, it may be impossible to utilize all CPUs.
+Performing docking (random seed: 42) ... 
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+
+mode |   affinity | dist from best mode
+     | (kcal/mol) | rmsd l.b.| rmsd u.b.
+-----+------------+----------+----------
+   1       -8.824          0          0
+   2        -8.33      1.039      7.034
+   3         -8.2      3.797      6.807
+Bisacodyl                 | -0.327 |           -8.82 |    12.02s
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Reading the final table
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Sorted from best (most negative) docking score. Look for compounds that are strong in BOTH
+  columns (high ML pIC50         and very negative Vina score): those are the best candidates for
+  experimental testing. Reference drugs (e.g.         pyrimethamine, methotrexate) give the
+  benchmark: a new candidate scoring close to or better than them is interesting;         one far
+  worse is probably not worth pursuing even if the ML score is high.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+====================================================================================================
+FINAL RESULTS ENRICHED — ML Prediction vs. Physics (AutoDock Vina)
+====================================================================================================
+Compound                  |  ML pIC50 |     Vina |      LE | Agreement
+--------------------------------------------------------------------------------
+Folic Acid                |    6.3379 |    -9.43 |  -0.295 | Neutral
+Naldemedine Tosylate      |    6.0892 |    -9.39 |  -0.224 | Neutral
+Levomefolate Calcium      |    6.0732 |    -8.89 |  -0.269 | Neutral
+Bisacodyl                 |    4.9528 |    -8.82 |  -0.327 | ML FALSE NEGATIVE
+CID 336805                |    7.9272 |    -8.76 |  -0.325 | VALIDATED (+)
+Pralatrexate              |    7.0034 |    -8.68 |  -0.248 | VALIDATED (+)
+Methotrexate              |    7.4448 |    -8.66 |  -0.262 | VALIDATED (+)
+Triamterene               |    7.0081 |    -8.07 |  -0.425 | VALIDATED (+)
+Finerenone                |    5.4458 |    -8.05 |  -0.287 | ML FALSE NEGATIVE
+Etodolac                  |    4.9627 |    -7.77 |  -0.370 | Neutral
+Pyrimethamine             |    6.5705 |    -7.62 |  -0.448 | ML FALSE POSITIVE
+Sulfamethoxazole; Trimet  |    5.6710 |    -7.56 |  -0.360 | Neutral
+Trimethoprim sulfate      |    5.6710 |    -7.56 |  -0.360 | Neutral
+Trimethoprim Hydrochlori  |    5.6710 |    -7.56 |  -0.360 | Neutral
+Trimethoprim              |    5.6710 |    -7.56 |  -0.360 | Neutral
+Letermovir                |    5.9681 |    -7.15 |  -0.174 | VALIDATED (-)
+Bendamustine Hydrochlori  |    6.0850 |    -6.72 |  -0.292 | Neutral
+
+[EXPORT] Enriched dataset saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/07_Final_Validation_Hybrid.csv
+
+[LATEX] Attempting to write file to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/docking_variables.tex
+[LATEX] SUCCESS! Variables exported to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/docking_variables.tex
+[DONE] 07_molecular_docking.py complete.
+
+=== END LOG: 07_molecular_docking.py [EXIT CODE: 0] ===
+
+==========================================================================================
+08_admet_profiling.py — ADMET Profiling & Toxicity Risk Assessment
+Log file: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/logs/08_admet_profiling.log
+==========================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  A molecule that binds the target is useless as a drug if it is toxic or cannot reach the
+  bloodstream. This step         screens the docked candidates for three drug-likeness properties,
+  using fast models trained on public data (TDC):
+  1) Lipinski rule of five: a rule of thumb for oral drugs (limits on hydrogen-bond donors <= 5,
+  acceptors <= 10, logP <= 5.0, plus molecular weight). Molecules that break it         tend to be
+  poorly absorbed.         2) hERG: probability that the drug blocks the hERG potassium channel in
+  the heart, a main cause of dangerous heart         rhythm side effects (QT prolongation).
+  Probability < 0.5 is treated as low risk. Candidates above it are removed.         3) Caco-2:
+  predicted permeability through a model of the intestinal wall (log cm/s, less negative = better
+  absorbed).         Above -5.15 = moderate/high oral absorption; below it the drug is labelled
+  'Parenteral Candidate' (better         given by injection) but is NOT removed.
+  Limitations: both models are Random Forests on molecular fingerprints trained on a few hundred
+  to a few thousand         compounds, so values are screening-level estimates, not experimental
+  toxicity. Not modelled: liver metabolism,         blood-brain barrier (important for Toxoplasma,
+  which infects the brain), and other off-target toxicity.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[1] Total initial candidates from docking: 17
+[1] Evaluating Lipinski rule of five on 48 cores...
+[1] Candidates passing Lipinski: 14
+Found local copy...
+Loading...
+Done!
+
+[2] Training hERG Cardiotoxicity Classifier (TDC Dataset: 655 samples)...
+Found local copy...
+Loading...
+Done!
+
+[3] Training Caco-2 Permeability Regressor (TDC Dataset: 910 samples)...
+
+[EXPORT] Full analytical dataset (for plotting) saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/08_ADMET_CANDIDATES_For_Docking_FULL_PRE_FILTER.csv
+
+[4] Flagged by hERG toxicity: 6 compounds
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Reading the summary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Of 14 candidates that passed Lipinski, 6 were dropped for hERG risk and 8         remain.
+  'ADMET-Compliant (Oral)' = low hERG risk and good predicted absorption. 'Parenteral Candidate' =
+  low hERG risk         but poor predicted gut permeability. Both lists (before and after the hERG
+  cut) are saved so the full picture can be         plotted in 08.1.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+=========================================================================================================
+ADMET PROFILING RESULTS SUMMARY
+=========================================================================================================
+CID 336805                   | hERG Prob: 0.400 | Caco-2:  -4.86 | Profile: ADMET-Compliant (Oral)
+Pralatrexate                 | hERG Prob: 0.312 | Caco-2:  -5.41 | Profile: Parenteral Candidate (Low Caco-2)
+Methotrexate                 | hERG Prob: 0.400 | Caco-2:  -5.87 | Profile: Parenteral Candidate (Low Caco-2)
+Pyrimethamine                | hERG Prob: 0.125 | Caco-2:  -4.42 | Profile: ADMET-Compliant (Oral)
+Sulfamethoxazole; Trimethopr | hERG Prob: 0.140 | Caco-2:  -4.77 | Profile: ADMET-Compliant (Oral)
+Trimethoprim sulfate         | hERG Prob: 0.140 | Caco-2:  -4.77 | Profile: ADMET-Compliant (Oral)
+Trimethoprim Hydrochloride   | hERG Prob: 0.140 | Caco-2:  -4.77 | Profile: ADMET-Compliant (Oral)
+Trimethoprim                 | hERG Prob: 0.140 | Caco-2:  -4.77 | Profile: ADMET-Compliant (Oral)
+
+[EXPORT] Safe candidates (8) saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/08_ADMET_CANDIDATES_For_Docking.csv
+[TIME] Total execution: 0m 3s
+[DONE] 08_admet_profiling.py complete.
+
+=== END LOG: 08_admet_profiling.py [EXIT CODE: 0] ===
+

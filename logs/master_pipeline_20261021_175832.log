@@ -1,0 +1,254 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+=========================================================================================================
+17_dnn_nested_cv.py — Original deep network on the shared outer folds (split: scaffold, TensorFlow environment)
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The original study scored its network once, on one random 15% test set. Here the same network,
+  with the same         descriptors, preprocessing and training settings, is scored on the 25
+  outer folds used for every other model of this         study, so that its accuracy can be
+  compared with theirs fold by fold. Two versions are run: the baseline network on         all
+  descriptors, and the complete original pipeline (descriptor selection by importance plus noisy
+  copies of the         training molecules). In both, nothing about a test fold is used before
+  that fold is scored.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Original repository: /home/andrey/Projects/__GITHUB__aavzpy2023/karimova_pIC50_paper (commit 70e944619d0eb964bc8b4ef831bb27f12160d33c)
+  50 fold x model tasks to run (0 already in the checkpoint)
+  12 workers x 4 threads
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:90: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(lower=self.left_tail_caps_[feature])
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:90: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(lower=self.left_tail_caps_[feature])
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:90: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(lower=self.left_tail_caps_[feature])
+  fold 11 dnn_full     R2=0.6816 MAE=0.5014 features=855 clipped=1 (1659s)
+  fold 10 dnn_full     R2=0.4310 MAE=0.7181 features=126 clipped=0 (1659s)
+  fold  0 dnn_full     R2=0.4449 MAE=0.7282 features=213 clipped=1 (1688s)
+  fold  6 dnn_full     R2=0.4342 MAE=0.7404 features=179 clipped=0 (1689s)
+  fold  9 dnn_full     R2=0.5284 MAE=0.5151 features=912 clipped=1 (1692s)
+  fold  7 dnn_full     R2=0.5225 MAE=0.6448 features=933 clipped=0 (1701s)
+  fold  4 dnn_full     R2=0.3692 MAE=0.6896 features=330 clipped=0 (1714s)
+  fold  2 dnn_full     R2=0.4745 MAE=0.6408 features=200 clipped=0 (1722s)
+  fold  5 dnn_full     R2=0.5426 MAE=0.7004 features=282 clipped=0 (1731s)
+  fold  3 dnn_full     R2=0.6657 MAE=0.6013 features=881 clipped=0 (1758s)
+  fold  8 dnn_full     R2=0.3837 MAE=0.5215 features=883 clipped=0 (1763s)
+  fold  1 dnn_full     R2=0.5420 MAE=0.5601 features=654 clipped=0 (1774s)
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:87: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(upper=self.right_tail_caps_[feature])
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:87: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(upper=self.right_tail_caps_[feature])
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:87: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(upper=self.right_tail_caps_[feature])
+  fold 12 dnn_full     R2=0.5371 MAE=0.5342 features=919 clipped=0 (1417s)
+  fold 13 dnn_full     R2=0.1838 MAE=0.6893 features=788 clipped=1 (1431s)
+  fold 17 dnn_full     R2=0.5356 MAE=0.4768 features=854 clipped=0 (1445s)
+  fold 20 dnn_full     R2=0.6363 MAE=0.6174 features=315 clipped=0 (1448s)
+  fold 15 dnn_full     R2=0.4919 MAE=0.5460 features=979 clipped=1 (1522s)
+  fold 14 dnn_full     R2=0.6538 MAE=0.6075 features=1033 clipped=0 (1532s)
+  fold 18 dnn_full     R2=0.6821 MAE=0.5839 features=657 clipped=0 (1510s)
+  fold 23 dnn_full     R2=0.6286 MAE=0.5044 features=912 clipped=0 (1451s)
+  fold 22 dnn_full     R2=0.6143 MAE=0.5824 features=250 clipped=0 (1475s)
+  fold 16 dnn_full     R2=0.3323 MAE=0.6533 features=921 clipped=0 (1554s)
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:90: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(lower=self.left_tail_caps_[feature])
+  fold 19 dnn_full     R2=0.5415 MAE=0.6612 features=1083 clipped=0 (1548s)
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:90: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(lower=self.left_tail_caps_[feature])
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:90: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(lower=self.left_tail_caps_[feature])
+  fold 21 dnn_full     R2=0.5898 MAE=0.5388 features=976 clipped=1 (1529s)
+  fold  0 dnn_baseline R2=0.4388 MAE=0.7799 features=1844 clipped=0 (201s)
+  fold  1 dnn_baseline R2=0.3578 MAE=0.6258 features=1831 clipped=1 (253s)
+  fold  2 dnn_baseline R2=0.4180 MAE=0.5604 features=1852 clipped=1 (263s)
+  fold  3 dnn_baseline R2=0.6349 MAE=0.6368 features=1849 clipped=0 (234s)
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:87: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(upper=self.right_tail_caps_[feature])
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:87: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(upper=self.right_tail_caps_[feature])
+/home/andrey/anaconda3/envs/karimova_repro/lib/python3.12/site-packages/feature_engine/outliers/base_outlier.py:87: FutureWarning: Downcasting behavior in Series and DataFrame methods 'where', 'mask', and 'clip' is deprecated. In a future version this will not infer object dtypes or cast all-round floats to integers. Instead call result.infer_objects(copy=False) for object inference, or cast round floats explicitly. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X[feature] = X[feature].clip(upper=self.right_tail_caps_[feature])
+  fold  7 dnn_baseline R2=0.4734 MAE=0.7007 features=1850 clipped=0 (242s)
+  fold  6 dnn_baseline R2=0.7151 MAE=0.5250 features=1852 clipped=0 (305s)
+  fold  4 dnn_baseline R2=0.5394 MAE=0.5990 features=1849 clipped=0 (321s)
+  fold  9 dnn_baseline R2=0.5385 MAE=0.5193 features=1854 clipped=1 (272s)
+  fold  5 dnn_baseline R2=0.5101 MAE=0.6282 features=1833 clipped=1 (327s)
+  fold  8 dnn_baseline R2=0.5395 MAE=0.5329 features=1841 clipped=0 (315s)
+  fold 11 dnn_baseline R2=0.6923 MAE=0.4972 features=1842 clipped=1 (273s)
+  fold 10 dnn_baseline R2=0.5038 MAE=0.6410 features=1842 clipped=0 (340s)
+  fold 13 dnn_baseline R2=0.1046 MAE=0.7507 features=1847 clipped=1 (238s)
+  fold 12 dnn_baseline R2=0.1968 MAE=0.6201 features=1840 clipped=2 (318s)
+  fold 14 dnn_baseline R2=0.6541 MAE=0.6046 features=1849 clipped=0 (315s)
+  fold 16 dnn_baseline R2=0.0953 MAE=0.7111 features=1845 clipped=2 (255s)
+  fold 15 dnn_baseline R2=0.4832 MAE=0.5560 features=1842 clipped=1 (337s)
+  fold 20 dnn_baseline R2=0.6904 MAE=0.5737 features=1846 clipped=0 (258s)
+  fold 18 dnn_baseline R2=0.6322 MAE=0.6377 features=1842 clipped=0 (277s)
+  fold 19 dnn_baseline R2=0.5154 MAE=0.6967 features=1845 clipped=0 (283s)
+  fold 21 dnn_baseline R2=0.5454 MAE=0.5946 features=1852 clipped=1 (279s)
+  fold 17 dnn_baseline R2=0.5786 MAE=0.4830 features=1848 clipped=1 (309s)
+  fold 22 dnn_baseline R2=0.3267 MAE=0.6996 features=1840 clipped=1 (224s)
+  fold 23 dnn_baseline R2=0.6244 MAE=0.5036 features=1859 clipped=0 (232s)
+  fold 24 dnn_baseline R2=0.4071 MAE=0.6772 features=1833 clipped=0 (279s)
+  fold 24 dnn_full     R2=0.3090 MAE=0.7126 features=222 clipped=1 (1660s)
+  dnn_baseline 25 folds | R2 = 0.4886 ± 0.1692 | MAE = 0.6142 | clipped predictions: 14 -> /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scaffold/results/17_dnn_baseline_fold_scores.csv
+  dnn_full     25 folds | R2 = 0.5103 ± 0.1272 | MAE = 0.6108 | clipped predictions: 7 -> /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scaffold/results/17_dnn_full_fold_scores.csv
+  4743s
+
+=== END LOG: 17_dnn_nested_cv.py [EXIT CODE: 0] ===
+
+=========================================================================================================
+19_gnn_strong_baselines.py — Stronger neural baselines on the shared outer folds
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The graph network of steps 09 and 12 was trained from scratch, one network per fold. A fair
+  objection is that a         stronger neural model might have matched the classical ensembles.
+  This step tries four: an average of five graph         networks, a graph network that also
+  receives the RDKit descriptors, a graph network that starts from CheMeleon (a         model
+  pretrained on about a million PubChem molecules), and a plain neural network on the Morgan
+  fingerprints. All         are scored on the same 25 folds as every other model and compared with
+  the same corrected tests.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  50 variant x fold tasks to run (0 already in the checkpoint)
+  12 workers x 4 threads
+Seed set to 44
+Seed set to 52
+Seed set to 53
+Seed set to 46
+Seed set to 45
+Seed set to 42
+Seed set to 43
+Seed set to 49
+Seed set to 47
+Seed set to 50
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Seed set to 48
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+Seed set to 51
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+Seed set to 54
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+[rank: 0] Received SIGTERM: 15
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+Loading `train_dataloader` to estimate number of stepping batches.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+`Trainer.fit` stopped: `max_epochs=100` reached.
+/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:434: The 'predict_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=47` in the `DataLoader` to improve performance.
+  chemeleon    fold 12 R2=0.5712 MAE=0.5324 (7172s)
+Traceback (most recent call last):
+  File "/home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scripts/19_gnn_strong_baselines.py", line 218, in <module>
+    main()
+  File "/home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scripts/19_gnn_strong_baselines.py", line 179, in main
+    row, pred = fut.result()
+                ^^^^^^^^^^^^
+  File "/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/andrey/anaconda3/envs/mlvsgnn_repro/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+concurrent.futures.process.BrokenProcessPool: A process in the process pool was terminated abruptly while the future was running or pending.
+
+=== END LOG: 19_gnn_strong_baselines.py [EXIT CODE: 1] ===
+

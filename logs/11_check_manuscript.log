@@ -1,4 +1,4 @@
-=== START LOG: 11_check_manuscript.py [2026-11-06 14:19:15] ===
+=== START LOG: 11_check_manuscript.py [2026-11-06 22:07:30] ===
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,18 +9,25 @@
   that each result variable used in the text was generated.         A failure here means the text
   refers to something the pipeline did not produce (or no longer produces).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[DOC] paper_ML_GNN.tex
 [OK] figure figures/01_nested_cv_algorithm_selection.png
 [OK] figure figures/01_nested_cv_stability_boxplot.png
 [OK] figure figures/01_nested_cv_time_vs_performance.png
 [OK] figure figures/04_augment_r2_comparison.png
-[OK] figure figures/05_pIC50_vs_LE_scatter.png
 [OK] figure figures/07_docking_scatter.png
-[OK] figure figures/08_admet_quadrants.png
 [OK] figure figures/09_gnn_benchmark_comparison.png
-[OK] figure figures/S1_nested_cv_selection_full_heatmap.png
+[CHECK] 25 files followed, 6 figures, 958 project variables used, 0 undefined
 
-[CHECK] 28 files followed, 9 figures, 958 project variables used, 0 undefined
-[OK] Every figure, included file, and variable used by the manuscript is produced by the pipeline.
+[DOC] supplementary_ML_GNN.tex
+[OK] figure figures/01_nested_cv_performance_summary.png
+[OK] figure figures/05_candidates_metrics_heatmap.png
+[OK] figure figures/05_pIC50_candidates_comparison.png
+[OK] figure figures/05_pIC50_vs_LE_scatter.png
+[OK] figure figures/08_admet_quadrants.png
+[OK] figure figures/S1_nested_cv_selection_full_heatmap.png
+[CHECK] 17 files followed, 6 figures, 955 project variables used, 0 undefined
+[OK] Every figure, included file, and variable used by the 2 document(s) is produced by the pipeline.
 
 === END LOG: 11_check_manuscript.py [EXIT CODE: 0] ===
 

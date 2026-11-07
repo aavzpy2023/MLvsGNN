@@ -1,0 +1,689 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Builds the two training sets from the raw table. Extreme potencies are those outside Q1 -
+  1.5*IQR and Q3 + 1.5*IQR         (Tukey fences) of the pIC50 distribution. They are removed for
+  the main analysis; a second set keeps them so the         pipeline can later measure how much
+  they change the conclusions (sensitivity analysis, steps S01/S02/10).         Then structures
+  that appear more than once (same canonical SMILES, different identifiers) are collapsed to one
+  row,         because a duplicate in both the training and the test part of a fold would leak the
+  answer.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[DATA] 875 raw rows | pIC50 Tukey fences [2.060, 10.800] | 2 outside
+[OUTLIER] cid=269323 pIC50=11.678 (high fence)
+[OUTLIER] cid=44424991 pIC50=1.559 (low fence)
+[DATA] main set: 859 rows -> V2-combined_bd_chmbl_unique_dedup.csv
+[DATA] sensitivity set (extremes kept): 861 rows -> V2-combined_bd_chmbl_unique_dedup_with_outliers.csv
+[DATA] 14 duplicated structures (14 rows removed) -> V2-combined_bd_chmbl_unique_duplicates.csv
+
+=== END LOG: 00_prepare_dataset.py [EXIT CODE: 0] ===
+
+[INFO] Active profile: workstation | N_JOBS=46 | Outer folds=5x5=25
+[DATA] /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv: 859 rows read, 859 usable (SMILES and pIC50 present). pIC50 range 3.30 - 9.34, mean 6.37, SD 1.26.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Builds and honestly evaluates machine-learning models that predict how potently a molecule
+  inhibits TgDHFR (pIC50, higher         = more potent) from its structure. The dataset has 859
+  molecules with measured potency.
+  Molecules must be converted to numbers before a model can use them. Several descriptions are
+  compared:         Morgan fingerprints (ECFP4, 2048 bits); RDKit 2D physicochemical descriptors;
+  RDKit 2D descriptors + Morgan FP; 2D + 3D (ETKDGv3 + MMFF94s) descriptors + Morgan FP.         A
+  fingerprint is a long 0/1 list saying which small substructures are present; a descriptor is a
+  number such as         molecular weight, polarity or number of rotatable bonds; '3D' descriptors
+  also depend on the molecule's shape.
+  For each description, the models tried are single algorithms (Random Forest, Extra Trees,
+  LightGBM, XGBoost, SVM,         kNN) and stacks of up to 3 of them combined by a final Ridge
+  regression. NESTED cross-validation         is used so the reported score is not optimistic: the
+  data is split into 5 parts and the whole         split is repeated 5 times (= 25 outer folds).
+  Inside every outer fold the training part is         split again (5 inner folds) to choose the
+  best algorithm combination; only then is that choice         scored on the outer test part,
+  which it has never seen. Selecting and scoring on the same data would inflate R2.
+  This is by far the slowest step of the pipeline (each outer fold fits hundreds of models).
+  Progress is saved after every         fold (results/01_nested_cv_checkpoint.csv), so an
+  interrupted run resumes where it stopped. IMPORTANT: if the training         data changes,
+  delete that checkpoint first or old-data folds would be silently reused.
+  Per-fold line: 'Best' = the algorithm combination that won the inner selection; R2_outer =
+  fraction of the variance in         potency explained on the unseen part (1 = perfect, 0 = no
+  better than predicting the mean); MAE = average error in         pIC50 units (0.5 = about a
+  3-fold error in IC50); the time is for that fold.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: morgan
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'morgan', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d_fp
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d_fp', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d3d_fp
+####################################################################################################
+    [INFO] Generating 3D conformers (ETKDGv3 + MMFF)...
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d3d_fp', resuming...
+
+====================================================================================================
+RESULTS SUMMARY (Nested CV 5x5)
+====================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] How to read the summary tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Table 1: mean R2 over all outer folds for each molecular description, with its standard
+  deviation (spread between         folds) and the number of folds. The top row is the best-
+  performing description. Differences smaller than about one         standard deviation are
+  usually not meaningful.
+  Table 2: tests whether our R2 differs from the R2 values reported in the original publication
+  (PAPER_R2). The         Nadeau-Bengio correction is applied because cross-validation folds
+  overlap and share training data, which makes a         naive t-test over-confident.
+  'Significant_p<0.05' = True means our result is really different from the reference
+  (higher or lower: compare Our_R2_mean with Paper_R2); False means we reproduce it within
+  statistical noise.
+  The paired comparison at the end tests whether the two best descriptions differ from each other
+  on the same folds.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Table 1. R² by molecular representation:
+        Mode     mean      std  count
+  rdkit2d_fp 0.769970 0.046746     25
+rdkit2d3d_fp 0.768044 0.043738     25
+      morgan 0.759225 0.044895     25
+     rdkit2d 0.722514 0.049238     25
+
+Table 2. t-tests (Nadeau-Bengio Corrected) vs Original Publication:
+        Mode Paper_reference_label  Paper_R2  Our_R2_mean  Our_R2_std    t_stat  p_value  Significant_p<0.05
+      morgan         PaperBaseline      0.75     0.759225    0.043988  0.381544 0.706157               False
+      morgan         PaperSelected      0.82     0.759225    0.043988 -2.513785 0.019060                True
+      morgan            PaperFinal      0.85     0.759225    0.043988 -3.754640 0.000977                True
+     rdkit2d         PaperBaseline      0.75     0.722514    0.048243 -1.036614 0.310248               False
+     rdkit2d         PaperSelected      0.82     0.722514    0.048243 -3.676604 0.001188                True
+     rdkit2d            PaperFinal      0.85     0.722514    0.048243 -4.808027 0.000068                True
+  rdkit2d_fp         PaperBaseline      0.75     0.769970    0.045801  0.793305 0.435374               False
+  rdkit2d_fp         PaperSelected      0.82     0.769970    0.045801 -1.987414 0.058403               False
+  rdkit2d_fp            PaperFinal      0.85     0.769970    0.045801 -3.179151 0.004039                True
+rdkit2d3d_fp         PaperBaseline      0.75     0.768044    0.042855  0.766068 0.451105               False
+rdkit2d3d_fp         PaperSelected      0.82     0.768044    0.042855 -2.205856 0.037214                True
+rdkit2d3d_fp            PaperFinal      0.85     0.768044    0.042855 -3.479538 0.001938                True
+
+Paired comparison (Nadeau-Bengio) between rdkit2d_fp and rdkit2d3d_fp:
+  t = 0.322, p = 0.7505
+
+[SUPPLEMENTARY CSV] Selection frequency exported to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/01_architecture_selection_frequency.csv
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Architecture selection frequency
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  For each description, how often each algorithm combination won the inner selection across folds.
+  If one                 combination wins most folds, it is a stable choice; if many different
+  ones win, the data cannot clearly                 distinguish them (many are about equally
+  good). Step 03 uses the most frequent winner. SVM appearing very often                 suggests
+  smooth, similarity-based models fit this dataset well.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[LATEX] Variables successfully exported to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/paper_variables.tex
+
+=== END LOG: 01_nested_cv_stacking.py [EXIT CODE: 0] ===
+
+2026-10-23 07:33:13,046 | INFO | ================================================================================
+2026-10-23 07:33:13,046 | INFO | 02_statistical_tests.py — Nadeau-Bengio Variance Correction Test
+2026-10-23 07:33:13,046 | INFO | ================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Step 01 produced one error value (MAE, in pIC50 units) for every test fold, for each way of
+  describing the molecules         (Morgan fingerprints vs. RDKit 2D + 3D descriptors +
+  fingerprints). This step asks a single question: is the difference         between those two
+  descriptions real, or could it be just luck of how the compounds were split into folds?
+  The test used is a paired t-test with the Nadeau-Bengio correction. A plain t-test would be
+  over-confident here because         the folds share most of their training compounds (they are
+  not independent); the correction widens the uncertainty to         compensate.
+  How to read the result: p < 0.05 means the two descriptions truly differ in accuracy; p >= 0.05
+  means we cannot claim         one is better than the other, and the simpler/cheaper one (Morgan)
+  is then the reasonable choice.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-10-23 07:33:13,046 | INFO | Loading nested CV results from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/01_nested_cv_checkpoint.csv
+2026-10-23 07:33:13,049 | INFO | Total records loaded: 100. Available modes: ['morgan', 'rdkit2d', 'rdkit2d_fp', 'rdkit2d3d_fp']
+2026-10-23 07:33:13,050 | INFO | Extracting performance metrics for 'morgan' and 'rdkit2d3d_fp' modes...
+2026-10-23 07:33:13,051 | INFO | Data points extracted: 25 outer folds per mode.
+2026-10-23 07:33:13,052 | INFO | Morgan MAE Distribution     -> Mean: 0.4477 | Std: 0.0328 | Min: 0.3804 | Max: 0.4992
+2026-10-23 07:33:13,052 | INFO | 2D/3D/FP MAE Distribution -> Mean: 0.4315 | Std: 0.0328 | Min: 0.3663 | Max: 0.4993
+2026-10-23 07:33:13,052 | INFO | Initializing Nadeau-Bengio variance correction calculations...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] How to read the numbers below
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Mean difference in MAE (Morgan minus 2D/3D/FP) = +0.0162 pIC50 units. A negative value means
+  Morgan makes smaller         errors on average. For scale: 0.3 pIC50 units is roughly a 2-fold
+  change in potency (IC50).
+  The t-statistic is the mean difference divided by its corrected uncertainty; |t| around 2 or
+  more usually gives p < 0.05.         Only 25 folds are compared, so the test has limited power
+  to detect small differences.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-10-23 07:33:13,053 | INFO | --------------------------------------------------------------------------------
+2026-10-23 07:33:13,053 | INFO | Nadeau-Bengio Corrected Paired t-test Results:
+2026-10-23 07:33:13,053 | INFO |   t-statistic = 2.030
+2026-10-23 07:33:13,053 | INFO |   p-value     = 0.0536
+2026-10-23 07:33:13,053 | INFO | --------------------------------------------------------------------------------
+2026-10-23 07:33:13,053 | INFO | TEST CONCLUSION: No statistically significant difference between Morgan and 2D/3D/FP representations (p >= 0.05).
+2026-10-23 07:33:13,083 | INFO | All-pairs Nadeau-Bengio tests (Holm-adjusted within each metric) saved to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/02_pairwise_nb_tests.csv
+2026-10-23 07:33:13,089 | INFO | 
+Metric          A            B  mean_diff_A_minus_B       t      p  ci90_low  ci90_high  equiv_margin  p_equiv  p_holm
+  RTwo     morgan      rdkit2d               0.0367  3.0242 0.0059    0.0159     0.0575          0.05   0.1422  0.0234
+  RTwo     morgan   rdkit2d_fp              -0.0107 -1.2325 0.2297   -0.0257     0.0042          0.05   0.0001  0.6891
+  RTwo     morgan rdkit2d3d_fp              -0.0088 -1.0333 0.3118   -0.0234     0.0058          0.05   0.0000  0.6891
+  RTwo    rdkit2d   rdkit2d_fp              -0.0475 -4.2468 0.0003   -0.0666    -0.0283          0.05   0.4109  0.0017
+  RTwo    rdkit2d rdkit2d3d_fp              -0.0455 -4.1094 0.0004   -0.0645    -0.0266          0.05   0.3451  0.0020
+  RTwo rdkit2d_fp rdkit2d3d_fp               0.0019  0.3217 0.7505   -0.0083     0.0122          0.05   0.0000  0.7505
+   MAE     morgan      rdkit2d              -0.0235 -2.4554 0.0217   -0.0398    -0.0071          0.05   0.0052  0.0868
+   MAE     morgan   rdkit2d_fp               0.0172  2.0890 0.0475    0.0031     0.0313          0.05   0.0003  0.1425
+   MAE     morgan rdkit2d3d_fp               0.0162  2.0312 0.0535    0.0026     0.0298          0.05   0.0001  0.1425
+   MAE    rdkit2d   rdkit2d_fp               0.0406  4.8364 0.0001    0.0263     0.0550          0.05   0.1382  0.0004
+   MAE    rdkit2d rdkit2d3d_fp               0.0396  4.2762 0.0003    0.0238     0.0555          0.05   0.1374  0.0013
+   MAE rdkit2d_fp rdkit2d3d_fp              -0.0010 -0.2066 0.8381   -0.0093     0.0073          0.05   0.0000  0.8381
+2026-10-23 07:33:13,089 | INFO | Writing statistical variables to LaTeX file: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/nadeau_bengio_variables.tex
+2026-10-23 07:33:13,091 | INFO | LaTeX variable export completed successfully.
+
+=== END LOG: 02_statistical_tests.py [EXIT CODE: 0] ===
+
+=========================================================================================================
+12_gnn_tuned.py — D-MPNN with hyperparameter search inside every outer fold (nested)
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Step 09 evaluated the D-MPNN with default settings, which a reviewer can fairly call under-
+  tuned. Here the network gets         the same treatment as the classical models: inside each
+  outer training set, 8 configurations (hidden size,         message-passing depth and dropout)
+  are compared on a held-out 20% of that training set, the best one is retrained on the
+  whole training set, and only then it predicts the outer test fold. The outer folds are the same
+  as in steps 01 and 09, so         the results can be compared fold by fold. The default
+  configuration is part of the grid.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[INFO] 25 outer folds, 25 already in the checkpoint; 2 workers x 23 threads
+
+[RESULT] Tuned D-MPNN: R2 = 0.7262 +/- 0.0342 | MAE = 0.4703
+Best_Config
+h300_d5_p0.0    13
+h600_d5_p0.0     4
+h300_d5_p0.2     2
+h600_d5_p0.2     2
+h300_d3_p0.2     2
+h600_d3_p0.2     1
+h300_d3_p0.0     1
+Metric    Classical             Label  mean_diff_model_minus_classical       t  p_raw  ci90_low  ci90_high  equiv_margin  p_equiv  p_holm
+  RTwo       morgan            Morgan                          -0.0330 -1.9573 0.0620   -0.0619    -0.0042          0.05   0.1627  0.1241
+  RTwo      rdkit2d         RdkitTwoD                           0.0037  0.1753 0.8623   -0.0321     0.0394          0.05   0.0182  0.8623
+  RTwo   rdkit2d_fp       RdkitTwoDFp                          -0.0438 -2.2783 0.0319   -0.0767    -0.0109          0.05   0.3748  0.0957
+  RTwo rdkit2d3d_fp RdkitTwoDThreeDFp                          -0.0419 -2.4265 0.0231   -0.0714    -0.0123          0.05   0.3208  0.0925
+   Mae       morgan            Morgan                           0.0226  1.5057 0.1452   -0.0031     0.0484          0.05   0.0407  0.2904
+   Mae      rdkit2d         RdkitTwoD                          -0.0008 -0.0516 0.9593   -0.0277     0.0261          0.05   0.0023  0.9593
+   Mae   rdkit2d_fp       RdkitTwoDFp                           0.0398  2.4408 0.0224    0.0119     0.0677          0.05   0.2695  0.0800
+   Mae rdkit2d3d_fp RdkitTwoDThreeDFp                           0.0388  2.4921 0.0200    0.0122     0.0655          0.05   0.2402  0.0800
+[EXPORT] LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_tuned_variables.tex
+[DONE] 12_gnn_tuned.py complete.
+
+=== END LOG: 12_gnn_tuned.py [EXIT CODE: 0] ===
+
+=========================================================================================================
+14_export_folds.py — Export of the shared outer folds for the TensorFlow steps
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The audit of the original deep network (steps 15-17) runs in a separate Python environment with
+  TensorFlow. So that         the network is scored on exactly the same molecules as the classical
+  ensembles and the D-MPNN, this step writes the         25 outer folds (random and scaffold-
+  grouped) and the 15% hold-out split of step 04 to a table keyed by compound ID.         Nothing
+  is trained here.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  random    folds=25 | test size min=171 max=172 | repeats=5
+  scaffold  folds=25 | test size min=165 max=189 | repeats=5
+  holdout   dev=730 | test=129
+
+[+] 43809 rows (859 compounds) written to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/14_outer_folds.csv
+
+=== END LOG: 14_export_folds.py [EXIT CODE: 0] ===
+
+=========================================================================================================
+19_gnn_strong_baselines.py — Stronger neural baselines on the shared outer folds
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The graph network of steps 09 and 12 was trained from scratch, one network per fold. A fair
+  objection is that a         stronger neural model might have matched the classical ensembles.
+  This step tries four: an average of five graph         networks, a graph network that also
+  receives the RDKit descriptors, a graph network that starts from CheMeleon (a         model
+  pretrained on about a million PubChem molecules), and a plain neural network on the Morgan
+  fingerprints. All         are scored on the same 25 folds as every other model and compared with
+  the same corrected tests.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  0 variant x fold tasks to run (100 already in the checkpoint)
+  mlp_ecfp     R2 = 0.7090 ± 0.0542 | MAE = 0.4989 | vs default D-MPNN dR2 = -0.0157 (p = 0.556)
+  dmpnn_ens5   R2 = 0.7409 ± 0.0405 | MAE = 0.4599 | vs default D-MPNN dR2 = +0.0162 (p = 0.095)
+  dmpnn_rdkit  R2 = 0.7008 ± 0.0497 | MAE = 0.4949 | vs default D-MPNN dR2 = -0.0240 (p = 0.227)
+  chemeleon    R2 = 0.7615 ± 0.0415 | MAE = 0.4416 | vs default D-MPNN dR2 = +0.0367 (p = 0.110)
+[EXPORT] 200 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_strong_variables.tex
+
+=== END LOG: 19_gnn_strong_baselines.py [EXIT CODE: 0] ===
+
+=========================================================================================================
+18_karimova_audit.py — Audit of the original deep network: reproduction, leakage ladder and shared-fold comparison
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Collects the results of steps 15-17, which ran in the TensorFlow environment, and turns them
+  into the numbers used by         the manuscript: (1) how well the original notebooks and their
+  re-implementation reproduce the published R2 values,         (2) how much R2 is lost each time
+  one information leak is removed from the final model, with paired differences         over seeds
+  and a bootstrap over test molecules, and (3) how the leak-free original network compares, fold
+  by fold,         with the classical ensembles and the D-MPNN under the same corrected tests used
+  everywhere else in the study.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reproduction over seeds (step 15b):
+                          m       s      lo      hi   n
+stage     pi_source                                    
+aug_G123  fresh      0.8533  0.0070  0.8449  0.8625  10
+          published  0.8570  0.0040  0.8513  0.8616  10
+baseline  -          0.7627  0.0097  0.7519  0.7831  10
+sel_G123  fresh      0.7975  0.0113  0.7808  0.8151  10
+          published  0.8116  0.0065  0.8024  0.8230  10
+sel_G1234 fresh      0.7994  0.0110  0.7827  0.8188  10
+          published  0.8119  0.0082  0.7921  0.8208  10
+
+Leakage ladder (step 16):
+                                                  m       s     mae  n_test  n_feat
+rung                       eval_set                                                
+R0_published               own_resplit_test  0.8533  0.0070  0.3570     131   941.5
+R1_no_resplit              common_test       0.8251  0.0052  0.3789     130   941.5
+                           original_test     0.8264  0.0051  0.3769     131   941.5
+R2_internal_early_stopping common_test       0.7995  0.0133  0.4072     130   945.5
+                           original_test     0.8009  0.0134  0.4055     131   945.5
+R3_oof_importance          common_test       0.7518  0.0188  0.4452     130   385.0
+                           original_test     0.7536  0.0187  0.4427     131   385.0
+R4_no_duplicates           common_test       0.7405  0.0238  0.4510     130   330.0
+clean_baseline             common_test       0.7525  0.0084  0.4513     130  1858.0
+clean_sel_G123             common_test       0.7253  0.0300  0.4661     130   330.0
+clean_sel_G1234            common_test       0.7135  0.0252  0.4792     130   336.0
+
+Ladder differences:
+                       new                        old  paired  n_seeds  delta_r2_mean  delta_r2_sd  delta_mae_mean  frac_seeds_negative  boot_ci_low  boot_ci_high
+             R1_no_resplit               R0_published   False       10        -0.0282       0.0072          0.0219                  1.0          NaN           NaN
+R2_internal_early_stopping              R1_no_resplit    True       10        -0.0256       0.0157          0.0283                  1.0      -0.0415       -0.0114
+         R3_oof_importance R2_internal_early_stopping    True       10        -0.0478       0.0220          0.0380                  1.0      -0.0731       -0.0133
+          R4_no_duplicates          R3_oof_importance    True       10        -0.0113       0.0351          0.0058                  0.6      -0.0259        0.0051
+          R4_no_duplicates               R0_published   False       10        -0.1128       0.0228          0.0940                  1.0          NaN           NaN
+          R4_no_duplicates             clean_baseline    True       10        -0.0120       0.0228         -0.0002                  0.6      -0.0253        0.0303
+
+Leak-free original network on the shared folds:
+  dnn_baseline R2 = 0.6733 ± 0.0862 | MAE = 0.4808
+  dnn_full     R2 = 0.7151 ± 0.0766 | MAE = 0.4568
+  model      other Metric  mean_diff  p_raw  ci90_low  ci90_high  p_equiv
+DnnFull GnnDefault   RTwo    -0.0097 0.8325   -0.0874     0.0680   0.1919
+DnnFull GnnDefault    Mae    -0.0180 0.3831   -0.0526     0.0167   0.0636
+DnnFull   GnnTuned   RTwo    -0.0111 0.7995   -0.0851     0.0629   0.1888
+DnnFull   GnnTuned    Mae    -0.0136 0.4551   -0.0441     0.0170   0.0263
+DnnFull    DnnBase   RTwo     0.0417 0.4138   -0.0441     0.1276   0.4353
+DnnFull    DnnBase    Mae    -0.0241 0.1684   -0.0531     0.0049   0.0697
+DnnBase GnnDefault   RTwo    -0.0514 0.2635   -0.1283     0.0254   0.5127
+DnnBase GnnDefault    Mae     0.0061 0.7583   -0.0274     0.0395   0.0171
+DnnBase   GnnTuned   RTwo    -0.0528 0.2433   -0.1284     0.0227   0.5254
+DnnBase   GnnTuned    Mae     0.0105 0.5336   -0.0180     0.0390   0.0130
+
+[EXPORT] 215 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/karimova_audit_variables.tex
+
+=== END LOG: 18_karimova_audit.py [EXIT CODE: 0] ===
+
+[INFO] Active profile: workstation | N_JOBS=46 | Outer folds=5x5=25
+[DATA] /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup_with_outliers.csv: 861 rows read, 861 usable (SMILES and pIC50 present). pIC50 range 1.56 - 11.68, mean 6.37, SD 1.28.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Builds and honestly evaluates machine-learning models that predict how potently a molecule
+  inhibits TgDHFR (pIC50, higher         = more potent) from its structure. The dataset has 861
+  molecules with measured potency.
+  Molecules must be converted to numbers before a model can use them. Several descriptions are
+  compared:         Morgan fingerprints (ECFP4, 2048 bits); RDKit 2D physicochemical descriptors;
+  RDKit 2D descriptors + Morgan FP; 2D + 3D (ETKDGv3 + MMFF94s) descriptors + Morgan FP.         A
+  fingerprint is a long 0/1 list saying which small substructures are present; a descriptor is a
+  number such as         molecular weight, polarity or number of rotatable bonds; '3D' descriptors
+  also depend on the molecule's shape.
+  For each description, the models tried are single algorithms (Random Forest, Extra Trees,
+  LightGBM, XGBoost, SVM,         kNN) and stacks of up to 3 of them combined by a final Ridge
+  regression. NESTED cross-validation         is used so the reported score is not optimistic: the
+  data is split into 5 parts and the whole         split is repeated 5 times (= 25 outer folds).
+  Inside every outer fold the training part is         split again (5 inner folds) to choose the
+  best algorithm combination; only then is that choice         scored on the outer test part,
+  which it has never seen. Selecting and scoring on the same data would inflate R2.
+  This is by far the slowest step of the pipeline (each outer fold fits hundreds of models).
+  Progress is saved after every         fold (results/01_nested_cv_checkpoint.csv), so an
+  interrupted run resumes where it stopped. IMPORTANT: if the training         data changes,
+  delete that checkpoint first or old-data folds would be silently reused.
+  Per-fold line: 'Best' = the algorithm combination that won the inner selection; R2_outer =
+  fraction of the variance in         potency explained on the unseen part (1 = perfect, 0 = no
+  better than predicting the mean); MAE = average error in         pIC50 units (0.5 = about a
+  3-fold error in IC50); the time is for that fold.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: morgan
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'morgan', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d_fp
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d_fp', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d3d_fp
+####################################################################################################
+    [INFO] Generating 3D conformers (ETKDGv3 + MMFF)...
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d3d_fp', resuming...
+
+====================================================================================================
+RESULTS SUMMARY (Nested CV 5x5)
+====================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] How to read the summary tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Table 1: mean R2 over all outer folds for each molecular description, with its standard
+  deviation (spread between         folds) and the number of folds. The top row is the best-
+  performing description. Differences smaller than about one         standard deviation are
+  usually not meaningful.
+  Table 2: tests whether our R2 differs from the R2 values reported in the original publication
+  (PAPER_R2). The         Nadeau-Bengio correction is applied because cross-validation folds
+  overlap and share training data, which makes a         naive t-test over-confident.
+  'Significant_p<0.05' = True means our result is really different from the reference
+  (higher or lower: compare Our_R2_mean with Paper_R2); False means we reproduce it within
+  statistical noise.
+  The paired comparison at the end tests whether the two best descriptions differ from each other
+  on the same folds.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Table 1. R² by molecular representation:
+        Mode     mean      std  count
+rdkit2d3d_fp 0.747156 0.044300     25
+      morgan 0.746301 0.042682     25
+  rdkit2d_fp 0.744283 0.043122     25
+     rdkit2d 0.704397 0.053149     25
+
+Table 2. t-tests (Nadeau-Bengio Corrected) vs Original Publication:
+        Mode Paper_reference_label  Paper_R2  Our_R2_mean  Our_R2_std    t_stat  p_value  Significant_p<0.05
+      morgan         PaperBaseline      0.75     0.746301    0.041820 -0.160937 0.873490               False
+      morgan         PaperSelected      0.82     0.746301    0.041820 -3.206379 0.003782                True
+      morgan            PaperFinal      0.85     0.746301    0.041820 -4.511568 0.000144                True
+     rdkit2d         PaperBaseline      0.75     0.704397    0.052075 -1.593295 0.124180               False
+     rdkit2d         PaperSelected      0.82     0.704397    0.052075 -4.038988 0.000477                True
+     rdkit2d            PaperFinal      0.85     0.704397    0.052075 -5.087142 0.000033                True
+  rdkit2d_fp         PaperBaseline      0.75     0.744283    0.042251 -0.246181 0.807636               False
+  rdkit2d_fp         PaperSelected      0.82     0.744283    0.042251 -3.260547 0.003316                True
+  rdkit2d_fp            PaperFinal      0.85     0.744283    0.042251 -4.552418 0.000130                True
+rdkit2d3d_fp         PaperBaseline      0.75     0.747156    0.043405 -0.119226 0.906089               False
+rdkit2d3d_fp         PaperSelected      0.82     0.747156    0.043405 -3.053472 0.005463                True
+rdkit2d3d_fp            PaperFinal      0.85     0.747156    0.043405 -4.311006 0.000240                True
+
+Paired comparison (Nadeau-Bengio) between rdkit2d3d_fp and morgan:
+  t = 0.090, p = 0.9294
+
+[SUPPLEMENTARY CSV] Selection frequency exported to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/sensitivity/results/01_architecture_selection_frequency.csv
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Architecture selection frequency
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  For each description, how often each algorithm combination won the inner selection across folds.
+  If one                 combination wins most folds, it is a stable choice; if many different
+  ones win, the data cannot clearly                 distinguish them (many are about equally
+  good). Step 03 uses the most frequent winner. SVM appearing very often                 suggests
+  smooth, similarity-based models fit this dataset well.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[LATEX] Variables successfully exported to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/sensitivity/latex/paper_variables.tex
+
+=== END LOG: 01_nested_cv_stacking.py [EXIT CODE: 0] ===
+
+2026-10-23 07:33:31,158 | INFO | ================================================================================
+2026-10-23 07:33:31,158 | INFO | 02_statistical_tests.py — Nadeau-Bengio Variance Correction Test
+2026-10-23 07:33:31,158 | INFO | ================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Step 01 produced one error value (MAE, in pIC50 units) for every test fold, for each way of
+  describing the molecules         (Morgan fingerprints vs. RDKit 2D + 3D descriptors +
+  fingerprints). This step asks a single question: is the difference         between those two
+  descriptions real, or could it be just luck of how the compounds were split into folds?
+  The test used is a paired t-test with the Nadeau-Bengio correction. A plain t-test would be
+  over-confident here because         the folds share most of their training compounds (they are
+  not independent); the correction widens the uncertainty to         compensate.
+  How to read the result: p < 0.05 means the two descriptions truly differ in accuracy; p >= 0.05
+  means we cannot claim         one is better than the other, and the simpler/cheaper one (Morgan)
+  is then the reasonable choice.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-10-23 07:33:31,159 | INFO | Loading nested CV results from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/sensitivity/results/01_nested_cv_checkpoint.csv
+2026-10-23 07:33:31,162 | INFO | Total records loaded: 100. Available modes: ['morgan', 'rdkit2d', 'rdkit2d_fp', 'rdkit2d3d_fp']
+2026-10-23 07:33:31,162 | INFO | Extracting performance metrics for 'morgan' and 'rdkit2d3d_fp' modes...
+2026-10-23 07:33:31,166 | INFO | Data points extracted: 25 outer folds per mode.
+2026-10-23 07:33:31,166 | INFO | Morgan MAE Distribution     -> Mean: 0.4577 | Std: 0.0291 | Min: 0.3945 | Max: 0.5179
+2026-10-23 07:33:31,166 | INFO | 2D/3D/FP MAE Distribution -> Mean: 0.4493 | Std: 0.0310 | Min: 0.3862 | Max: 0.4951
+2026-10-23 07:33:31,166 | INFO | Initializing Nadeau-Bengio variance correction calculations...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] How to read the numbers below
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Mean difference in MAE (Morgan minus 2D/3D/FP) = +0.0084 pIC50 units. A negative value means
+  Morgan makes smaller         errors on average. For scale: 0.3 pIC50 units is roughly a 2-fold
+  change in potency (IC50).
+  The t-statistic is the mean difference divided by its corrected uncertainty; |t| around 2 or
+  more usually gives p < 0.05.         Only 25 folds are compared, so the test has limited power
+  to detect small differences.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-10-23 07:33:31,167 | INFO | --------------------------------------------------------------------------------
+2026-10-23 07:33:31,167 | INFO | Nadeau-Bengio Corrected Paired t-test Results:
+2026-10-23 07:33:31,167 | INFO |   t-statistic = 0.888
+2026-10-23 07:33:31,167 | INFO |   p-value     = 0.3835
+2026-10-23 07:33:31,168 | INFO | --------------------------------------------------------------------------------
+2026-10-23 07:33:31,168 | INFO | TEST CONCLUSION: No statistically significant difference between Morgan and 2D/3D/FP representations (p >= 0.05).
+2026-10-23 07:33:31,197 | INFO | All-pairs Nadeau-Bengio tests (Holm-adjusted within each metric) saved to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/sensitivity/results/02_pairwise_nb_tests.csv
+2026-10-23 07:33:31,203 | INFO | 
+Metric          A            B  mean_diff_A_minus_B       t      p  ci90_low  ci90_high  equiv_margin  p_equiv  p_holm
+  RTwo     morgan      rdkit2d               0.0419  2.7614 0.0109    0.0159     0.0679          0.05   0.2993  0.0467
+  RTwo     morgan   rdkit2d_fp               0.0020  0.2123 0.8337   -0.0142     0.0183          0.05   0.0000  1.0000
+  RTwo     morgan rdkit2d3d_fp              -0.0009 -0.0896 0.9294   -0.0172     0.0155          0.05   0.0000  1.0000
+  RTwo    rdkit2d   rdkit2d_fp              -0.0399 -2.9276 0.0074   -0.0632    -0.0166          0.05   0.2325  0.0442
+  RTwo    rdkit2d rdkit2d3d_fp              -0.0428 -2.8259 0.0093   -0.0686    -0.0169          0.05   0.3183  0.0467
+  RTwo rdkit2d_fp rdkit2d3d_fp              -0.0029 -0.4093 0.6859   -0.0149     0.0091          0.05   0.0000  1.0000
+   MAE     morgan      rdkit2d              -0.0291 -1.9935 0.0577   -0.0540    -0.0041          0.05   0.0817  0.2308
+   MAE     morgan   rdkit2d_fp               0.0067  0.6373 0.5299   -0.0112     0.0245          0.05   0.0002  1.0000
+   MAE     morgan rdkit2d3d_fp               0.0084  0.8899 0.3823   -0.0078     0.0247          0.05   0.0001  1.0000
+   MAE    rdkit2d   rdkit2d_fp               0.0357  2.9751 0.0066    0.0152     0.0562          0.05   0.1228  0.0395
+   MAE    rdkit2d rdkit2d3d_fp               0.0375  2.7941 0.0101    0.0145     0.0604          0.05   0.1802  0.0503
+   MAE rdkit2d_fp rdkit2d3d_fp               0.0018  0.2263 0.8229   -0.0117     0.0152          0.05   0.0000  1.0000
+2026-10-23 07:33:31,203 | INFO | Writing statistical variables to LaTeX file: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/sensitivity/latex/nadeau_bengio_variables.tex
+2026-10-23 07:33:31,205 | INFO | LaTeX variable export completed successfully.
+
+=== END LOG: 02_statistical_tests.py [EXIT CODE: 0] ===
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Two extreme potencies were removed from the main dataset (outside the Tukey fences of the pIC50
+  distribution). Here the         nested-CV benchmark run WITH them (sensitivity/) is compared
+  with the main run, representation by representation, and a         Morgan/Random Forest model
+  trained without them is asked to predict them. If the scores barely move and the model
+  predicts the extremes badly, they are unrepresentative of the series (outliers) but harmless to
+  the conclusions; if the         scores change materially, the exclusion is a modelling choice
+  that must be reported.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Mode  n_folds_main  n_folds_sens  R2_main  R2_main_sd  R2_sens  R2_sens_sd  R2_delta  R2_p_NB  MAE_main  MAE_main_sd  MAE_sens  MAE_sens_sd  MAE_delta  MAE_p_NB
+      morgan            25            25   0.7592      0.0449   0.7463      0.0427   -0.0129   0.7002    0.4477       0.0335    0.4577       0.0296     0.0100    0.6789
+     rdkit2d            25            25   0.7225      0.0492   0.7044      0.0531   -0.0181   0.6445    0.4711       0.0348    0.4868       0.0365     0.0156    0.5671
+  rdkit2d_fp            25            25   0.7700      0.0467   0.7443      0.0431   -0.0257   0.4569    0.4305       0.0354    0.4511       0.0329     0.0206    0.4330
+rdkit2d3d_fp            25            25   0.7680      0.0437   0.7472      0.0443   -0.0209   0.5362    0.4315       0.0334    0.4493       0.0317     0.0178    0.4766
+[RANK] by mean R2 without extremes: ['rdkit2d_fp', 'rdkit2d3d_fp', 'morgan', 'rdkit2d']
+[RANK] by mean R2 with extremes:    ['rdkit2d3d_fp', 'morgan', 'rdkit2d_fp', 'rdkit2d']
+[DIAG] Morgan+RF 5-fold OOF RMSE on the main set: 0.620 pIC50
+       cid  pIC50 Value fence_violated  predicted  abs_error  error_over_oof_rmse  error_percentile_in_main
+  269323.0       11.678           high      6.585      5.092                8.219                     100.0
+44424991.0        1.559            low      4.977      3.418                5.516                     100.0
+[LATEX] /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/outlier_variables.tex
+
+=== END LOG: 10_outlier_sensitivity.py [EXIT CODE: 0] ===
+
+[INFO] Active profile: workstation | N_JOBS=46 | Outer folds=5x5=25
+[DATA] /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv: 859 rows read, 859 usable (SMILES and pIC50 present). pIC50 range 3.30 - 9.34, mean 6.37, SD 1.26.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Builds and honestly evaluates machine-learning models that predict how potently a molecule
+  inhibits TgDHFR (pIC50, higher         = more potent) from its structure. The dataset has 859
+  molecules with measured potency.
+  Molecules must be converted to numbers before a model can use them. Several descriptions are
+  compared:         Morgan fingerprints (ECFP4, 2048 bits); RDKit 2D physicochemical descriptors;
+  RDKit 2D descriptors + Morgan FP; 2D + 3D (ETKDGv3 + MMFF94s) descriptors + Morgan FP.         A
+  fingerprint is a long 0/1 list saying which small substructures are present; a descriptor is a
+  number such as         molecular weight, polarity or number of rotatable bonds; '3D' descriptors
+  also depend on the molecule's shape.
+  For each description, the models tried are single algorithms (Random Forest, Extra Trees,
+  LightGBM, XGBoost, SVM,         kNN) and stacks of up to 3 of them combined by a final Ridge
+  regression. NESTED cross-validation         is used so the reported score is not optimistic: the
+  data is split into 5 parts and the whole         split is repeated 5 times (= 25 outer folds).
+  Inside every outer fold the training part is         split again (5 inner folds) to choose the
+  best algorithm combination; only then is that choice         scored on the outer test part,
+  which it has never seen. Selecting and scoring on the same data would inflate R2.
+  This is by far the slowest step of the pipeline (each outer fold fits hundreds of models).
+  Progress is saved after every         fold (results/01_nested_cv_checkpoint.csv), so an
+  interrupted run resumes where it stopped. IMPORTANT: if the training         data changes,
+  delete that checkpoint first or old-data folds would be silently reused.
+  Per-fold line: 'Best' = the algorithm combination that won the inner selection; R2_outer =
+  fraction of the variance in         potency explained on the unseen part (1 = perfect, 0 = no
+  better than predicting the mean); MAE = average error in         pIC50 units (0.5 = about a
+  3-fold error in IC50); the time is for that fold.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: morgan
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'morgan', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d_fp
+####################################################################################################
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d_fp', resuming...
+
+####################################################################################################
+# NESTED CV (5x5=25 Folds) — REPRESENTATION: rdkit2d3d_fp
+####################################################################################################
+    [INFO] Generating 3D conformers (ETKDGv3 + MMFF)...
+[CHECKPOINT] 25/25 folds already completed for 'rdkit2d3d_fp', resuming...
+
+====================================================================================================
+RESULTS SUMMARY (Nested CV 5x5)
+====================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] How to read the summary tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Table 1: mean R2 over all outer folds for each molecular description, with its standard
+  deviation (spread between         folds) and the number of folds. The top row is the best-
+  performing description. Differences smaller than about one         standard deviation are
+  usually not meaningful.
+  Table 2: tests whether our R2 differs from the R2 values reported in the original publication
+  (PAPER_R2). The         Nadeau-Bengio correction is applied because cross-validation folds
+  overlap and share training data, which makes a         naive t-test over-confident.
+  'Significant_p<0.05' = True means our result is really different from the reference
+  (higher or lower: compare Our_R2_mean with Paper_R2); False means we reproduce it within
+  statistical noise.
+  The paired comparison at the end tests whether the two best descriptions differ from each other
+  on the same folds.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Table 1. R² by molecular representation:
+        Mode     mean      std  count
+      morgan 0.577788 0.101508     25
+rdkit2d3d_fp 0.554906 0.116311     25
+  rdkit2d_fp 0.551787 0.110773     25
+     rdkit2d 0.483678 0.124033     25
+
+Table 2. t-tests (Nadeau-Bengio Corrected) vs Original Publication:
+        Mode Paper_reference_label  Paper_R2  Our_R2_mean  Our_R2_std    t_stat  p_value  Significant_p<0.05
+      morgan         PaperBaseline      0.75     0.577788    0.099457 -3.150402 0.004330                True
+      morgan         PaperSelected      0.82     0.577788    0.099457 -4.430962 0.000177                True
+      morgan            PaperFinal      0.85     0.577788    0.099457 -4.979773 0.000044                True
+     rdkit2d         PaperBaseline      0.75     0.483678    0.121527 -3.987218 0.000544                True
+     rdkit2d         PaperSelected      0.82     0.483678    0.121527 -5.035215 0.000038                True
+     rdkit2d            PaperFinal      0.85     0.483678    0.121527 -5.484357 0.000012                True
+  rdkit2d_fp         PaperBaseline      0.75     0.551787    0.108535 -3.322774 0.002849                True
+  rdkit2d_fp         PaperSelected      0.82     0.551787    0.108535 -4.496228 0.000150                True
+  rdkit2d_fp            PaperFinal      0.85     0.551787    0.108535 -4.999136 0.000042                True
+rdkit2d3d_fp         PaperBaseline      0.75     0.554906    0.113961 -3.114758 0.004717                True
+rdkit2d3d_fp         PaperSelected      0.82     0.554906    0.113961 -4.232338 0.000292                True
+rdkit2d3d_fp            PaperFinal      0.85     0.554906    0.113961 -4.711301 0.000087                True
+
+Paired comparison (Nadeau-Bengio) between morgan and rdkit2d3d_fp:
+  t = 0.705, p = 0.4875
+
+[SUPPLEMENTARY CSV] Selection frequency exported to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scaffold/results/01_architecture_selection_frequency.csv
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Architecture selection frequency
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  For each description, how often each algorithm combination won the inner selection across folds.
+  If one                 combination wins most folds, it is a stable choice; if many different
+  ones win, the data cannot clearly                 distinguish them (many are about equally
+  good). Step 03 uses the most frequent winner. SVM appearing very often                 suggests
+  smooth, similarity-based models fit this dataset well.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[LATEX] Variables successfully exported to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/scaffold/latex/paper_variables.tex
+
+=== END LOG: 01_nested_cv_stacking.py [EXIT CODE: 0] ===
+
