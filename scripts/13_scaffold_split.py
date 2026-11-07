@@ -76,7 +76,7 @@ def write_scaffold_pairwise_table(neural, classical):
         for _, r in neural[neural["Metric"] == metric].iterrows():
             lines.append(f"{METRIC_DISPLAY[metric]} & {SCAFFOLD_DISPLAY.get(r['model'], r['model'])} vs "
                          f"{MODE_DISPLAY[r['Classical']]} & "
-                         f"${r['mean_diff_model_minus_classical']:+.4f}$ & "
+                         f"${r['mean_diff_model_minus_classical']:+.3f}$ & "
                          f"[${r['ci90_low']:+.3f}$, ${r['ci90_high']:+.3f}$] & {fmt_p(r['p_raw'])} & "
                          f"{fmt_p(r['p_holm'])} & {fmt_p(r['p_equiv'])} \\\\")
         lines.append("\\midrule")
@@ -167,10 +167,10 @@ def main():
     print(summary.drop(columns="kind").astype(float).round(4).to_string())
     for label, r in summary.iterrows():
         for split in ("Random", "Scaffold"):
-            values[f"{split}{label}RTwoMean"] = f"{r[f'{split.lower()}_R2_mean']:.4f}"
-            values[f"{split}{label}RTwoStd"] = f"{r[f'{split.lower()}_R2_std']:.4f}"
-            values[f"{split}{label}Mae"] = f"{r[f'{split.lower()}_MAE_mean']:.4f}"
-        values[f"Scaffold{label}DropRTwo"] = f"{r['drop_R2']:.4f}"
+            values[f"{split}{label}RTwoMean"] = f"{r[f'{split.lower()}_R2_mean']:.3f}"
+            values[f"{split}{label}RTwoStd"] = f"{r[f'{split.lower()}_R2_std']:.3f}"
+            values[f"{split}{label}Mae"] = f"{r[f'{split.lower()}_MAE_mean']:.3f}"
+        values[f"Scaffold{label}DropRTwo"] = f"{r['drop_R2']:.3f}"
 
     values["ScaffoldDropMin"] = f"{summary['drop_R2'].astype(float).min():.2f}"
     values["ScaffoldDropMax"] = f"{summary['drop_R2'].astype(float).max():.2f}"
@@ -181,7 +181,7 @@ def main():
     print(pairwise.round(4).to_string(index=False))
     for _, p in pairwise.iterrows():
         key = f"Scaffold{CLASSICAL_MODE_LABEL[p['A']]}Vs{CLASSICAL_MODE_LABEL[p['B']]}"
-        values[f"{key}Diff{p['Metric']}"] = f"{p['mean_diff_a_minus_b']:+.4f}"
+        values[f"{key}Diff{p['Metric']}"] = f"{p['mean_diff_a_minus_b']:+.3f}"
         values[f"{key}P{p['Metric']}"] = f"{p['p_holm']:.3f}"
 
     tables = []

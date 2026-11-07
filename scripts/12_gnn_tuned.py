@@ -32,8 +32,8 @@ def load_done():
 
 
 def export_latex(scores, comparison_macros, untuned_macros):
-    values = {"GnnTunedRTwoMean": f"{scores['R2'].mean():.4f}", "GnnTunedRTwoStd": f"{scores['R2'].std(ddof=1):.4f}",
-              "GnnTunedMae": f"{scores['MAE'].mean():.4f}", "GnnTunedNConfigs": len(GRID),
+    values = {"GnnTunedRTwoMean": f"{scores['R2'].mean():.3f}", "GnnTunedRTwoStd": f"{scores['R2'].std(ddof=1):.3f}",
+              "GnnTunedMae": f"{scores['MAE'].mean():.3f}", "GnnTunedNConfigs": len(GRID),
               "GnnTunedNChosen": scores['Best_Config'].nunique(),
               "GnnTunedDefaultChosenPct": f"{(scores['Best_Config'] == config_name(DEFAULT_CONFIG)).mean() * 100:.0f}",
               "GnnTunedFoldSecMean": f"{scores['Time_s'].mean():.0f}",
@@ -110,7 +110,7 @@ def main():
             for metric, col, margin in (("RTwo", "R2", EQUIVALENCE_MARGIN_R2), ("Mae", "MAE", EQUIVALENCE_MARGIN_MAE)):
                 res = corrected_ttest(scores[col].values - untuned[col].values, scores['N_train'].mean(), scores['N_test'].mean(),
                                       margin=margin)
-                untuned_macros[f"GnnTunedVsUntunedDiff{metric}"] = f"{res['mean_diff']:+.4f}"
+                untuned_macros[f"GnnTunedVsUntunedDiff{metric}"] = f"{res['mean_diff']:+.3f}"
                 untuned_macros[f"GnnTunedVsUntunedP{metric}"] = f"{res['p']:.3f}"
     export_latex(scores, macros, untuned_macros)
     print("[DONE] 12_gnn_tuned.py complete.")

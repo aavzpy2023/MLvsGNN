@@ -59,7 +59,7 @@ def write_pairwise_table(pairwise):
         rows = pairwise[pairwise["Metric"] == metric]
         for _, r in rows.iterrows():
             lines.append(f"{METRIC_DISPLAY[metric]} & {MODE_DISPLAY[r['A']]} vs {MODE_DISPLAY[r['B']]} & "
-                         f"${r['mean_diff_A_minus_B']:+.4f}$ & "
+                         f"${r['mean_diff_A_minus_B']:+.3f}$ & "
                          f"[${r['ci90_low']:+.3f}$, ${r['ci90_high']:+.3f}$] & "
                          f"{fmt_p(r['p'])} & {fmt_p(r['p_holm'])} & {fmt_p(r['p_equiv'])} \\\\")
         if metric == "RTwo":

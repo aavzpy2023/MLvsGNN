@@ -139,7 +139,7 @@ def write_strong_pairwise_table(comparisons):
             display = VARIANT_DISPLAY.get(
                 next((v for v, lab in VARIANT_LABEL.items() if lab == r["model"]), ""), r["model"])
             lines.append(f"{METRIC_DISPLAY[metric]} & {display} vs {MODE_DISPLAY[r['Classical']]} & "
-                         f"${r['mean_diff_model_minus_classical']:+.4f}$ & "
+                         f"${r['mean_diff_model_minus_classical']:+.3f}$ & "
                          f"[${r['ci90_low']:+.3f}$, ${r['ci90_high']:+.3f}$] & {fmt_p(r['p_raw'])} & "
                          f"{fmt_p(r['p_holm'])} & {fmt_p(r['p_equiv'])} \\\\")
         if metric == "RTwo":
@@ -182,7 +182,7 @@ def write_gnn_pairwise_table():
     for metric in ("RTwo", "Mae"):
         for _, r in comparisons[comparisons["Metric"] == metric].iterrows():
             lines.append(f"{METRIC_DISPLAY[metric]} & {r['display']} vs {MODE_DISPLAY[r['Classical']]} & "
-                         f"${r['mean_diff_model_minus_classical']:+.4f}$ & "
+                         f"${r['mean_diff_model_minus_classical']:+.3f}$ & "
                          f"[${r['ci90_low']:+.3f}$, ${r['ci90_high']:+.3f}$] & {fmt_p(r['p_raw'])} & "
                          f"{fmt_p(r['p_holm'])} & {fmt_p(r['p_equiv'])} \\\\")
         if metric == "RTwo":
@@ -206,8 +206,8 @@ def write_gnn_tuned_config_table():
              "\\textbf{Inner RMSE, default} & $R^2$ & \\textbf{MAE} \\\\", "\\midrule"]
     for _, r in df.iterrows():
         cfg = str(r["Best_Config"]).replace("h", "hidden ").replace("_d", ", depth ").replace("_p", ", dropout ")
-        lines.append(f"{int(r['Fold'])} & {cfg} & {r['Inner_RMSE_Best']:.4f} & {r['Inner_RMSE_Default']:.4f} & "
-                     f"{r['R2']:.4f} & {r['MAE']:.4f} \\\\")
+        lines.append(f"{int(r['Fold'])} & {cfg} & {r['Inner_RMSE_Best']:.3f} & {r['Inner_RMSE_Default']:.3f} & "
+                     f"{r['R2']:.3f} & {r['MAE']:.3f} \\\\")
     lines += ["\\bottomrule", "\\end{tabular}"]
     with open(LATEX_GNN_TUNED_CONFIG_TABLE, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
@@ -299,8 +299,8 @@ def main():
         label = VARIANT_LABEL[variant]
         s[["Fold", "R2", "MAE", "N_train", "N_test"]].to_csv(os.path.join(RESULTS_DIR, f"19_{variant}_fold_scores.csv"),
                                                              index=False)
-        values[f"{label}RTwoMean"], values[f"{label}RTwoStd"] = f"{s['R2'].mean():.4f}", f"{s['R2'].std(ddof=1):.4f}"
-        values[f"{label}Mae"], values[f"{label}FoldMinutes"] = f"{s['MAE'].mean():.4f}", f"{s['Time_s'].mean() / 60:.1f}"
+        values[f"{label}RTwoMean"], values[f"{label}RTwoStd"] = f"{s['R2'].mean():.3f}", f"{s['R2'].std(ddof=1):.3f}"
+        values[f"{label}Mae"], values[f"{label}FoldMinutes"] = f"{s['MAE'].mean():.3f}", f"{s['Time_s'].mean() / 60:.1f}"
         table, macros = compare_to_classical(s, checkpoint, f"{label}Vs")
         values.update(macros)
         tables.append(table.assign(model=label))
@@ -309,7 +309,7 @@ def main():
         for metric, col, margin in (("RTwo", "R2", EQUIVALENCE_MARGIN_R2), ("Mae", "MAE", EQUIVALENCE_MARGIN_MAE)):
             res = corrected_ttest(s[col].values - gnn_default[col].values, s["N_train"].mean(), s["N_test"].mean(),
                                   margin=margin)
-            values[f"{label}VsGnnDefaultDiff{metric}"] = f"{res['mean_diff']:+.4f}"
+            values[f"{label}VsGnnDefaultDiff{metric}"] = f"{res['mean_diff']:+.3f}"
             values[f"{label}VsGnnDefaultP{metric}"] = f"{res['p']:.3f}"
         print(f"  {variant:<12} R2 = {s['R2'].mean():.4f} ± {s['R2'].std(ddof=1):.4f} | MAE = {s['MAE'].mean():.4f} | "
               f"vs default D-MPNN dR2 = {values[f'{label}VsGnnDefaultDiffRTwo']} (p = {values[f'{label}VsGnnDefaultPRTwo']})")

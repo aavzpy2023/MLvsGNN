@@ -196,28 +196,28 @@ def export_latex(results_dict, delta_rows=None):
 
         f.write("% --- Experiment A: Baseline Stacking (No Feat Sel, No Aug) ---\n")
         a = results_dict['A']
-        newcommand(f, "ExpARTwoMean", f"{a['r2']:.4f}")
-        newcommand(f, "ExpAMae", f"{a['mae']:.4f}")
-        newcommand(f, "ExpARTwoCILow", f"{a['ci_lo']:.4f}")
-        newcommand(f, "ExpARTwoCIHigh", f"{a['ci_hi']:.4f}")
+        newcommand(f, "ExpARTwoMean", f"{a['r2']:.3f}")
+        newcommand(f, "ExpAMae", f"{a['mae']:.3f}")
+        newcommand(f, "ExpARTwoCILow", f"{a['ci_lo']:.3f}")
+        newcommand(f, "ExpARTwoCIHigh", f"{a['ci_hi']:.3f}")
         f.write("\n")
 
         f.write("% --- Experiment B: Permutation Importance Selection ---\n")
         b = results_dict['B']
-        newcommand(f, "ExpBRTwoMean", f"{b['r2']:.4f}")
-        newcommand(f, "ExpBMae", f"{b['mae']:.4f}")
-        newcommand(f, "ExpBRTwoCILow", f"{b['ci_lo']:.4f}")
-        newcommand(f, "ExpBRTwoCIHigh", f"{b['ci_hi']:.4f}")
+        newcommand(f, "ExpBRTwoMean", f"{b['r2']:.3f}")
+        newcommand(f, "ExpBMae", f"{b['mae']:.3f}")
+        newcommand(f, "ExpBRTwoCILow", f"{b['ci_lo']:.3f}")
+        newcommand(f, "ExpBRTwoCIHigh", f"{b['ci_hi']:.3f}")
         newcommand(f, "ExpBNFeaturesTotal", str(b['n_features_total']))
         newcommand(f, "ExpBNFeaturesSelected", str(b['n_features_selected']))
         f.write("\n")
 
         f.write("% --- Experiment C: Feature Selection + Gaussian Augmentation ---\n")
         c = results_dict['C']
-        newcommand(f, "ExpCRTwoMean", f"{c['r2']:.4f}")
-        newcommand(f, "ExpCMae", f"{c['mae']:.4f}")
-        newcommand(f, "ExpCRTwoCILow", f"{c['ci_lo']:.4f}")
-        newcommand(f, "ExpCRTwoCIHigh", f"{c['ci_hi']:.4f}")
+        newcommand(f, "ExpCRTwoMean", f"{c['r2']:.3f}")
+        newcommand(f, "ExpCMae", f"{c['mae']:.3f}")
+        newcommand(f, "ExpCRTwoCILow", f"{c['ci_lo']:.3f}")
+        newcommand(f, "ExpCRTwoCIHigh", f"{c['ci_hi']:.3f}")
         newcommand(f, "ExpCAugFactor", str(1 + len(NOISE_LEVELS)))
         newcommand(f, "ExpCAugSizeTrain", str(c['aug_size']))
         newcommand(f, "ExpCNoiseLevels", str(NOISE_LEVELS).replace('[', '').replace(']', ''))
@@ -226,10 +226,10 @@ def export_latex(results_dict, delta_rows=None):
         f.write("% --- Diagnostic: Experiments B/C with selection on the test set (leaky, original-study protocol) ---\n")
         for key in ('Bleaky', 'Cleaky'):
             r = results_dict[key]
-            newcommand(f, f"Exp{key}RTwoMean", f"{r['r2']:.4f}")
-            newcommand(f, f"Exp{key}Mae", f"{r['mae']:.4f}")
-            newcommand(f, f"Exp{key}RTwoCILow", f"{r['ci_lo']:.4f}")
-            newcommand(f, f"Exp{key}RTwoCIHigh", f"{r['ci_hi']:.4f}")
+            newcommand(f, f"Exp{key}RTwoMean", f"{r['r2']:.3f}")
+            newcommand(f, f"Exp{key}Mae", f"{r['mae']:.3f}")
+            newcommand(f, f"Exp{key}RTwoCILow", f"{r['ci_lo']:.3f}")
+            newcommand(f, f"Exp{key}RTwoCIHigh", f"{r['ci_hi']:.3f}")
             newcommand(f, f"Exp{key}NFeaturesSelected", str(r['n_features_selected']))
         newcommand(f, "ExpLeakyMaskJaccard", f"{results_dict['leaky_mask_jaccard']:.4f}")
         newcommand(f, "ExpLeakyMaskJaccardPct", f"{100 * results_dict['leaky_mask_jaccard']:.1f}")
@@ -257,9 +257,9 @@ def export_latex(results_dict, delta_rows=None):
             f.write("\n% --- Paired bootstrap R2 differences (same resampled test indices) ---\n")
             for d in delta_rows:
                 tag = d['tag']  # e.g. CvsA
-                newcommand(f, f"Exp{tag}DeltaRTwo", f"{d['delta_point']:+.4f}")
-                newcommand(f, f"Exp{tag}DeltaCILow", f"{d['ci_lo']:+.4f}")
-                newcommand(f, f"Exp{tag}DeltaCIHigh", f"{d['ci_hi']:+.4f}")
+                newcommand(f, f"Exp{tag}DeltaRTwo", f"{d['delta_point']:+.3f}")
+                newcommand(f, f"Exp{tag}DeltaCILow", f"{d['ci_lo']:+.3f}")
+                newcommand(f, f"Exp{tag}DeltaCIHigh", f"{d['ci_hi']:+.3f}")
                 newcommand(f, f"Exp{tag}DeltaPBoot", f"{d['p_boot']:.4f}")
 
     logger.info(f"Variables successfully exported to {LATEX_FILE}")

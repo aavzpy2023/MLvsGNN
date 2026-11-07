@@ -159,10 +159,10 @@ def write_ladder_seeds_table(ladder):
              "\\begin{tabular}{l" + "r" * len(rungs) + "}", "\\toprule",
              f"\\textbf{{Seed}} & {header} \\\\", "\\midrule"]
     for seed, row in table.iterrows():
-        lines.append(f"{int(seed)} & " + " & ".join(f"{v:.4f}" for v in row) + " \\\\")
+        lines.append(f"{int(seed)} & " + " & ".join(f"{v:.3f}" for v in row) + " \\\\")
     lines.append("\\midrule")
-    lines.append("\\textbf{Mean} & " + " & ".join(f"{table[r].mean():.4f}" for r in rungs) + " \\\\")
-    lines.append("SD & " + " & ".join(f"{table[r].std(ddof=0):.4f}" for r in rungs) + " \\\\")
+    lines.append("\\textbf{Mean} & " + " & ".join(f"{table[r].mean():.3f}" for r in rungs) + " \\\\")
+    lines.append("SD & " + " & ".join(f"{table[r].std(ddof=0):.3f}" for r in rungs) + " \\\\")
     lines += ["\\bottomrule", "\\end{tabular}"]
     with open(LATEX_LADDER_SEEDS_TABLE, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
@@ -234,8 +234,8 @@ def main():
     tables = []
     for model, s in dnn.items():
         label = DNN_LABEL[model]
-        values[f"{label}RTwoMean"], values[f"{label}RTwoStd"] = f"{s['R2'].mean():.4f}", f"{s['R2'].std(ddof=1):.4f}"
-        values[f"{label}Mae"] = f"{s['MAE'].mean():.4f}"
+        values[f"{label}RTwoMean"], values[f"{label}RTwoStd"] = f"{s['R2'].mean():.3f}", f"{s['R2'].std(ddof=1):.3f}"
+        values[f"{label}Mae"] = f"{s['MAE'].mean():.3f}"
         values[f"{label}NClipped"] = str(int(s["n_clipped"].sum()))
         table, macros = compare_to_classical(s.sort_values("Fold").reset_index(drop=True), checkpoint, f"{label}Vs")
         values.update(macros)
@@ -243,7 +243,7 @@ def main():
     others = dnn_tests(dnn)
     for _, r in others.iterrows():
         key = f"{r['model']}Vs{r['other']}"
-        values[f"{key}Diff{r['Metric']}"] = f"{r['mean_diff']:+.4f}"
+        values[f"{key}Diff{r['Metric']}"] = f"{r['mean_diff']:+.3f}"
         values[f"{key}P{r['Metric']}"] = f"{r['p_raw']:.3f}"
         values[f"{key}EquivP{r['Metric']}"] = f"{r['p_equiv']:.3f}"
     pd.concat(tables + [others.rename(columns={"other": "Classical", "mean_diff": "mean_diff_model_minus_classical"})],

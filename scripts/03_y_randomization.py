@@ -52,8 +52,8 @@ def write_yrandom_table(results):
              "\\midrule"]
     for prefix, procedure, variant in TESTS:
         r = results[prefix]
-        lines.append(f"{SCOPE_DISPLAY[procedure]} & {VARIANT_DISPLAY[variant]} & {r['true_r2']:.4f} & "
-                     f"${r['permuted_mean']:.4f} \\pm {r['permuted_sd']:.4f}$ & {r['z']:.1f} & "
+        lines.append(f"{SCOPE_DISPLAY[procedure]} & {VARIANT_DISPLAY[variant]} & {r['true_r2']:.3f} & "
+                     f"${r['permuted_mean']:.3f} \\pm {r['permuted_sd']:.3f}$ & {r['z']:.1f} & "
                      f"{r['p_empirical']:.4f} \\\\")
     lines += ["\\bottomrule", "\\end{tabular}"]
     with open(LATEX_YRANDOM_TABLE, "w", encoding="utf-8") as f:
@@ -154,8 +154,8 @@ def main():
         rows += [{"Test": prefix, "Procedure": procedure, "Variant": variant, "Randomization": i, "R2": r2}
                  for i, r2 in enumerate(res["permuted_r2"])]
         results[prefix] = res
-        values.update({f"{prefix}TrueRTwo": f"{res['true_r2']:.4f}", f"{prefix}MeanRTwo": f"{res['permuted_mean']:.4f}",
-                       f"{prefix}StdRTwo": f"{res['permuted_sd']:.4f}", f"{prefix}ZScore": f"{res['z']:.1f}",
+        values.update({f"{prefix}TrueRTwo": f"{res['true_r2']:.3f}", f"{prefix}MeanRTwo": f"{res['permuted_mean']:.3f}",
+                       f"{prefix}StdRTwo": f"{res['permuted_sd']:.3f}", f"{prefix}ZScore": f"{res['z']:.1f}",
                        f"{prefix}PValue": f"{res['p_empirical']:.4f}", f"{prefix}Passed": "true" if passed else "false"})
     elapsed_time = time.time() - start_time
 

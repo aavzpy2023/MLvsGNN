@@ -124,10 +124,10 @@ def write_ablation_table():
         ref = against.get(key)
         if ref is not None:
             d = deltas.loc[f"{key} - {ref}"]
-            delta = (f"${d['Delta_R2_Point']:+.4f}$ [${d['CI_Lower']:+.3f}$, ${d['CI_Upper']:+.3f}$]"
+            delta = (f"${d['Delta_R2_Point']:+.3f}$ [${d['CI_Lower']:+.3f}$, ${d['CI_Upper']:+.3f}$]"
                      f" \\textit{{vs {ref.replace('Exp_', '')}}}")
         lines.append(f"{display} & {int(r['N_Features'])} & {int(r['Aug_Size'])} & "
-                     f"${r['R2']:.4f}$ [${r['CI_Lower']:.3f}$, ${r['CI_Upper']:.3f}$] & {delta} \\\\")
+                     f"${r['R2']:.3f}$ [${r['CI_Lower']:.3f}$, ${r['CI_Upper']:.3f}$] & {delta} \\\\")
     lines += ["\\bottomrule", "\\end{tabular}"]
     with open(LATEX_ABLATION_TABLE, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")

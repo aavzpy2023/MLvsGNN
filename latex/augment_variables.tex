@@ -7,38 +7,38 @@
 \newcommand{\ExpNTest}{129}
 
 % --- Experiment A: Baseline Stacking (No Feat Sel, No Aug) ---
-\newcommand{\ExpARTwoMean}{0.7327}
-\newcommand{\ExpAMae}{0.4407}
-\newcommand{\ExpARTwoCILow}{0.6269}
-\newcommand{\ExpARTwoCIHigh}{0.8171}
+\newcommand{\ExpARTwoMean}{0.733}
+\newcommand{\ExpAMae}{0.441}
+\newcommand{\ExpARTwoCILow}{0.627}
+\newcommand{\ExpARTwoCIHigh}{0.817}
 
 % --- Experiment B: Permutation Importance Selection ---
-\newcommand{\ExpBRTwoMean}{0.7479}
-\newcommand{\ExpBMae}{0.4334}
-\newcommand{\ExpBRTwoCILow}{0.6474}
-\newcommand{\ExpBRTwoCIHigh}{0.8292}
+\newcommand{\ExpBRTwoMean}{0.748}
+\newcommand{\ExpBMae}{0.433}
+\newcommand{\ExpBRTwoCILow}{0.647}
+\newcommand{\ExpBRTwoCIHigh}{0.829}
 \newcommand{\ExpBNFeaturesTotal}{2048}
 \newcommand{\ExpBNFeaturesSelected}{747}
 
 % --- Experiment C: Feature Selection + Gaussian Augmentation ---
-\newcommand{\ExpCRTwoMean}{0.7319}
-\newcommand{\ExpCMae}{0.4386}
-\newcommand{\ExpCRTwoCILow}{0.6225}
-\newcommand{\ExpCRTwoCIHigh}{0.8200}
+\newcommand{\ExpCRTwoMean}{0.732}
+\newcommand{\ExpCMae}{0.439}
+\newcommand{\ExpCRTwoCILow}{0.623}
+\newcommand{\ExpCRTwoCIHigh}{0.820}
 \newcommand{\ExpCAugFactor}{3}
 \newcommand{\ExpCAugSizeTrain}{2190}
 \newcommand{\ExpCNoiseLevels}{0.01, 0.001}
 
 % --- Diagnostic: Experiments B/C with selection on the test set (leaky, original-study protocol) ---
-\newcommand{\ExpBleakyRTwoMean}{0.8361}
-\newcommand{\ExpBleakyMae}{0.3563}
-\newcommand{\ExpBleakyRTwoCILow}{0.7609}
-\newcommand{\ExpBleakyRTwoCIHigh}{0.8920}
+\newcommand{\ExpBleakyRTwoMean}{0.836}
+\newcommand{\ExpBleakyMae}{0.356}
+\newcommand{\ExpBleakyRTwoCILow}{0.761}
+\newcommand{\ExpBleakyRTwoCIHigh}{0.892}
 \newcommand{\ExpBleakyNFeaturesSelected}{446}
-\newcommand{\ExpCleakyRTwoMean}{0.8265}
-\newcommand{\ExpCleakyMae}{0.3654}
-\newcommand{\ExpCleakyRTwoCILow}{0.7479}
-\newcommand{\ExpCleakyRTwoCIHigh}{0.8853}
+\newcommand{\ExpCleakyRTwoMean}{0.826}
+\newcommand{\ExpCleakyMae}{0.365}
+\newcommand{\ExpCleakyRTwoCILow}{0.748}
+\newcommand{\ExpCleakyRTwoCIHigh}{0.885}
 \newcommand{\ExpCleakyNFeaturesSelected}{446}
 \newcommand{\ExpLeakyMaskJaccard}{0.3197}
 \newcommand{\ExpLeakyMaskJaccardPct}{32.0}
@@ -96,27 +96,27 @@
 \newcommand{\ExpCleakyVsPaperFinalSig}{false}
 
 % --- Paired bootstrap R2 differences (same resampled test indices) ---
-\newcommand{\ExpCvsADeltaRTwo}{-0.0008}
-\newcommand{\ExpCvsADeltaCILow}{-0.0270}
-\newcommand{\ExpCvsADeltaCIHigh}{+0.0200}
+\newcommand{\ExpCvsADeltaRTwo}{-0.001}
+\newcommand{\ExpCvsADeltaCILow}{-0.027}
+\newcommand{\ExpCvsADeltaCIHigh}{+0.020}
 \newcommand{\ExpCvsADeltaPBoot}{0.9890}
-\newcommand{\ExpBvsADeltaRTwo}{+0.0151}
-\newcommand{\ExpBvsADeltaCILow}{-0.0134}
-\newcommand{\ExpBvsADeltaCIHigh}{+0.0433}
+\newcommand{\ExpBvsADeltaRTwo}{+0.015}
+\newcommand{\ExpBvsADeltaCILow}{-0.013}
+\newcommand{\ExpBvsADeltaCIHigh}{+0.043}
 \newcommand{\ExpBvsADeltaPBoot}{0.2740}
-\newcommand{\ExpCvsBDeltaRTwo}{-0.0160}
-\newcommand{\ExpCvsBDeltaCILow}{-0.0361}
-\newcommand{\ExpCvsBDeltaCIHigh}{-0.0004}
+\newcommand{\ExpCvsBDeltaRTwo}{-0.016}
+\newcommand{\ExpCvsBDeltaCILow}{-0.036}
+\newcommand{\ExpCvsBDeltaCIHigh}{-0.000}
 \newcommand{\ExpCvsBDeltaPBoot}{0.0460}
-\newcommand{\ExpBleakyvsADeltaRTwo}{+0.1033}
-\newcommand{\ExpBleakyvsADeltaCILow}{+0.0570}
-\newcommand{\ExpBleakyvsADeltaCIHigh}{+0.1591}
+\newcommand{\ExpBleakyvsADeltaRTwo}{+0.103}
+\newcommand{\ExpBleakyvsADeltaCILow}{+0.057}
+\newcommand{\ExpBleakyvsADeltaCIHigh}{+0.159}
 \newcommand{\ExpBleakyvsADeltaPBoot}{0.0000}
-\newcommand{\ExpBleakyvsBDeltaRTwo}{+0.0882}
-\newcommand{\ExpBleakyvsBDeltaCILow}{+0.0468}
-\newcommand{\ExpBleakyvsBDeltaCIHigh}{+0.1389}
+\newcommand{\ExpBleakyvsBDeltaRTwo}{+0.088}
+\newcommand{\ExpBleakyvsBDeltaCILow}{+0.047}
+\newcommand{\ExpBleakyvsBDeltaCIHigh}{+0.139}
 \newcommand{\ExpBleakyvsBDeltaPBoot}{0.0000}
-\newcommand{\ExpCleakyvsCDeltaRTwo}{+0.0945}
-\newcommand{\ExpCleakyvsCDeltaCILow}{+0.0457}
-\newcommand{\ExpCleakyvsCDeltaCIHigh}{+0.1527}
+\newcommand{\ExpCleakyvsCDeltaRTwo}{+0.095}
+\newcommand{\ExpCleakyvsCDeltaCILow}{+0.046}
+\newcommand{\ExpCleakyvsCDeltaCIHigh}{+0.153}
 \newcommand{\ExpCleakyvsCDeltaPBoot}{0.0000}

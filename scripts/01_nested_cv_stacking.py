@@ -257,8 +257,8 @@ def generate_latex_file(df_all, summary, df_ttest, top2_modes, paired_stats, rep
         for _, row in summary.iterrows():
             mode = row['Mode']
             label = MODE_LATEX_LABEL.get(mode, mode.title())
-            newcommand(f, f"{label}RTwoMean", f"{row['mean']:.4f}")
-            newcommand(f, f"{label}RTwoStd", f"{row['std']:.4f}")
+            newcommand(f, f"{label}RTwoMean", f"{row['mean']:.3f}")
+            newcommand(f, f"{label}RTwoStd", f"{row['std']:.3f}")
             newcommand(f, f"{label}NFolds", int(row['count']))
 
             df_mode = df_all[df_all['Mode'] == mode]
@@ -268,7 +268,7 @@ def generate_latex_file(df_all, summary, df_ttest, top2_modes, paired_stats, rep
             newcommand(f, f"{label}BestArchitecture", top_combo)
             newcommand(f, f"{label}BestArchitectureSafe", latex_safe_combo(top_combo))
             newcommand(f, f"{label}Stability", f"{stability:.1f}")
-            newcommand(f, f"{label}MaeMean", f"{df_mode['MAE_outer'].mean():.4f}")
+            newcommand(f, f"{label}MaeMean", f"{df_mode['MAE_outer'].mean():.3f}")
             newcommand(f, f"{label}NFeaturesTotal", int(df_mode['N_features_total'].mean()))
             newcommand(f, f"{label}NFeaturesSelectedMean", f"{df_mode['N_features_selected'].mean():.1f}")
 
@@ -321,8 +321,8 @@ def generate_latex_file(df_all, summary, df_ttest, top2_modes, paired_stats, rep
         best_row = summary.iloc[0]
         blabel = MODE_LATEX_LABEL.get(best_row['Mode'], best_row['Mode'].title())
         newcommand(f, "WinnerMode", blabel)
-        newcommand(f, "WinnerRTwoMean", f"{best_row['mean']:.4f}")
-        newcommand(f, "WinnerRTwoStd", f"{best_row['std']:.4f}")
+        newcommand(f, "WinnerRTwoMean", f"{best_row['mean']:.3f}")
+        newcommand(f, "WinnerRTwoStd", f"{best_row['std']:.3f}")
 
         # Krstajic et al. (2014), Algorithm 2: error of each outer repeat on all its test predictions together
         newcommand(f, "InnerRepeats", INNER_N_REPEATS)
@@ -330,7 +330,7 @@ def generate_latex_file(df_all, summary, df_ttest, top2_modes, paired_stats, rep
             label = MODE_LATEX_LABEL.get(mode, mode)
             for metric, tag in (("R2", "RTwo"), ("MAE", "Mae")):
                 for stat, name in (("mean", "Mean"), ("min", "Min"), ("max", "Max")):
-                    newcommand(f, f"{label}Pooled{tag}{name}", f"{rs[f'{metric}_{stat}']:.4f}")
+                    newcommand(f, f"{label}Pooled{tag}{name}", f"{rs[f'{metric}_{stat}']:.3f}")
 
     print(f"[LATEX] Variables successfully exported to: {LATEX_PAPER}", flush=True)
 

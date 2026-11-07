@@ -115,7 +115,7 @@ def export_latex(df_results):
             best = pool.sort_values('Docking_Score').iloc[0]
             name_safe = "".join(c for c in str(best['Name']) if c.isalpha())[:20]
             newcommand(f, "DockBestCandidate",    name_safe)
-            newcommand(f, "DockBestMLpIC",        f"{best['ML_pIC50']:.4f}")
+            newcommand(f, "DockBestMLpIC",        f"{best['ML_pIC50']:.2f}")
             newcommand(f, "DockBestDockScore",    f"{best['Docking_Score']:.2f}")
             newcommand(f, "DockRawBestDockScore", f"{df_results['Docking_Score'].min():.2f}")
 
@@ -123,7 +123,7 @@ def export_latex(df_results):
                 match = df[df['Name'].str.contains(name_substring, case=False, na=False)]
                 if not match.empty:
                     row = match.iloc[0]
-                    newcommand(file_handle, f"{prefix}MLpIC", f"{row['ML_pIC50']:.4f}")
+                    newcommand(file_handle, f"{prefix}MLpIC", f"{row['ML_pIC50']:.2f}")
                     newcommand(file_handle, f"{prefix}DockScore", f"{row['Docking_Score']:.2f}")
 
             for search_sub, prefix in LATEX_REF_COMPOUNDS:

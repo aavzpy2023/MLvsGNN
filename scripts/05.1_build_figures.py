@@ -41,7 +41,7 @@ def export_candidates_table(df):
         name = str(r["Name"])
         if dup[i]:
             name = f"{group_name[key[i]]} (CID {int(r['CID'])})\\textsuperscript{{a}}"
-        lines.append(f"{i + 1} & {name} & {r['pIC50_pred']:.4f} & {r['LE']:.2f} & {r['BEI']:.2f} & {r['LLE']:.2f} & {r['SEI']:.2f} \\\\")
+        lines.append(f"{i + 1} & {name} & {r['pIC50_pred']:.2f} & {r['LE']:.2f} & {r['BEI']:.2f} & {r['LLE']:.2f} & {r['SEI']:.2f} \\\\")
     lines.append(r"\bottomrule")
     if dup.any():
         lines.append(r"\multicolumn{7}{l}{\footnotesize \textsuperscript{a} Duplicate PubChem CID entries mapping to the same underlying structure in the FDA library.}")

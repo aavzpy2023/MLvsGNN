@@ -36,7 +36,7 @@ def compare_to_classical(scores, checkpoint, prefix):
     macros = {}
     for r in rows:
         key = f"{prefix}{r['Label']}"
-        macros[f"{key}Diff{r['Metric']}"] = f"{r['mean_diff_model_minus_classical']:+.4f}"
+        macros[f"{key}Diff{r['Metric']}"] = f"{r['mean_diff_model_minus_classical']:+.3f}"
         macros[f"{key}P{r['Metric']}"] = f"{r['p_holm']:.3f}"
         macros[f"{key}EquivP{r['Metric']}"] = f"{r['p_equiv']:.3f}"
         macros[f"{key}CILow{r['Metric']}"] = f"{r['ci90_low']:+.3f}"

@@ -189,13 +189,13 @@ def export_latex(results, extra=None):
     with open(LATEX_GNN, 'w') as f:
         for res in valid_results:
             label = re.sub(r'[^A-Za-z]', '', res['model'])
-            f.write(newcommand(f"{label}RTwoMean", f"{res['r2']:.4f}"))
-            f.write(newcommand(f"{label}Mae", f"{res['mae']:.4f}"))
+            f.write(newcommand(f"{label}RTwoMean", f"{res['r2']:.3f}"))
+            f.write(newcommand(f"{label}Mae", f"{res['mae']:.3f}"))
             if 'std' in res:
-                f.write(newcommand(f"{label}RTwoStd", f"{res['std']:.4f}"))
+                f.write(newcommand(f"{label}RTwoStd", f"{res['std']:.3f}"))
             if 'ci_lo' in res and 'ci_hi' in res:
-                f.write(newcommand(f"{label}CILow", f"{res['ci_lo']:.4f}"))
-                f.write(newcommand(f"{label}CIHigh", f"{res['ci_hi']:.4f}"))
+                f.write(newcommand(f"{label}CILow", f"{res['ci_lo']:.3f}"))
+                f.write(newcommand(f"{label}CIHigh", f"{res['ci_hi']:.3f}"))
         for name, value in (extra or {}).items():
             f.write(newcommand(name, value))
 
