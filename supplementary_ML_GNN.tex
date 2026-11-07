@@ -101,6 +101,17 @@ analysis pipeline and read from the same files as the manuscript.
 	\resizebox{\textwidth}{!}{\input{latex/scaffold_pairwise_table.tex}}
 \end{table}
 
+\begin{table}[htbp]
+	\centering
+	\caption{Coefficient of determination of every rung of the leakage ladder, seed by seed. R0 is the published
+		protocol, scored on the evaluation partition its own code builds; R1 to R4 remove one leak each and are scored
+		on the \KarLadderNCommonTest{} molecules common to all of them, and Clean is a reference model with no feature
+		selection. The columns show that the removal of the first three leaks lowers the score in every one of the
+		\KarReproNSeeds{} seeds, while the removal of duplicate structures does not.}
+	\label{tab:ladder_seeds}
+	\input{latex/leakage_ladder_seeds_table.tex}
+\end{table}
+
 \clearpage
 \section*{Virtual screening and molecular docking}
 
