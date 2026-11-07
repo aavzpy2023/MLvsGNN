@@ -90,75 +90,31 @@ Computational cost does not favor the classical approach in this protocol, but t
 \end{figure}
 
 % ==========================================
-% 3. SECTION 3.3
+% 3. SECTION 3.3 (screening, docking and ADMET: hypothesis generation)
 % ==========================================
-\subsection{Virtual Screening and Prioritization of FDA-Approved Candidates}
-
-The deployed model, the feature-selected Morgan-fingerprint stacking ensemble of the augmentation experiment (Section~\ref{sec:res_classical}; hold-out $R^2 = \ExpBRTwoMean$ on a single split, whereas the nested cross-validation estimate of the Morgan procedure, with the architecture chosen in each fold, is $R^2 = \MorganRTwoMean$), was applied to the FDA-approved library after the funnel described in the Methods: \ScreenNLibrary{} compounds were reduced to \ScreenNStructural{} by the size and elemental filters, and all of these were scored. Their mean Tanimoto similarity to the five most similar training compounds had a median of \ScreenADFdaMedian{} (5th--95th percentile \ScreenADFdaLow{}--\ScreenADFdaHigh{}), against \ScreenADTrainMedian{} for the training compounds measured against each other, and only \ScreenNDomain{} of them reached the applicability-domain threshold of \ScreenADMinSimilarity{}. The predicted potencies of the FDA library are therefore mostly extrapolations, and a candidate's similarity to the training set is reported together with its prediction; of the \ScreenNCandidates{} candidates that advanced to docking, \ScreenNCandidatesInDomain{} were inside the domain. Two known inhibitors served as a consistency check. Pyrimethamine was predicted at pIC$_{50}$ \ControlPyrimethaminePred{} (experimental \ControlPyrimethamineExp{}, absolute error \ControlPyrimethamineErr{}) and trimethoprim at \ControlTrimethoprimPred{} (experimental \ControlTrimethoprimExp{}, error \ControlTrimethoprimErr{}). Both compounds belong to the training partition, so this verifies that the final model fits its training data and says nothing about generalization; the generalization estimate remains the nested cross-validation reported above.
-
-Table~\ref{tab:fda_candidates} lists the ten compounds with the highest predicted potency, and Figure~\ref{fig:fda_scatter} places them against ligand efficiency (LE). The antifolates methotrexate, trimetrexate (listed twice, under two PubChem entries that map to the same structure) and pralatrexate occupy the top of the ranking by absolute potency. Methotrexate is also part of the training set, so its rank partly reflects memorization; trimetrexate and pralatrexate are not. Absolute potency, however, scales with molecular size, and these large molecules have modest efficiency (LE between \AntifolateLEMin{} and \AntifolateLEMax{}, with a LE of 0.30 commonly taken as the lower bound of a good lead).
-
-Size-corrected metrics reorder the list. Pyrimethamine, which is also in the training set, and triamterene, which is not, combine predicted pIC$_{50}$ values of \CandTriamterenePred{} and \CandPyrimethaminePred{} with the highest LE (\CandTriamtereneLE{} and \CandPyrimethamineLE{}) and BEI (\CandTriamtereneBEI{} and \CandPyrimethamineBEI{}) of the table, well above the antifolates. Triamterene is therefore the clearest repurposing candidate from the ML stage: a predicted potency close to that of pyrimethamine at a comparable atomic efficiency, and which is absent from the training data. The remaining top-ranked compounds have predicted pIC$_{50}$ between 6.0 and 6.3, and all but bendamustine have an LE below 0.30.
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.8\textwidth]{figures/05_pIC50_vs_LE_scatter.png}
-	\caption{Predicted pIC$_{50}$ versus ligand efficiency for the candidates advanced to docking. Blue: the ten top-ranked compounds by predicted potency; orange: reference compounds from the original study. The dashed line marks pIC$_{50} = 6.0$ and the dotted line LE $= 0.30$.}
-	\label{fig:fda_scatter}
-\end{figure}
-
-\begin{table}[htbp]
-	\centering
-	\caption{Top 10 FDA-approved candidates predicted by the classical ML model, ranked by predicted pIC$_{50}$ and evaluated across standard ligand efficiency metrics.}
-	\label{tab:fda_candidates}
-	\input{latex/fda_candidates_table.tex}
-\end{table}
-% ==========================================
-% 3. SECTION 3.4
-% ==========================================
-\subsection{Integrated ML-docking consensus filtering and false-positive mitigation}
+\subsection{Hypothesis Generation: Screening, Docking and ADMET}
+\label{sec:screening_results}
 \label{sec:consensus_results}
+\label{sec:admet_results}
 
-Neither ligand-based prediction nor docking is reliable alone, so the \DockNTotal{} candidates of the screening step were scored by both and classified by agreement (Figure~\ref{fig:docking_scatter}). A compound is a consensus hit when it is predicted active by the ML model ($pIC_{50} > \DockMLActiveThresh$) and docks favorably ($\Delta G < \DockActiveThresh\text{ kcal/mol}$); discordant cases are reported, not resolved.
+The deployed model, the feature-selected Morgan-fingerprint stacking ensemble of the augmentation experiment (Section~\ref{sec:res_classical}), was applied to the FDA-approved library after the funnel described in the Methods: \ScreenNLibrary{} compounds were reduced to \ScreenNStructural{} by the size and elemental filters, and all of these were scored. Their mean Tanimoto similarity to the five most similar training compounds had a median of \ScreenADFdaMedian{} (5th--95th percentile \ScreenADFdaLow{}--\ScreenADFdaHigh{}), against \ScreenADTrainMedian{} for the training compounds measured against each other, and only \ScreenNDomain{} of them reached the applicability-domain threshold of \ScreenADMinSimilarity{}. The predicted potencies of this library are therefore mostly extrapolations, and each candidate's similarity to the training set is reported with its prediction; of the \ScreenNCandidates{} candidates advanced to docking, \ScreenNCandidatesInDomain{} were inside the domain. As a consistency check, pyrimethamine was predicted at pIC$_{50}$ \ControlPyrimethaminePred{} (experimental \ControlPyrimethamineExp{}) and trimethoprim at \ControlTrimethoprimPred{} (experimental \ControlTrimethoprimExp{}); both belong to the training partition, so this verifies that the final model fits its training data and says nothing about generalization.
 
-The global agreement between the two methods is weak. Spearman's rank correlation between predicted $pIC_{50}$ and Vina score was $\rho = \DockSpearmanRho$ ($p = \DockSpearmanP$), with the expected sign (higher predicted potency, lower and therefore better docking energy) but no statistical significance. The estimate is also less informative than its $N = \DockNTotal$ suggests: the four trimethoprim entries share one structure and one docking score, and the two trimetrexate entries are the same compound under two PubChem CIDs, so the effective number of independent compounds is smaller. We therefore do not interpret the correlation as evidence of orthogonality or of agreement; it only shows that docking does not simply reproduce the ML ranking.
+Table~S1 and Figures~S3--S5 give the ranking with its efficiency metrics. The antifolates methotrexate, trimetrexate and pralatrexate lead by absolute potency, but potency scales with molecular size and their efficiency is modest (ligand efficiency between \AntifolateLEMin{} and \AntifolateLEMax{}, against the value of 0.30 commonly taken as the lower bound of a good lead); methotrexate is also in the training set, so its rank partly reflects memorization. Size-corrected metrics reorder the list: triamterene, which is absent from the training data, combines a predicted pIC$_{50}$ of \CandTriamterenePred{} with the highest ligand efficiency (\CandTriamtereneLE{}) and binding efficiency index (\CandTriamtereneBEI{}) of the table, and is therefore the clearest repurposing hypothesis of the ML stage.
+
+Because neither ligand-based prediction nor docking is reliable alone, the \DockNTotal{} candidates were scored by both and classified by agreement (Figure~\ref{fig:docking_scatter}), a compound being a consensus hit when the model predicts it active ($pIC_{50} > \DockMLActiveThresh$) and it docks favorably ($\Delta G < \DockActiveThresh\text{ kcal/mol}$). This yielded \DockNValidated{} entries (\DockNValidatedUnique{} unique compounds): pralatrexate ($pIC_{50} = \PralatrexateMLpIC$, $\Delta G = \PralatrexateDockScore$ kcal/mol, the best docking score of the set), methotrexate (\MethotrexateMLpIC, \MethotrexateDockScore), trimetrexate glucuronate (\TrimetrexateMLpIC, \TrimetrexateDockScore) and triamterene (\TriamtereneMLpIC, \TriamtereneDockScore). Agreement between the two methods is weak: Spearman's rank correlation between predicted $pIC_{50}$ and Vina score was $\rho = \DockSpearmanRho$ ($p = \DockSpearmanP$), with the expected sign but no statistical significance, and the estimate is less informative than its $N = \DockNTotal$ suggests, because the four trimethoprim entries share one structure and one docking score. We therefore read the correlation only as evidence that docking does not reproduce the ML ranking.
+
+The discordant cases bound both methods. Pyrimethamine, an established TgDHFR inhibitor, docked at only $\Delta G = \PyrimethamineDockScore$ kcal/mol and trimethoprim similarly ($\Delta G = \TrimethoprimDockScore$ kcal/mol); small ligands obtain modest Vina scores because the score grows with the number of contacts, which points to a limited sensitivity of the scoring function for small inhibitors rather than to an ML artifact. Bisacodyl is the opposite case, favored by docking ($\Delta G = \BisacodylDockScore$ kcal/mol) while the model predicted $pIC_{50} = \BisacodylMLpIC$; it carries none of the diaminopyrimidine-like features of the antifolate ligands in the training set, so a docking artifact of a flexible, hydrophobic ligand is the more plausible explanation. Without experimental data we cannot arbitrate between the two methods.
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.9\textwidth]{figures/07_docking_scatter.png}
-	\caption{Predicted pIC$_{50}$ versus AutoDock Vina score for the \DockNTotal{} docked candidates, coloured by agreement class. The shaded region is the consensus zone ($pIC_{50} > \DockMLActiveThresh$ and $\Delta G < \DockActiveThresh$ kcal/mol); the dashed line is a least-squares trend.}
+	\caption{Predicted pIC$_{50}$ versus AutoDock Vina score for the \DockNTotal{} docked candidates, coloured by agreement class. The shaded region is the consensus zone ($pIC_{50} > \DockMLActiveThresh$ and $\Delta G < \DockActiveThresh$ kcal/mol).}
 	\label{fig:docking_scatter}
 \end{figure}
 
-Of the \DockNTotal{} candidates, \DockNValidated{} entries (\DockNValidatedUnique{} unique compounds) were consensus hits, \DockNNegative{} were concordant negatives (all trimethoprim entries), \DockNDiscordant{} was an ML false positive, \DockNFalseNegative{} an ML false negative, and \DockNNeutral{} fell between the thresholds. The consensus hits are pralatrexate ($pIC_{50} = \PralatrexateMLpIC$, $\Delta G = \PralatrexateDockScore$ kcal/mol), methotrexate (\MethotrexateMLpIC, \MethotrexateDockScore), trimetrexate glucuronate (\TrimetrexateMLpIC, \TrimetrexateDockScore, both CIDs) and triamterene (\TriamtereneMLpIC, \TriamtereneDockScore). Pralatrexate has the best docking score of the whole set. Methotrexate belongs to the training set, so its consensus status is the least informative; pralatrexate, trimetrexate and triamterene have no exact structural match in the training set.
+Of the \AdmetNDocked{} docked entries, \AdmetNLipinski{} satisfied the three Lipinski criteria, the hERG classifier flagged \AdmetNHergFlagged{} as likely channel blockers, and \AdmetNRemaining{} remained: \AdmetNOral{} classified as oral and \AdmetNParenteral{} as parenteral because of low predicted Caco-2 permeability (Table~S2, Figure~S6). Of the \AdmetNConsensus{} consensus hits, \AdmetNConsensusSurvivors{} passed both filters: pralatrexate and methotrexate were hERG-safe but poorly permeable and so classified as parenteral, and trimetrexate was predicted to be hERG-safe and orally absorbed, whereas triamterene, the most ligand-efficient candidate of the screen, was the only consensus hit removed (predicted hERG probability \AdmetHergTriamterene{}). How much weight such a profile deserves depends on the indication and the length of the course: toxoplasmosis is treated for weeks, far longer in ocular and immunocompromised cases, and its cerebral and congenital forms require passage of the blood--brain barrier and the placenta, so the filter is informative for this target, but it is a rule- and classifier-based screen and not part of the benchmark.
 
-The discordant cases show the limits of each method. Pyrimethamine, an established TgDHFR inhibitor, was predicted at $pIC_{50} = \PyrimethamineMLpIC$ (it is in the training set, so this is a fitted value) but docked at only $\Delta G = \PyrimethamineDockScore$ kcal/mol; trimethoprim, a weaker known inhibitor, scored similarly ($\Delta G = \TrimethoprimDockScore$ kcal/mol). Small ligands such as these obtain modest Vina scores because the score grows with the number of contacts, which suggests a limited sensitivity of the scoring function for small inhibitors rather than an ML artifact. Bisacodyl is the opposite case: docking favored it ($\Delta G = \BisacodylDockScore$ kcal/mol) while the model predicted $pIC_{50} = \BisacodylMLpIC$. Bisacodyl has none of the diaminopyrimidine-like features of the antifolate ligands in the training set, so a docking artifact of a flexible, hydrophobic ligand is the more plausible explanation, but without experimental data we cannot arbitrate between the two methods.
-
-These results are a computational prioritization. The receptor is rigid, no water or protonation states are modelled, and Vina scores are empirical estimates, so the consensus hits are hypotheses for experimental testing, not confirmed inhibitors.
-
-% ==========================================
-% 3. SECTION 3.5 (ADMET)
-% ==========================================
-\subsection{In Silico ADMET Profiling of the Docked Candidates}
-\label{sec:admet_results}
-
-All \AdmetNDocked{} docked entries were profiled (Section~\ref{sec:consensus_results}; the entries include duplicates of the same structure, such as the four trimethoprim forms and the two trimetrexate CIDs). Of these, \AdmetNLipinski{} satisfied the three Lipinski criteria. Among these, the hERG classifier flagged \AdmetNHergFlagged{} entries as likely channel blockers (predicted probability above \AdmetHergThresh), leaving \AdmetNRemaining{} entries: \AdmetNOral{} classified as oral candidates and \AdmetNParenteral{} as parenteral candidates because of low predicted Caco-2 permeability (Figure~\ref{fig:admet}). Table~\ref{tab:admet} shows the profile of the consensus hits of Section~\ref{sec:consensus_results} together with the two known inhibitors.
-
-\begin{table}[htbp]
-	\centering
-	\caption{Predicted ADMET profile of the \AdmetNConsensus{} consensus hits and of the known inhibitors pyrimethamine and trimethoprim. Structures that appear under several entries are listed once. hERG prob. is the predicted probability of channel blockade (flag above \AdmetHergThresh) and Caco-2 $\log P_{app}$ the predicted permeability (oral if above \AdmetCacoThresh).}
-	\label{tab:admet}
-	\input{latex/admet_table.tex}
-\end{table}
-
-Of the \AdmetNConsensus{} consensus hits, \AdmetNConsensusSurvivors{} passed both filters. Pralatrexate and methotrexate had a low hERG probability (\AdmetHergPralatrexate{} and \AdmetHergMethotrexate{}) but low predicted permeability (log $P_{app}$ of $\AdmetCacoPralatrexate$ and $\AdmetCacoMethotrexate$), so they were classified as parenteral. Trimetrexate was predicted to be hERG-safe and orally absorbed. Triamterene, the most ligand-efficient candidate of the ML screen, was the only consensus hit removed: its predicted hERG probability was \AdmetHergTriamterene{}. The known inhibitor pyrimethamine (hERG probability \AdmetHergPyrimethamine{}) and trimethoprim were both classified as oral and hERG-safe, consistent with their use as oral drugs. These predictions come from Random Forest models trained on public data, whose accuracy was not evaluated here, and some of the compounds are in their training sets (Section~\ref{sec:materials_admet}), so the profile is a coarse prioritization and not a safety assessment.
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.85\textwidth]{figures/08_admet_quadrants.png}
-	\caption{Predicted hERG blocking probability versus predicted Caco-2 permeability for the docked candidates that passed the Lipinski criteria. The dashed lines mark the hERG threshold and the Caco-2 threshold; the shaded quadrant combines low hERG risk with permeability classified as oral.}
-	\label{fig:admet}
-\end{figure}
+This whole stage is a computational prioritization. The receptor is rigid, no water molecules or protonation states are modelled, Vina scores are empirical estimates, and the ADMET classifiers were trained on public data whose accuracy was not evaluated here, with some of these compounds in their training sets. The consensus hits are therefore hypotheses for experimental testing and not confirmed inhibitors.
 
 % ==========================================
 % 3. SECTION 3.6
@@ -196,7 +152,7 @@ The two records excluded by the Tukey rule (Section~\ref{sec:materials_curation}
 
 \begin{table}[htbp]
 	\centering
-	\caption{Nested cross-validation performance without (primary analysis, $n = \OutlierNMain$) and with ($n = \OutlierNSens$) the two extreme-potency records. $p$-values compare the two runs with a Welch test using the Nadeau-Bengio variance correction \cite{nadeau1999}; the runs use different fold partitions, so folds are not paired.}
+	\caption{Nested cross-validation performance without (primary analysis, $n = \OutlierNMain$) and with ($n = \OutlierNSens$) the two extreme-potency records. $p$-values compare the two runs with a Welch test using the Nadeau-Bengio variance correction \cite{nadeau2003}; the runs use different fold partitions, so folds are not paired.}
 	\label{tab:outlier_sensitivity}
 	\input{latex/outlier_table.tex}
 \end{table}

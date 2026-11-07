@@ -1,7 +1,8 @@
 """
 11_check_manuscript.py — Checks that the manuscript only uses artifacts that the pipeline produced.
 
-Follows every \\input from the main .tex file and verifies that
+Follows every \\input from each root .tex file in the project (the manuscript and the supplementary material, each
+with its own \\documentclass) and verifies, per document, that
   * each \\includegraphics file and each \\input file exists;
   * every project variable (a CamelCase macro such as \\MorganRTwoMean) used in the text is defined by one of the generated
     latex/*.tex files or by the preamble.
@@ -41,11 +42,27 @@ def main():
         manuscript refers to and confirms they exist, and it confirms that each result variable used in the text was generated.
         A failure here means the text refers to something the pipeline did not produce (or no longer produces).
     """)
-    mains = [f for f in glob.glob(os.path.join(ROOT, "*.tex")) if r"\documentclass" in open(f, encoding="utf-8").read()]
-    if len(mains) != 1:
-        sys.exit(f"Expected exactly one main .tex file in {ROOT}, found {len(mains)}")
-    main_tex = mains[0]
+    mains = sorted(f for f in glob.glob(os.path.join(ROOT, "*.tex"))
+                   if r"\documentclass" in strip_comments(open(f, encoding="utf-8").read()))
+    if not mains:
+        sys.exit(f"No root .tex file (one with \\documentclass) found in {ROOT}")
 
+    errors = []
+    for main_tex in mains:
+        errors += check_document(main_tex)
+
+    if errors:
+        print("\n[FAIL] The manuscript refers to artifacts that do not exist:", flush=True)
+        for e in errors:
+            print(f"  - {e}", flush=True)
+        sys.exit(1)
+    print(f"[OK] Every figure, included file, and variable used by the {len(mains)} document(s) is produced by the "
+          "pipeline.", flush=True)
+
+
+def check_document(main_tex):
+    """Errors found in the document rooted at `main_tex`; its variables must be defined by itself or by what it inputs."""
+    print(f"\n[DOC] {os.path.relpath(main_tex, ROOT)}", flush=True)
     texts, errors, graphics, queue, seen = {}, [], set(), [main_tex], set()
     while queue:
         path = queue.pop()
@@ -78,14 +95,9 @@ def main():
     for name in undefined:
         errors.append(f"variable \\{name} is used but never defined")
 
-    print(f"\n[CHECK] {len(texts)} files followed, {len(graphics)} figures, {len(used)} project variables used, "
+    print(f"[CHECK] {len(texts)} files followed, {len(graphics)} figures, {len(used)} project variables used, "
           f"{len(undefined)} undefined", flush=True)
-    if errors:
-        print("\n[FAIL] The manuscript refers to artifacts that do not exist:", flush=True)
-        for e in errors:
-            print(f"  - {e}", flush=True)
-        sys.exit(1)
-    print("[OK] Every figure, included file, and variable used by the manuscript is produced by the pipeline.", flush=True)
+    return errors
 
 
 if __name__ == "__main__":
