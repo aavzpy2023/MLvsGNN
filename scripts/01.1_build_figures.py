@@ -418,16 +418,20 @@ for i, lab in enumerate(LABEL_ORDER):
                  color=PALETTE[lab], mec="white", mew=1.4,
                  lw=2.0, capsize=4, zorder=5)
 
+# Every reference line carries its own label, written along the top edge of the axes so that none of them falls outside
+# the figure: get_xaxis_transform() takes x in data units and y as a fraction of the axes height.
+STAGE_LABELS = {"PaperBaseline": "Karimova baseline", "PaperSelected": "+ feature selection", "PaperFinal": "+ augmentation"}
 for st in STAGE_ORDER:
     axA.axvline(paper_r2[st], ls=LS_MAP[st],
                 color=STAGE_COLORS[st], lw=1.1, alpha=0.7)
+    axA.text(paper_r2[st] - 0.003, 0.99, STAGE_LABELS[st], rotation=90, fontsize=7.2,
+             color=STAGE_COLORS[st], va="top", ha="right", transform=axA.get_xaxis_transform())
 axA.axvline(DMPNN_R2, ls=":", color="#AA3333", lw=1.1, alpha=0.7)
-axA.text(DMPNN_R2 + 0.002, 3.42, "D-MPNN",
-         fontsize=7.8, color="#AA3333", va="top")
-axA.text(paper_r2["PaperBaseline"] + 0.002, -0.45,
-         "Karimova\nbaseline", fontsize=7.5,
-         color=STAGE_COLORS["PaperBaseline"], va="bottom")
+axA.text(DMPNN_R2 - 0.003, 0.99, "D-MPNN (this study)", rotation=90, fontsize=7.2,
+         color="#AA3333", va="top", ha="right", transform=axA.get_xaxis_transform())
 
+# Headroom for the rotated labels of the reference lines, so that they do not run over the points of the top row
+axA.set_ylim(-0.6, len(LABEL_ORDER) - 1 + 1.9)
 axA.set_yticks(range(len(LABEL_ORDER)))
 axA.set_yticklabels(LABEL_ORDER, fontsize=9.5)
 axA.set_xlabel(r"Mean $R^2$ (outer fold)")
