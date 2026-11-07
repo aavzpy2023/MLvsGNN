@@ -1,0 +1,83 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+2026-11-07 07:40:26,642 | INFO | ================================================================================
+2026-11-07 07:40:26,643 | INFO | 02_statistical_tests.py — Nadeau-Bengio Variance Correction Test
+2026-11-07 07:40:26,643 | INFO | ================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Step 01 produced one error value (MAE, in pIC50 units) for every test fold, for each way of
+  describing the molecules         (Morgan fingerprints vs. RDKit 2D + 3D descriptors +
+  fingerprints). This step asks a single question: is the difference         between those two
+  descriptions real, or could it be just luck of how the compounds were split into folds?
+  The test used is a paired t-test with the Nadeau-Bengio correction. A plain t-test would be
+  over-confident here because         the folds share most of their training compounds (they are
+  not independent); the correction widens the uncertainty to         compensate.
+  How to read the result: p < 0.05 means the two descriptions truly differ in accuracy; p >= 0.05
+  means we cannot claim         one is better than the other, and the simpler/cheaper one (Morgan)
+  is then the reasonable choice.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-11-07 07:40:26,643 | INFO | Loading nested CV results from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/01_nested_cv_checkpoint.csv
+2026-11-07 07:40:26,647 | INFO | Total records loaded: 100. Available modes: ['morgan', 'rdkit2d', 'rdkit2d_fp', 'rdkit2d3d_fp']
+2026-11-07 07:40:26,647 | INFO | Extracting performance metrics for 'morgan' and 'rdkit2d3d_fp' modes...
+2026-11-07 07:40:26,650 | INFO | Data points extracted: 25 outer folds per mode.
+2026-11-07 07:40:26,650 | INFO | Morgan MAE Distribution     -> Mean: 0.4342 | Std: 0.0307 | Min: 0.3755 | Max: 0.4854
+2026-11-07 07:40:26,650 | INFO | 2D/3D/FP MAE Distribution -> Mean: 0.4278 | Std: 0.0316 | Min: 0.3489 | Max: 0.4904
+2026-11-07 07:40:26,650 | INFO | Initializing Nadeau-Bengio variance correction calculations...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] How to read the numbers below
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Mean difference in MAE (Morgan minus 2D/3D/FP) = +0.0063 pIC50 units. A negative value means
+  Morgan makes smaller         errors on average. For scale: 0.3 pIC50 units is roughly a 2-fold
+  change in potency (IC50).
+  The t-statistic is the mean difference divided by its corrected uncertainty; |t| around 2 or
+  more usually gives p < 0.05.         Only 25 folds are compared, so the test has limited power
+  to detect small differences.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-11-07 07:40:26,651 | INFO | --------------------------------------------------------------------------------
+2026-11-07 07:40:26,651 | INFO | Nadeau-Bengio Corrected Paired t-test Results:
+2026-11-07 07:40:26,651 | INFO |   t-statistic = 1.162
+2026-11-07 07:40:26,652 | INFO |   p-value     = 0.2566
+2026-11-07 07:40:26,652 | INFO | --------------------------------------------------------------------------------
+2026-11-07 07:40:26,652 | INFO | TEST CONCLUSION: No statistically significant difference between Morgan and 2D/3D/FP representations (p >= 0.05).
+[EXPORT] Pairwise table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/pairwise_nb_table.tex
+2026-11-07 07:40:26,690 | INFO | All-pairs Nadeau-Bengio tests (Holm-adjusted within each metric) saved to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/02_pairwise_nb_tests.csv
+2026-11-07 07:40:26,697 | INFO | 
+Metric          A            B  mean_diff_A_minus_B       t      p  ci90_low  ci90_high  equiv_margin  p_equiv  p_holm
+  RTwo     morgan      rdkit2d               0.0408  3.4621 0.0020    0.0206     0.0609          0.05   0.2201  0.0081
+  RTwo     morgan   rdkit2d_fp              -0.0047 -0.6750 0.5061   -0.0164     0.0071          0.05   0.0000  1.0000
+  RTwo     morgan rdkit2d3d_fp              -0.0052 -0.8557 0.4006   -0.0157     0.0052          0.05   0.0000  1.0000
+  RTwo    rdkit2d   rdkit2d_fp              -0.0454 -4.4406 0.0002   -0.0629    -0.0279          0.05   0.3288  0.0009
+  RTwo    rdkit2d rdkit2d3d_fp              -0.0460 -4.5238 0.0001   -0.0634    -0.0286          0.05   0.3489  0.0008
+  RTwo rdkit2d_fp rdkit2d3d_fp              -0.0006 -0.2244 0.8243   -0.0051     0.0039          0.05   0.0000  1.0000
+   MAE     morgan      rdkit2d              -0.0340 -3.3788 0.0025   -0.0512    -0.0168          0.05   0.0625  0.0099
+   MAE     morgan   rdkit2d_fp               0.0065  1.1197 0.2739   -0.0034     0.0163          0.05   0.0000  0.7689
+   MAE     morgan rdkit2d3d_fp               0.0063  1.1629 0.2563   -0.0030     0.0156          0.05   0.0000  0.7689
+   MAE    rdkit2d   rdkit2d_fp               0.0405  4.9480 0.0000    0.0265     0.0544          0.05   0.1273  0.0002
+   MAE    rdkit2d rdkit2d3d_fp               0.0403  5.5483 0.0000    0.0279     0.0528          0.05   0.0980  0.0001
+   MAE rdkit2d_fp rdkit2d3d_fp              -0.0001 -0.0425 0.9664   -0.0052     0.0049          0.05   0.0000  0.9664
+2026-11-07 07:40:26,697 | INFO | Writing statistical variables to LaTeX file: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/nadeau_bengio_variables.tex
+2026-11-07 07:40:26,700 | INFO | LaTeX variable export completed successfully.
+
+=== END LOG: 02_statistical_tests.py [EXIT CODE: 0] ===
+

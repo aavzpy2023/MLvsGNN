@@ -1,4 +1,4 @@
-=== START LOG: 13_scaffold_split.py [2026-11-06 22:07:04] ===
+=== START LOG: 13_scaffold_split.py [2026-11-07 07:41:20] ===
 
 =========================================================================================================
 13_scaffold_split.py — Performance under scaffold-grouped outer folds
@@ -16,6 +16,7 @@
   model against them. The scaffold results         are expected to be lower; the question is
   whether the comparisons change.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPORT] Scaffold table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/scaffold_table.tex
                    random_R2_mean  random_R2_std  random_MAE_mean  scaffold_R2_mean  scaffold_R2_std  scaffold_MAE_mean  drop_R2
 Morgan                     0.7689         0.0406           0.4342            0.5940           0.0965             0.5983   0.1749
 RdkitTwoD                  0.7281         0.0484           0.4682            0.4919           0.1163             0.6730   0.2361
@@ -84,6 +85,7 @@ Chemeleon    Mae       morgan                           0.0005  1.0000   0.0058
 Chemeleon    Mae      rdkit2d                          -0.0741  0.0056   0.8742
 Chemeleon    Mae   rdkit2d_fp                          -0.0146  1.0000   0.0570
 Chemeleon    Mae rdkit2d3d_fp                          -0.0133  1.0000   0.0603
+[EXPORT] Scaffold pairwise table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/scaffold_pairwise_table.tex
 [EXPORT] 300 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/scaffold_variables.tex
 [DONE] 13_scaffold_split.py complete.
 

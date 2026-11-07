@@ -1,5 +1,3 @@
-=== START LOG: 11_check_manuscript.py [2026-11-06 22:07:30] ===
-
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] What this step does
@@ -17,7 +15,7 @@
 [OK] figure figures/04_augment_r2_comparison.png
 [OK] figure figures/07_docking_scatter.png
 [OK] figure figures/09_gnn_benchmark_comparison.png
-[CHECK] 25 files followed, 6 figures, 958 project variables used, 0 undefined
+[CHECK] 30 files followed, 6 figures, 1373 project variables used, 0 undefined
 
 [DOC] supplementary_ML_GNN.tex
 [OK] figure figures/01_nested_cv_performance_summary.png
@@ -26,8 +24,5 @@
 [OK] figure figures/05_pIC50_vs_LE_scatter.png
 [OK] figure figures/08_admet_quadrants.png
 [OK] figure figures/S1_nested_cv_selection_full_heatmap.png
-[CHECK] 17 files followed, 6 figures, 955 project variables used, 0 undefined
+[CHECK] 22 files followed, 6 figures, 1370 project variables used, 0 undefined
 [OK] Every figure, included file, and variable used by the 2 document(s) is produced by the pipeline.
-
-=== END LOG: 11_check_manuscript.py [EXIT CODE: 0] ===
-
