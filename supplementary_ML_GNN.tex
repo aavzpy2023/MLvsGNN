@@ -87,6 +87,27 @@ analysis pipeline and read from the same files as the manuscript.
 
 \begin{table}[htbp]
 	\centering
+	\caption{The two D-MPNN variants of the main benchmark against each classical representation, on the
+		\TotalOuterFolds{} shared outer folds. Difference is the mean of the network minus the classical model over
+		the folds, with its Nadeau--Bengio corrected 90\% interval; $p_{\mathrm{Holm}}$ is adjusted within each metric
+		and $p_{\mathrm{equiv}}$ is the two one-sided test against the $\pm 0.05$ margin. The figures quoted in the
+		manuscript are rows of this table.}
+	\label{tab:gnn_pairwise}
+	\resizebox{\textwidth}{!}{\input{latex/gnn_pairwise_table.tex}}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{Configuration of the D-MPNN selected by the nested search in each outer fold, with the inner
+		root-mean-square error of that configuration and of the default one, and the score the refit model obtained on
+		the held-out fold. It is the counterpart, for the network, of the stacking compositions in
+		Table~\ref{tab:selection}, and shows that the search did not settle on one configuration.}
+	\label{tab:gnn_tuned_config}
+	\input{latex/gnn_tuned_config_table.tex}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
 	\caption{Each additional neural model against each classical representation over the \TotalOuterFolds\ shared outer folds. Differences are the neural model minus the representation, so a negative value in $R^2$ means the neural model scored lower. $p_{\mathrm{Holm}}$ is adjusted within the four representations of each model and metric.}
 	\label{tab:strong_pairwise}
 	\resizebox{\textwidth}{!}{\input{latex/strong_pairwise_table.tex}}
