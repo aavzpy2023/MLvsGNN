@@ -75,6 +75,9 @@ def check_document(main_tex):
         text = strip_comments(open(path, encoding="utf-8").read())
         texts[path] = text
         for rel in re.findall(r"\\input\{([^}]+)\}", text):
+            if rel.startswith("#"):
+                continue  # \input{#1} inside a \newcommand is a parameter, not a file
+
             target = resolve(rel, ROOT)
             if target is None:
                 errors.append(f"missing \\input file '{rel}' (referenced in {os.path.relpath(path, ROOT)})")

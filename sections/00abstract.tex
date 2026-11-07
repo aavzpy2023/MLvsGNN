@@ -1,5 +1,6 @@
-\begin{abstract}
-	Small bioactivity data sets make it easy to overstate the benefit of complex models, through data leakage and
+% The abstract text only. Each template wraps it: an environment for the article and Elsevier layouts, the
+% \abstract command for Springer, whose class typesets the environment immediately and so before the title.
+Small bioactivity data sets make it easy to overstate the benefit of complex models, through data leakage and
 	through model selection that is rarely evaluated on unseen data. We re-examined both for inhibitors of
 	\textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR, $N = \NCompounds$ curated compounds). Removing the
 	information leaks of the original study's code one at a time lowered its $R^2$ from
@@ -21,7 +22,3 @@
 	inside its applicability domain (median similarity \ScreenADFdaMedian\ against \ScreenADTrainMedian\ internally),
 	so the compounds it ranks highest are hypotheses rather than leads. For this target a fixed-fingerprint ensemble was sufficient; we make no claim
 	beyond it.
-\end{abstract}
-
-\textbf{Keywords:} 
-Quantitative Structure-Activity Relationship, Low-Data Regimes, Nested Cross-Validation, Data Leakage, Graph Neural Networks, Applicability Domain, Model Selection Bias

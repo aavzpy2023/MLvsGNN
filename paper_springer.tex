@@ -44,7 +44,9 @@
 
 \input{latex/manuscript_variables.tex}
 
-\input{sections/00abstract.tex}
+% sn-jnl stores the abstract and the keywords and typesets them with \maketitle, so both must be set before it.
+\abstract{\input{sections/00abstract.tex}}
+\keywords{\input{sections/00keywords.tex}}
 
 \maketitle
 

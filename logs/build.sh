@@ -14,13 +14,20 @@
 #   paper_springer  Springer Nature sn-jnl, for Journal of Cheminformatics.
 #   supplementary_ML_GNN
 cd "$(dirname "$0")/.." || exit 1
-export TEXINPUTS=".//:./templates/springer//:"
-export BSTINPUTS=".//:./templates/springer/bst//:"
+# The search paths for the Springer class and its styles are set in .latexmkrc, so the editor finds them too.
 
 DOCS=${*:-"paper_reading paper_ML_GNN paper_springer supplementary_ML_GNN"}
 STATUS=0
 for doc in $DOCS; do
-  latexmk -pdf -interaction=nonstopmode -halt-on-error=false "$doc.tex" > "build/${doc}_build.log" 2>&1
+  if ! latexmk -pdf -interaction=nonstopmode "$doc.tex" > "build/${doc}_build.log" 2>&1; then
+    printf "  %-22s LATEXMK FAILED, see build/%s_build.log\n" "$doc" "$doc"
+    tail -5 "build/${doc}_build.log" | sed 's/^/      /'
+    STATUS=1
+    continue
+  fi
+  # .latexmkrc copies the PDF back only after a build it considered necessary, and latexmk removes a stale copy
+  # from the root, so a document that was already up to date would lose its PDF. Copy unconditionally.
+  [ -f "build/$doc.pdf" ] && cp -u "build/$doc.pdf" "$doc.pdf"
   log="build/${doc}.log"
   errors=$(grep -cE '^! ' "$log" 2>/dev/null); errors=${errors:-0}
   undefined=$(grep -cE 'Citation .* undefined|Reference .* undefined' "$log" 2>/dev/null); undefined=${undefined:-0}
