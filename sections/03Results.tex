@@ -30,7 +30,7 @@ whose interval contains zero ([$\KarDeltaRungFourVsRungThreeCILow$, $\KarDeltaRu
 	\centering
 	\caption{Performance of the original pipeline as each information leak is removed, over \KarReproNSeeds\ seeds. $\Delta R^2$ is the change with respect to the rung above, with its 95\% bootstrap confidence interval over the \KarLadderNCommonTest\ molecules common to rungs R1--R4. R0 builds its own evaluation partition by re-splitting the augmented data, so it shares no test molecules with the rungs below and the difference of R1, which is measured against it, cannot be paired: \textsuperscript{a}~that one entry is given as the mean over seeds with its standard deviation instead of a bootstrap interval. The last row is a model with no feature selection, fitted on the same clean split; \textsuperscript{b}~its entry is the difference of R4 with respect to it, not a step of the ladder.}
 	\label{tab:ladder}
-	\resizebox{\textwidth}{!}{\input{latex/leakage_ladder_table.tex}}
+	\projtable{latex/leakage_ladder_table.tex}
 \end{table}
 
 Together the four corrections take the model from $R^2 = \KarLadderRungZeroRTwoMean$ to \KarLadderRungFourRTwoMean, a
@@ -152,7 +152,7 @@ classical ensembles use reached \MlpEcfpRTwoMean.
 	\centering
 	\caption{Neural models evaluated on the \TotalOuterFolds\ shared outer folds, ordered by $R^2$, with the Morgan ensemble and the default D-MPNN as references. $\Delta R^2$ is the difference from the Morgan ensemble, $p$ its Holm-adjusted value within the four classical representations, and $p_{\mathrm{equiv}}$ the two one-sided tests against the $\pm \EquivMarginRTwo$ margin. Times are the mean wall-clock time of one outer fold and are not normalized by thread count.}
 	\label{tab:strong}
-	\resizebox{\textwidth}{!}{\input{latex/strong_baselines_table.tex}}
+	\projtable{latex/strong_baselines_table.tex}
 \end{table}
 
 Parity therefore costs something. The pretrained network needed \ChemeleonFoldMinutes\ minutes per outer fold against
@@ -177,7 +177,7 @@ test molecules are kept out of them.
 	\centering
 	\caption{Run time and accuracy of every model. Time is the mean wall-clock time of one outer fold on the workstation, including the inner search where one exists, and the 25-fold total is that time multiplied by 25. Times are not normalized by thread count (the classical models used all threads on one fold at a time; the tuned D-MPNN ran two training processes in parallel).}
 	\label{tab:cost}
-	\resizebox{\textwidth}{!}{\input{latex/cost_table.tex}}
+	\projtable{latex/cost_table.tex}
 \end{table}
 
 \begin{figure}[htbp]
@@ -200,7 +200,7 @@ hyperparameters and the shared partitions. Table~\ref{tab:scaffold} summarizes t
 	\centering
 	\caption{Cross-validated performance (mean $\pm$ SD over \TotalOuterFolds\ outer folds) under random and scaffold-grouped splits, ordered by the size of the drop in mean $R^2$. Both protocols share their outer partitions across models, so every column is a paired comparison.}
 	\label{tab:scaffold}
-	\resizebox{\textwidth}{!}{\input{latex/scaffold_table.tex}}
+	\projtable{latex/scaffold_table.tex}
 \end{table}
 
 Holding scaffolds out costs every model between \ScaffoldChemeleonDropRTwo\ and \ScaffoldRdkitTwoDDropRTwo\ units of
@@ -236,7 +236,7 @@ The two records excluded by the Tukey rule (Section~\ref{sec:materials_curation}
 	\centering
 	\caption{Nested cross-validation performance without (primary analysis, $n = \OutlierNMain$) and with ($n = \OutlierNSens$) the two extreme-potency records. $p$-values compare the two runs with a Welch test using the Nadeau-Bengio variance correction \citep{nadeau2003}; the runs use different fold partitions, so folds are not paired.}
 	\label{tab:outlier_sensitivity}
-	\input{latex/outlier_table.tex}
+	\projtable{latex/outlier_table.tex}
 \end{table}
 
 Retaining the two records lowered $R^2$ in all four representations ($\Delta R^2$ between $\OutlierMinDeltaRTwo$ and $\OutlierMaxDeltaRTwo$) and raised the MAE ($\Delta$MAE between $\OutlierMinDeltaMAE$ and $\OutlierMaxDeltaMAE$ pIC$_{50}$ units), a consistent direction that is nevertheless indistinguishable from fold-to-fold variability ($p$ between $\OutlierMinP$ and $\OutlierMaxP$). For the Morgan representation, $R^2$ moved from $\OutlierMorganRTwoMain$ to $\OutlierMorganRTwoSens$ ($p = \OutlierMorganRTwoP$). The ordering of the three best representations changed between runs, but their differences were already within noise in the primary analysis, so the central conclusion (no representation is reliably superior) holds in both.

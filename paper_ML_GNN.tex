@@ -56,6 +56,11 @@
 \setlength{\floatsep}{12pt plus 2pt minus 2pt}
 \setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
 
+% A wide generated table, scaled to the text width. Defined per template because not every journal class
+% tolerates the same construction: sn-jnl breaks on any box around a tabular, so its own definition only shrinks
+% the type. The sections call \projtable and never a particular boxing command.
+\newcommand{\projtable}[1]{\resizebox{\textwidth}{!}{\input{#1}}}
+
 \input{latex/paper_variables.tex}
 \input{latex/augment_variables.tex}
 \input{latex/docking_variables.tex}
@@ -159,7 +164,7 @@
 	\ead[url]{https://orcid.org/0000-0003-0896-9484 }
 	
 	% Credit authorship
-	\credit{Validation, Writing – review \& editing }
+	\credit{Methodology, Validation, Writing – review \& editing, Supervision}
 
 	
 	\author[1]{Samuel Montejo-Sánchez}%[]

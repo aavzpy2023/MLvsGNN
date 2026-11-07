@@ -42,8 +42,11 @@ def main():
         manuscript refers to and confirms they exist, and it confirms that each result variable used in the text was generated.
         A failure here means the text refers to something the pipeline did not produce (or no longer produces).
     """)
+    # A vendor template dropped in the project should never halt the pipeline, so a file that is not UTF-8 is read
+    # leniently rather than raising; it is still checked if it declares a document class.
     mains = sorted(f for f in glob.glob(os.path.join(ROOT, "*.tex"))
-                   if r"\documentclass" in strip_comments(open(f, encoding="utf-8").read()))
+                   if r"\documentclass" in strip_comments(
+                       open(f, encoding="utf-8", errors="replace").read()))
     if not mains:
         sys.exit(f"No root .tex file (one with \\documentclass) found in {ROOT}")
 

@@ -1,0 +1,65 @@
+% Reading copy of the manuscript. Same content as every other template: it reads sections/ and latex/ and adds
+% nothing of its own. Its only purpose is that figures and tables sit next to the text that cites them, which the
+% Elsevier class deliberately prevents (cas-sc empties the float specifier of figures so they collect at the end,
+% which is what a submission wants and a reader does not).
+%
+% This file is not for submission. Journal templates stay as they are; this one exists to be read.
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage[authoryear]{natbib}
+\usepackage{caption}
+
+% Let a float sit near its citation: the default limits reserve a fifth of every page for text, which on a
+% figure-dense manuscript pushes floats forward until they pile up at the end.
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+
+\captionsetup{font=small, labelfont=bf}
+\setlength{\parskip}{0.3em}
+
+\title{\textbf{When Simple Is Enough: Leakage-Free Benchmarking of Classical Machine Learning
+		vs.\ Graph Neural Networks in Low-Data Bioactivity Prediction}}
+\author{Andrey Vinajera-Zamora \and Juan Castillo-Garit \and Samuel Montejo-S\'anchez
+	\and Raul Arias-Carrasco}
+\date{Instituto Universitario de Investigaci\'on y Desarrollo Tecnol\'ogico,\\
+	Universidad Tecnol\'ogica Metropolitana, Santiago, Chile\\[0.6em]
+	\textit{Reading copy, figures in place. Not the submission layout.}\\
+	\today}
+
+% A wide generated table, scaled to the text width. Defined per template because not every journal class
+% tolerates the same construction: sn-jnl breaks on any box around a tabular, so its own definition only shrinks
+% the type. The sections call \projtable and never a particular boxing command.
+\newcommand{\projtable}[1]{\resizebox{\textwidth}{!}{\input{#1}}}
+
+\input{latex/manuscript_variables.tex}
+
+\begin{document}
+\maketitle
+
+\input{sections/00abstract.tex}
+
+\input{latex/manuscript_body.tex}
+
+\bibliographystyle{plainnat}
+\bibliography{references_nourl.bib}
+
+\end{document}

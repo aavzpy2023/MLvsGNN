@@ -1,0 +1,55 @@
+% Springer Nature layout, for Journal of Cheminformatics. Like every other template in this project it adds no
+% content: the sections live in sections/, the numbers in latex/, and this file only supplies the class, the author
+% block and the bibliography style. Switching journal means writing one of these and nothing else.
+%
+% The class and its styles are in templates/springer/; TEXINPUTS must include that directory, which logs/build.sh
+% does. The bibliography style of Journal of Cheminformatics is numbered (Vancouver); change the class option to
+% sn-basic or sn-vancouver-ay if the journal asks for something else.
+%
+% Springer asks for a single .tex at submission. Flatten this file then, for instance with
+%   latexpand paper_springer.tex > submission.tex
+% and keep working with the \input version, which is what the pipeline verifies.
+\documentclass[pdflatex,sn-vancouver-num]{sn-jnl}
+
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds}
+
+\raggedbottom
+
+\begin{document}
+
+\title[Leakage-Free Benchmarking of Classical ML vs.\ Graph Neural Networks]{When Simple Is Enough:
+	Leakage-Free Benchmarking of Classical Machine Learning vs.\ Graph Neural Networks in Low-Data
+	Bioactivity Prediction}
+
+\author[1]{\fnm{Andrey} \sur{Vinajera-Zamora}}\email{avinajera@utem.cl}
+\author[1]{\fnm{Juan} \sur{Castillo-Garit}}\email{j.castillo@utem.cl}
+\author*[1]{\fnm{Samuel} \sur{Montejo-S\'anchez}}\email{smontejo@utem.cl}
+\author[1]{\fnm{Raul} \sur{Arias-Carrasco}}\email{raul.arias@utem.cl}
+
+\affil[1]{\orgdiv{Instituto Universitario de Investigaci\'on y Desarrollo Tecnol\'ogico},
+	\orgname{Universidad Tecnol\'ogica Metropolitana},
+	\orgaddress{\street{Ignacio Valdivieso 2409}, \city{Santiago}, \postcode{97279},
+		\state{Regi\'on Metropolitana}, \country{Chile}}}
+
+% sn-jnl cannot put a tabular inside \resizebox or \adjustbox, so a wide table is shrunk by its type size.
+\newcommand{\projtable}[1]{{\footnotesize\input{#1}}}
+
+\input{latex/manuscript_variables.tex}
+
+\input{sections/00abstract.tex}
+
+\maketitle
+
+\input{latex/manuscript_body.tex}
+
+\bibliography{references_nourl.bib}
+
+\end{document}

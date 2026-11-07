@@ -126,3 +126,14 @@ results copy/
 quick_run/
 generalization/
 data/moleculeace/_source/
+
+# LaTeX build artefacts of the extra layouts
+*_build.log
+paper_reading.aux
+paper_reading.bbl
+paper_reading.blg
+paper_reading.out
+paper_springer.aux
+paper_springer.bbl
+paper_springer.blg
+paper_springer.out
