@@ -1,8 +1,8 @@
-=== START LOG: 03_y_randomization.py [2026-10-31 20:57:01] ===
+=== START LOG: 03_y_randomization.py [2026-11-07 08:50:58] ===
 
-2026-10-31 20:57:03,728 | INFO | ================================================================================
-2026-10-31 20:57:03,728 | INFO | 03_y_randomization.py — Model Robustness Test (Y-Randomization)
-2026-10-31 20:57:03,729 | INFO | ================================================================================
+2026-11-07 08:51:00,451 | INFO | ================================================================================
+2026-11-07 08:51:00,451 | INFO | 03_y_randomization.py — Model Robustness Test (Y-Randomization)
+2026-11-07 08:51:00,451 | INFO | ================================================================================
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] What this step does
@@ -16,11 +16,11 @@
   R2 is the fraction of the variation in potency that the model explains: 1.0 is perfect, 0 is no
   better than always         predicting the average potency, negative is worse than that.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2026-10-31 20:57:03,729 | INFO | Deployed model -> representation: 'morgan', architecture: 'RF+XGB+SVM'
-2026-10-31 20:57:03,729 | INFO | Loading training data from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
-2026-10-31 20:57:03,737 | INFO | Successfully loaded 859 valid SMILES and target values.
-2026-10-31 20:57:03,737 | INFO | Generating feature matrix X for representation mode 'morgan'...
-2026-10-31 20:57:04,041 | INFO | Feature matrix dimensions: (859, 2048)
+2026-11-07 08:51:00,452 | INFO | Deployed model -> representation: 'morgan', architecture: 'RF+XGB+SVM'
+2026-11-07 08:51:00,452 | INFO | Loading training data from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
+2026-11-07 08:51:00,460 | INFO | Successfully loaded 859 valid SMILES and target values.
+2026-11-07 08:51:00,460 | INFO | Generating feature matrix X for representation mode 'morgan'...
+2026-11-07 08:51:00,771 | INFO | Feature matrix dimensions: (859, 2048)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] The four tests
@@ -37,18 +37,20 @@
   the R2 of the fit would not discriminate. A test passes when the permutation         p-value is
   <= 0.01.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2026-10-31 20:57:04,044 | INFO | [YRandom] architecture / y_permutation: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
-2026-10-31 21:51:08,914 | INFO | [YRandom] real R2 = 0.7787 | randomized R2 = -0.0136 ± 0.0084 | Z = 93.9 | p = 0.0099 -> PASSED (3245s)
-2026-10-31 21:51:08,915 | INFO | [YRandomPseudo] architecture / pseudodescriptors: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
-2026-10-31 22:37:06,707 | INFO | [YRandomPseudo] real R2 = 0.7787 | randomized R2 = -0.0136 ± 0.0083 | Z = 95.7 | p = 0.0099 -> PASSED (2758s)
-2026-10-31 22:37:06,707 | INFO | [YRandomProc] procedure / y_permutation: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
-2026-11-01 07:27:25,557 | INFO | [YRandomProc] real R2 = 0.7722 | randomized R2 = -0.0365 ± 0.0169 | Z = 47.8 | p = 0.0099 -> PASSED (31819s)
-2026-11-01 07:27:25,558 | INFO | [YRandomProcPseudo] procedure / pseudodescriptors: real data and 100 randomizations (5-fold CV, 46 worker processes; 0 scores from the checkpoint)...
-2026-11-01 16:01:11,196 | INFO | [YRandomProcPseudo] real R2 = 0.7722 | randomized R2 = -0.0959 ± 0.0322 | Z = 27.0 | p = 0.0099 -> PASSED (30826s)
-2026-11-01 16:01:11,216 | INFO | Randomized scores of the four tests saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/03_y_randomization_scores.csv
-2026-11-01 16:01:11,216 | INFO | Exporting Y-Randomization LaTeX variables to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/yrandom_variables.tex
-2026-11-01 16:01:11,217 | INFO | LaTeX variable export completed successfully.
-2026-11-01 16:01:11,217 | INFO | Total execution time: 68647.2 seconds
+2026-11-07 08:51:00,777 | INFO | Resuming from /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/03_y_randomization_checkpoint.csv: YRandom 101 scores, YRandomPseudo 101 scores, YRandomProc 101 scores, YRandomProcPseudo 101 scores
+2026-11-07 08:51:00,777 | INFO | [YRandom] architecture / y_permutation: real data and 100 randomizations (5-fold CV, 46 worker processes; 101 scores from the checkpoint)...
+2026-11-07 08:51:00,782 | INFO | [YRandom] real R2 = 0.7787 | randomized R2 = -0.0136 ± 0.0084 | Z = 93.9 | p = 0.0099 -> PASSED (0s)
+2026-11-07 08:51:00,782 | INFO | [YRandomPseudo] architecture / pseudodescriptors: real data and 100 randomizations (5-fold CV, 46 worker processes; 101 scores from the checkpoint)...
+2026-11-07 08:51:00,785 | INFO | [YRandomPseudo] real R2 = 0.7787 | randomized R2 = -0.0136 ± 0.0083 | Z = 95.7 | p = 0.0099 -> PASSED (0s)
+2026-11-07 08:51:00,785 | INFO | [YRandomProc] procedure / y_permutation: real data and 100 randomizations (5-fold CV, 46 worker processes; 101 scores from the checkpoint)...
+2026-11-07 08:51:00,786 | INFO | [YRandomProc] real R2 = 0.7722 | randomized R2 = -0.0365 ± 0.0169 | Z = 47.8 | p = 0.0099 -> PASSED (0s)
+2026-11-07 08:51:00,786 | INFO | [YRandomProcPseudo] procedure / pseudodescriptors: real data and 100 randomizations (5-fold CV, 46 worker processes; 101 scores from the checkpoint)...
+2026-11-07 08:51:00,787 | INFO | [YRandomProcPseudo] real R2 = 0.7722 | randomized R2 = -0.0959 ± 0.0322 | Z = 27.0 | p = 0.0099 -> PASSED (0s)
+2026-11-07 08:51:00,792 | INFO | Randomized scores of the four tests saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/03_y_randomization_scores.csv
+[EXPORT] Y-randomization table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/yrandom_table.tex
+2026-11-07 08:51:00,793 | INFO | Exporting Y-Randomization LaTeX variables to: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/yrandom_variables.tex
+2026-11-07 08:51:00,793 | INFO | LaTeX variable export completed successfully.
+2026-11-07 08:51:00,793 | INFO | Total execution time: 0.0 seconds
 
 === END LOG: 03_y_randomization.py [EXIT CODE: 0] ===
 

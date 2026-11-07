@@ -1,0 +1,38 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+[-] Reading full ADMET dataset from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/08_ADMET_CANDIDATES_For_Docking_FULL_PRE_FILTER.csv
+[+] ADMET table saved at: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/admet_table.tex
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this figure shows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Safety/absorption map of the candidates that passed Lipinski. Horizontal = hERG blocker
+  probability (heart toxicity         risk; left is safer), vertical = predicted Caco-2 intestinal
+  permeability (higher is better absorbed orally). The         best region is the top-left
+  quadrant (low heart risk and good oral absorption). Colours are the ADMET profile
+  assigned in step 08. Predictions come from simple models trained on public data, so treat them
+  as a coarse filter.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Looks like you are using a tranform that doesn't support FancyArrowPatch, using ax.annotate instead. The arrows might strike through texts. Increasing shrinkA in arrowprops might help.
+[+] ADMET figure saved successfully at: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/figures/08_admet_quadrants.png
+
+=== END LOG: 08.1_build_figures.py [EXIT CODE: 0] ===
+

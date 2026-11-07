@@ -1,4 +1,4 @@
-=== START LOG: 01.1_build_figures.py [2026-11-06 22:07:06] ===
+=== START LOG: 01.1_build_figures.py [2026-11-07 10:11:26] ===
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,6 +48,7 @@
   Fig S1. The exact algorithm combination selected in every outer fold, for every description.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 All figures generated in: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/figures
+[EXPORT] Selection table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/selection_table.tex
 
 === END LOG: 01.1_build_figures.py [EXIT CODE: 0] ===
 

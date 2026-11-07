@@ -195,6 +195,8 @@ sns.boxplot(data=df, x="Mode_Clean", y="R2_outer", order=LABEL_ORDER,
             capprops=dict(color="#666666", lw=0.9),
             ax=ax)
 
+# seaborn draws the jitter from numpy's global generator, so the figure is only reproducible if it is seeded
+np.random.seed(42)
 sns.stripplot(data=df, x="Mode_Clean", y="R2_outer", order=LABEL_ORDER,
               hue="Mode_Clean", palette=PALETTE, legend=False,
               alpha=0.80, size=4.5, jitter=0.15,
