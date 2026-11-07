@@ -2,7 +2,9 @@ import numpy as np
 import pytest
 from rdkit import Chem
 
-from qsartools.applicability_domain import ORGANIC_ELEMENTS, contains_only_elements, fit_isolation_forest, in_domain
+from qsartools.applicability_domain import (ORGANIC_ELEMENTS, contains_only_elements, fit_isolation_forest,
+                                            fit_similarity_domain, in_domain, in_similarity_domain,
+                                            nearest_similarity, similarity_to_domain)
 
 
 @pytest.mark.parametrize("smiles,expected", [("CCO", True), ("c1ccccc1Cl", True), ("CC(=O)O[Na]", False),
@@ -83,3 +85,48 @@ def test_similarity_domain_strategies_and_membership():
     assert in_similarity_domain(d, train[:5]).sum() >= 1 and not in_similarity_domain(d, far)[0]
     with pytest.raises(ValueError, match="strategy"):
         fit_similarity_domain(train, strategy="median")
+
+
+class TestSimilarityToDomain:
+    """similarity_to_domain is what the screening reports beside every candidate, so the number it returns is the one
+    the manuscript calls the similarity of a compound to the training set."""
+
+    @staticmethod
+    def _domain(k=2):
+        train = np.array([[1, 1, 1, 0],
+                          [1, 1, 0, 0],
+                          [0, 0, 0, 1]], dtype=float)
+        return fit_similarity_domain(train, k=k), train
+
+    def test_hand_computed_value(self):
+        # Query 1 1 1 0 against the three training molecules: T = 1, 2/3 and 0. The two nearest average to 5/6.
+        domain, _ = self._domain(k=2)
+        assert similarity_to_domain(domain, np.array([[1, 1, 1, 0]]))[0] == pytest.approx(5.0 / 6.0)
+
+    def test_equals_the_nearest_similarity_it_delegates_to(self):
+        domain, train = self._domain(k=2)
+        query = np.array([[1, 0, 1, 0], [0, 1, 0, 1]], dtype=float)
+        assert np.allclose(similarity_to_domain(domain, query), nearest_similarity(query, train, k=2))
+
+    def test_a_molecule_sharing_no_bit_scores_zero(self):
+        domain, _ = self._domain(k=2)
+        assert similarity_to_domain(domain, np.array([[0, 0, 0, 0]]))[0] == pytest.approx(0.0)
+
+    def test_one_value_per_query_in_input_order(self):
+        domain, _ = self._domain(k=1)
+        query = np.array([[0, 0, 0, 1], [1, 1, 1, 0]], dtype=float)
+        out = similarity_to_domain(domain, query)
+        assert out.shape == (2,)
+        # The first query is identical to the third training molecule and the second to the first, so both reach 1
+        # and the order is only visible through a third, deliberately poorer, query.
+        out3 = similarity_to_domain(domain, np.array([[0, 0, 0, 1], [1, 0, 0, 0], [1, 1, 1, 0]], dtype=float))
+        assert out3[0] == pytest.approx(1.0) and out3[2] == pytest.approx(1.0)
+        assert out3[1] < out3[0]
+
+    def test_the_flag_agrees_with_the_threshold_it_was_fitted_with(self):
+        # in_similarity_domain must be exactly "similarity at least min_similarity"; a mismatch between the two would
+        # let the manuscript report a similarity and a flag that contradict each other.
+        domain, train = self._domain(k=2)
+        query = np.array([[1, 1, 1, 0], [1, 0, 0, 0], [0, 0, 0, 0]], dtype=float)
+        similarity = similarity_to_domain(domain, query)
+        assert list(in_similarity_domain(domain, query)) == list(similarity >= domain["min_similarity"])
