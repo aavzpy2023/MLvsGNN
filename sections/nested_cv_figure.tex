@@ -59,7 +59,9 @@
 			\draw[flow] (data) -- (split);
 			\draw[flow] (split) -- (pool);
 			\draw[flow] (pool.east) -- ++(6mm,0) |- (inner.west);
-			\draw[flow] (split.east) -- ++(6mm,0) |- (test.west);
+			% The test fold leaves the flow at the split; the path goes over the inner loop rather than through it.
+			\coordinate (overtop) at ($(inner.north)+(0,9mm)$);
+			\draw[flow] (split.east) -- ++(6mm,0) |- (overtop) -| (test.north);
 			\draw[flow] (inner) -- (prep);
 			\draw[flow] (prep) -- (fit);
 			\draw[flow] (fit) -- (score);
