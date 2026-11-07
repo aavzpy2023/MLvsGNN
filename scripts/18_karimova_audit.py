@@ -121,6 +121,9 @@ def write_ladder_table(rung_summary, deltas):
             delta = f"${d['delta_r2_mean']:+.3f}$"
             if d["paired"]:
                 delta += f" [${d['boot_ci_low']:+.3f}$, ${d['boot_ci_high']:+.3f}$]"
+            else:
+                # Unpaired against R0, so no bootstrap over shared molecules: report the spread over seeds.
+                delta += f" $\\pm\\ {d['delta_r2_sd']:.3f}$\\textsuperscript{{a}}"
         label = rung.split("_")[0].replace("clean", "Clean")
         lines.append(f"{label} & {description} & {int(r['n_feat'])} & "
                      f"${r['m']:.3f} \\pm {r['s']:.3f}$ & {delta} \\\\")

@@ -28,7 +28,7 @@ whose interval contains zero ([$\KarDeltaRungFourVsRungThreeCILow$, $\KarDeltaRu
 
 \begin{table}[htbp]
 	\centering
-	\caption{Performance of the original pipeline as each information leak is removed, over \KarReproNSeeds\ seeds. $\Delta R^2$ is the change with respect to the rung above, with its 95\% bootstrap confidence interval over the \KarLadderNCommonTest\ molecules common to rungs R1--R4. R0 builds its own evaluation partition and is therefore not paired with the rest, so its difference carries no interval. The last row is a model with no feature selection, fitted on the same clean split.}
+	\caption{Performance of the original pipeline as each information leak is removed, over \KarReproNSeeds\ seeds. $\Delta R^2$ is the change with respect to the rung above, with its 95\% bootstrap confidence interval over the \KarLadderNCommonTest\ molecules common to rungs R1--R4. R0 builds its own evaluation partition by re-splitting the augmented data, so it shares no test molecules with the rungs below and the difference of R1, which is measured against it, cannot be paired: \textsuperscript{a}~that one entry is given as the mean over seeds with its standard deviation instead of a bootstrap interval. The last row is a model with no feature selection, fitted on the same clean split.}
 	\label{tab:ladder}
 	\resizebox{\textwidth}{!}{\input{latex/leakage_ladder_table.tex}}
 \end{table}
