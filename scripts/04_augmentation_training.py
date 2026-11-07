@@ -232,6 +232,7 @@ def export_latex(results_dict, delta_rows=None):
             newcommand(f, f"Exp{key}RTwoCIHigh", f"{r['ci_hi']:.4f}")
             newcommand(f, f"Exp{key}NFeaturesSelected", str(r['n_features_selected']))
         newcommand(f, "ExpLeakyMaskJaccard", f"{results_dict['leaky_mask_jaccard']:.4f}")
+        newcommand(f, "ExpLeakyMaskJaccardPct", f"{100 * results_dict['leaky_mask_jaccard']:.1f}")
         f.write("\n")
 
         f.write("% --- Reference Benchmarks ---\n")

@@ -79,6 +79,18 @@ analysis pipeline and read from the same files as the manuscript.
 
 \begin{table}[htbp]
 	\centering
+	\caption{The five variants of the hold-out replication of the original protocol (15\% hold-out, seed 42), on a
+		classical stacking ensemble. Bits is the number of fingerprint bits the variant retains and train rows the
+		size of its training matrix after augmentation. The interval on $R^2$ is a 2000-sample percentile bootstrap
+		of the held-out molecules; the difference compares each variant with the one it modifies, paired on the same
+		resamples. The two leaky variants differ from their clean counterparts only in that the permutation
+		importance is computed on the complete data set, as the original study does.}
+	\label{tab:ablation}
+	\resizebox{\textwidth}{!}{\input{latex/ablation_table.tex}}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
 	\caption{Every pairwise comparison between the four molecular representations over the \TotalOuterFolds\ shared outer folds, in both metrics. Differences are A minus B, the interval is the 90\% confidence interval used by the equivalence test, $p$ is the Nadeau--Bengio corrected paired $t$-test, $p_{\mathrm{Holm}}$ its step-down adjustment within the six comparisons of each metric, and $p_{\mathrm{equiv}}$ the two one-sided tests against the $\pm \EquivMarginRTwo$ margin.}
 	\label{tab:pairwise}
 	\resizebox{\textwidth}{!}{\input{latex/pairwise_nb_table.tex}}

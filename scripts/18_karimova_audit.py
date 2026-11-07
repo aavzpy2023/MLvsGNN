@@ -116,6 +116,16 @@ def write_ladder_table(rung_summary, deltas):
         key = ("common_test" if rung != "R0_published" else "own_resplit_test")
         r = rung_summary.loc[(rung, key)]
         delta = ""
+        # The clean reference is not a rung of the ladder, so what is informative for it is its difference with the
+        # last rung, which the deltas carry in the opposite direction.
+        if rung == "clean_baseline":
+            d = by_pair.get(("R4_no_duplicates", "clean_baseline"))
+            if d is not None:
+                delta = (f"${d['delta_r2_mean']:+.3f}$ [${d['boot_ci_low']:+.3f}$, ${d['boot_ci_high']:+.3f}$]"
+                         "\\textsuperscript{b}")
+            lines.append(f"Clean & {description} & {int(r['n_feat'])} & "
+                         f"${r['m']:.3f} \\pm {r['s']:.3f}$ & {delta} \\\\")
+            continue
         d = by_pair.get((rung, RUNG_DESCRIPTION[i - 1][0]) if i else None)
         if d is not None:
             delta = f"${d['delta_r2_mean']:+.3f}$"
