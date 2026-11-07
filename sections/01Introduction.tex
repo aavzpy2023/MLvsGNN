@@ -51,7 +51,7 @@ This study asks whether, on one small and well-characterized bioactivity set (\N
 
 	\item \textbf{Calibrated statistical inference:} Use of the Nadeau--Bengio corrected $t$-test with Holm adjustment for the comparisons, which accounts for the overlap of training sets across repeated folds, and of an equivalence test (TOST) with a pre-specified margin, so that ``no significant difference'' is distinguished from ``demonstrated equivalence''.
 
-	\item \textbf{Classical ensembles versus a graph network:} A comparison of four classical representations against a Chemprop D-MPNN, with default hyperparameters and with a hyperparameter search nested in the same folds, together with measured computational cost.
+	\item \textbf{Classical ensembles versus a graph network:} A comparison of four classical representations against a Chemprop D-MPNN with default hyperparameters and with a hyperparameter search nested in the same folds, extended to a seed ensemble, a descriptor-augmented network, a feed-forward network on the same fingerprints and a pretrained foundation model, together with the measured computational cost of each.
 
 	\item \textbf{Audit of the original pipeline:} Re-execution of the published code, followed by the removal of one information leak at a time, which quantifies what each leak contributes to the reported $R^2$ and how much of it survives.
 

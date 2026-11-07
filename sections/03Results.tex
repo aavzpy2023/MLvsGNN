@@ -125,9 +125,46 @@ Tuning did not change this picture. In the nested search, the selected configura
 
 Equivalence is a separate question. With the $\pm 0.05$ margin, the tuned network was equivalent to the 2D descriptors in $R^2$ (90\% CI $[\GnnTunedVsRdkitTwoDCILowRTwo, \GnnTunedVsRdkitTwoDCIHighRTwo]$, $p = \GnnTunedVsRdkitTwoDEquivPRTwo$), but equivalence to the Morgan ensemble could not be shown for $R^2$ (90\% CI $[\GnnTunedVsMorganCILowRTwo, \GnnTunedVsMorganCIHighRTwo]$, $p = \GnnTunedVsMorganEquivPRTwo$). Equivalence in MAE could not be shown either ($\Delta = \GnnTunedVsMorganDiffMae$, 90\% CI $[\GnnTunedVsMorganCILowMae, \GnnTunedVsMorganCIHighMae]$, $p = \GnnTunedVsMorganEquivPMae$), because the upper limit of the interval exceeds the margin. The two tests therefore agree: against the Morgan ensemble the network is neither shown to be equivalent nor comfortably shown to be worse, and the data leave open a deficit in $R^2$ as large as $\Delta R^2 = \GnnTunedVsMorganCILowRTwo$. Against the 2D descriptors, by contrast, equivalence holds in both metrics ($p = \GnnTunedVsRdkitTwoDEquivPRTwo$ for $R^2$ and $\GnnTunedVsRdkitTwoDEquivPMae$ for MAE). The tuned search was deliberately modest (Methods), so a larger search or a different architecture could change this.
 
-Both graph-network variants and the classical ensembles fall in the same range as the original study's unselected baseline ($R^2 = \PaperBaselineRTwo$). The final augmented ensemble of the original study ($R^2 = \PaperFinalRTwo$) lies above this range, but, as discussed in Section~\ref{sec:res_classical}, that value comes from a single hold-out split and was not reproduced by selection or augmentation on a classical learner. Under the data volume of this benchmark, the graph architecture therefore did not provide a gain over fixed fingerprints; it trailed the fingerprint-based ensembles by about \GnnTunedVsMorganDiffRTwo\ in $R^2$, a difference whose adjusted $p$ values fall just below 0.05 and which leaves the network on a par with 2D descriptors alone. The defensible reading is that the graph representation buys nothing here, not that it is inferior in principle.
+Both graph-network variants and the classical ensembles fall in the same range as the original study's unselected baseline ($R^2 = \PaperBaselineRTwo$). The final augmented ensemble of the original study ($R^2 = \PaperFinalRTwo$) lies above this range, but, as discussed in Section~\ref{sec:res_classical}, that value comes from a single hold-out split and was not reproduced by selection or augmentation on a classical learner. Under the data volume of this benchmark, the graph architecture therefore did not provide a gain over fixed fingerprints; it trailed the fingerprint-based ensembles by about \GnnTunedVsMorganDiffRTwo\ in $R^2$, a difference whose adjusted $p$ values fall just below 0.05 and which leaves the network on a par with 2D descriptors alone. The defensible reading is that the graph representation, trained this way, buys nothing here, not that it is inferior in principle.
 
 Computational cost does not favor the classical approach in this protocol, but the comparison needs care (Table~\ref{tab:cost}). One default D-MPNN training took about \GnnFoldSecMean\ s on the workstation CPU (about \GnnTotalMin\ minutes for the \TotalOuterFolds\ folds), whereas a classical outer fold with its complete inner search took between \ClassicalFoldSecMin\ and \ClassicalFoldSecMax\ s depending on the representation (\ClassicalMorganFoldSec\ s, about \ClassicalMorganTotalHours\ h in total, for Morgan). The default network received no model selection. When it did, in the tuned variant, one outer fold took \GnnTunedFoldSecMean\ s, about \GnnTunedTotalHours\ h of worker time for the whole benchmark. That is more than the \ClassicalMorganTotalHours\ h of the Morgan protocol, although not more than the most expensive classical representation (\ClassicalFoldSecMax\ s per fold), and the network's search was the smaller of the two. The case for the classical ensembles therefore rests on accuracy that is not lower, on simpler inputs and models that run on a CPU, and on a deployed model that uses only a subset of the fingerprint bits, and not on a shorter benchmark.
+
+The gap to the fingerprint ensembles is a property of this training budget rather than of the graph architecture
+(Table~\ref{tab:strong}). Averaging five D-MPNN over their seeds recovers part of it, to $R^2 =
+\DmpnnEnsRTwoMean \pm \DmpnnEnsRTwoStd$, and leaves a difference from the Morgan ensemble that no longer reaches
+significance ($\Delta R^2 = \DmpnnEnsVsMorganDiffRTwo$, Holm-adjusted $p = \DmpnnEnsVsMorganPRTwo$) although
+equivalence is still not established in $R^2$ ($p = \DmpnnEnsVsMorganEquivPRTwo$). Initializing the same network from
+the CheMeleon pretrained model closes the gap altogether: $R^2 = \ChemeleonRTwoMean \pm \ChemeleonRTwoStd$ and MAE
+\ChemeleonMae, within $\ChemeleonVsMorganDiffRTwo$ of the Morgan ensemble, and the only model of this study that is
+statistically equivalent to it in both metrics ($p = \ChemeleonVsMorganEquivPRTwo$ for $R^2$ and
+\ChemeleonVsMorganEquivPMae\ for MAE). The two models that add information of a different kind did not help: giving the
+D-MPNN the RDKit descriptors lowered it to \DmpnnRdkitRTwoMean, and a feed-forward network on the same fingerprints the
+classical ensembles use reached \MlpEcfpRTwoMean.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Neural models evaluated on the \TotalOuterFolds\ shared outer folds, ordered by $R^2$, with the Morgan ensemble and the default D-MPNN as references. $\Delta R^2$ is the difference from the Morgan ensemble, $p$ its Holm-adjusted value within the four classical representations, and $p_{\mathrm{equiv}}$ the two one-sided tests against the $\pm \EquivMarginRTwo$ margin. Times are the mean wall-clock time of one outer fold and are not normalized by thread count.}
+	\label{tab:strong}
+	\resizebox{\textwidth}{!}{\input{latex/strong_baselines_table.tex}}
+\end{table}
+
+Parity therefore costs something. The pretrained network needed \ChemeleonFoldMinutes\ minutes per outer fold against
+the \ClassicalMorganFoldSec\ s of a complete classical fold with its architecture search, roughly eight times as much
+computation, and it reaches the accuracy of the fingerprint ensemble without exceeding it. The seed ensemble is the
+more economical of the two routes, at \DmpnnEnsFoldMinutes\ minutes per fold. Read together with the default and tuned
+variants, these results place the ceiling of representation learning on this data set at the level of a fixed
+fingerprint, reached only with pretraining on an external corpus.
+
+The architecture of the original study behaves the same way once its protocol is repaired. Evaluated on these folds
+with the selection and the augmentation confined to each training partition (Section~\ref{sec:materials_audit}), the
+deep ensemble reached $R^2 = \DnnBaseRTwoMean \pm \DnnBaseRTwoStd$ on all descriptors and $\DnnFullRTwoMean \pm
+\DnnFullRTwoStd$ with the selection and the augmentation of the original pipeline, a difference of
+$\DnnFullVsDnnBaseDiffRTwo$ that the data cannot resolve ($p = \DnnFullVsDnnBasePRTwo$). Both sit below the Morgan
+ensemble, by $\DnnFullVsMorganDiffRTwo$ for the better of the two, with a confidence interval
+([$\DnnFullVsMorganCILowRTwo$, $\DnnFullVsMorganCIHighRTwo$]) too wide to settle the comparison. The interventions
+credited with the reported gain therefore do not reproduce on the architecture they were proposed for either, once the
+test molecules are kept out of them.
+
 
 \begin{table}[htbp]
 	\centering
@@ -176,23 +213,36 @@ This whole stage is a computational prioritization. The receptor is rigid, no wa
 \subsection{Robustness to Scaffold-Grouped Splits}
 \label{sec:scaffold_results}
 
-Random folds place close analogs of a test compound in the training set, which favors models that memorize local structure. To measure how much of the reported accuracy depends on this, the Morgan-fingerprint ensemble and the D-MPNN were re-evaluated with scaffold-grouped outer folds (Section~\ref{sec:materials_ncv}), keeping the \TotalOuterFolds\ folds, the hyperparameters and the shared partitions. Table~\ref{tab:scaffold} summarizes the outcome.
+Random folds place close analogs of a test compound in the training set, which favors models that memorize local
+structure. To measure how much of the reported accuracy depends on this, every model of this study was re-evaluated
+with scaffold-grouped outer folds (Section~\ref{sec:materials_ncv}), keeping the \TotalOuterFolds\ folds, the
+hyperparameters and the shared partitions. Table~\ref{tab:scaffold} summarizes the outcome.
 
 \begin{table}[htbp]
 	\centering
-	\caption{Cross-validated performance (mean $\pm$ SD over \TotalOuterFolds\ outer folds) under random and scaffold-grouped splits. The drop is the difference in mean $R^2$.}
+	\caption{Cross-validated performance (mean $\pm$ SD over \TotalOuterFolds\ outer folds) under random and scaffold-grouped splits, ordered by the size of the drop in mean $R^2$. Both protocols share their outer partitions across models, so every column is a paired comparison.}
 	\label{tab:scaffold}
-	\begin{tabular}{lcccc}
-		\hline
-		Model & $R^2$ (random) & $R^2$ (scaffold) & Drop in $R^2$ & MAE (scaffold) \\
-		\hline
-		Morgan ensemble & $\RandomMorganRTwoMean \pm \RandomMorganRTwoStd$ & $\ScaffoldMorganRTwoMean \pm \ScaffoldMorganRTwoStd$ & \ScaffoldMorganDropRTwo & \ScaffoldMorganMae \\
-		D-MPNN & $\RandomGnnRTwoMean \pm \RandomGnnRTwoStd$ & $\ScaffoldGnnRTwoMean \pm \ScaffoldGnnRTwoStd$ & \ScaffoldGnnDropRTwo & \ScaffoldGnnMae \\
-		\hline
-	\end{tabular}
+	\resizebox{\textwidth}{!}{\input{latex/scaffold_table.tex}}
 \end{table}
 
-Both families lost about 0.2 units of $R^2$ when scaffolds were held out: from $\RandomMorganRTwoMean$ to $\ScaffoldMorganRTwoMean$ for the Morgan ensemble (MAE from \RandomMorganMae\ to \ScaffoldMorganMae) and from $\RandomGnnRTwoMean$ to $\ScaffoldGnnRTwoMean$ for the D-MPNN (MAE from \RandomGnnMae\ to \ScaffoldGnnMae). The fold-to-fold spread also more than doubled (SD of $R^2$ from \RandomMorganRTwoStd\ to \ScaffoldMorganRTwoStd\ and from \RandomGnnRTwoStd\ to \ScaffoldGnnRTwoStd, respectively), because the difficulty of a fold now depends on which scaffolds it contains. The random-split estimates of the main benchmark therefore overstate the performance expected on new chemotypes.
+Holding scaffolds out costs every model between \ScaffoldChemeleonDropRTwo\ and \ScaffoldRdkitTwoDDropRTwo\ units of
+$R^2$, with the Morgan ensemble falling from $\RandomMorganRTwoMean$ to $\ScaffoldMorganRTwoMean$ (MAE from
+\RandomMorganMae\ to \ScaffoldMorganMae) and the default D-MPNN from $\RandomGnnRTwoMean$ to $\ScaffoldGnnRTwoMean$
+(MAE from \RandomGnnMae\ to \ScaffoldGnnMae). The fold-to-fold spread also more than doubled (SD of $R^2$ from
+\RandomMorganRTwoStd\ to \ScaffoldMorganRTwoStd\ and from \RandomGnnRTwoStd\ to \ScaffoldGnnRTwoStd, respectively),
+because the difficulty of a fold now depends on which scaffolds it contains. The random-split estimates of the main
+benchmark therefore overstate the performance expected on new chemotypes.
+
+The size of the drop is not random across models. The two representations that carry the least information beyond the
+training set lose the most (\ScaffoldRdkitTwoDDropRTwo\ for the 2D descriptors), and the two that carry the most lose
+the least: the Morgan ensemble (\ScaffoldMorganDropRTwo) and the pretrained network
+(\ScaffoldChemeleonDropRTwo), which ends as the highest-scoring model of the scaffold protocol
+($\ScaffoldChemeleonRTwoMean \pm \ScaffoldChemeleonRTwoStd$) although it cannot be separated from the Morgan ensemble
+there either ($\Delta R^2 = \ScaffoldChemeleonVsMorganDiffRTwo$, Holm-adjusted $p = \ScaffoldChemeleonVsMorganPRTwo$;
+equivalent in MAE, $p = \ScaffoldChemeleonVsMorganEquivPMae$). Pretraining on an external corpus thus buys robustness
+to a change of chemotype rather than accuracy within one, which is the one advantage of representation learning that
+this benchmark does show.
+
 
 The comparison between families kept its direction but not its resolution. Under scaffold splits the D-MPNN was lower than the Morgan ensemble by $\Delta R^2 = \ScaffoldGnnVsMorganDiffRTwo$ (corrected $p = \ScaffoldGnnVsMorganPRTwo$, Holm-adjusted; $\Delta$MAE $= \ScaffoldGnnVsMorganDiffMae$, $p = \ScaffoldGnnVsMorganPMae$). The 90\% confidence interval of the $R^2$ difference, $[\ScaffoldGnnVsMorganCILowRTwo, \ScaffoldGnnVsMorganCIHighRTwo]$, excludes zero only barely, and its lower limit extends far beyond the $\pm 0.05$ equivalence margin; the equivalence test was accordingly not significant ($p = \ScaffoldGnnVsMorganEquivPRTwo$). The interval carries no multiplicity adjustment while the $p$ values do, which is why the two do not point the same way. With the present data we can thus neither claim a difference nor equivalence between the two families on new scaffolds; the sample (\NCompounds\ compounds) is too small to separate them given the larger variance of this protocol.
 

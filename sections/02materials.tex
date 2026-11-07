@@ -111,6 +111,19 @@ The tuned variant searched a grid of \GnnTunedNConfigs\ configurations (hidden s
 
 Out-of-sample performance was quantified using the coefficient of determination ($R^2$) and Mean Absolute Error (MAE) averaged across all \TotalOuterFolds\ folds. This protocol yielded a final cross-validated test performance of $R^2 = \ChemPropDMPNNFoldRTwoMean \pm \ChemPropDMPNNFoldRTwoStd$ and an MAE of \ChemPropDMPNNFoldMae, establishing the deep learning baseline for subsequent comparative analysis.
 
+The default and the tuned variant both test one architecture on a modest budget. To separate what the graph
+architecture contributes from what the training budget and external data contribute, four further neural models were
+evaluated on the same \TotalOuterFolds\ outer folds, each fitted on the outer training partition alone and scored
+exactly like the models above. The first is a feed-forward network on the same \ExpBNFeaturesTotal-bit ECFP4
+fingerprints used by the classical ensembles, which keeps their input and learns its own transformation of it. The
+second concatenates the vector learned by the D-MPNN with the RDKit 2D descriptors before the feed-forward head, so
+that the network receives the descriptor block as well. The third averages the predictions of five D-MPNN that differ
+only in their random seed, which buys accuracy with computation alone. The fourth initializes the message-passing
+weights from CheMeleon \cite{burns2025}, a model pretrained on classical molecular descriptors computed for a large
+unlabeled corpus, and is the only model in this study that sees information from outside the benchmark. None of the
+four was tuned.
+
+
 % ==========================================
 % 2. SECTION 2.6
 % ==========================================

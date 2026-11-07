@@ -63,6 +63,8 @@ LATEX_COST_TABLE = os.path.join(LATEX_DIR, "cost_table.tex")
 LATEX_FDA_TABLE  = os.path.join(LATEX_DIR, "fda_candidates_table.tex")
 LATEX_ADMET_TABLE = os.path.join(LATEX_DIR, "admet_table.tex")
 LATEX_LADDER_TABLE = os.path.join(LATEX_DIR, "leakage_ladder_table.tex")
+LATEX_STRONG_TABLE = os.path.join(LATEX_DIR, "strong_baselines_table.tex")
+LATEX_SCAFFOLD_TABLE = os.path.join(LATEX_DIR, "scaffold_table.tex")
 
 # Figure files
 FIGURE_NESTED_CV = os.path.join(FIGURES_DIR, "r2_by_representation_boxplot.png")
