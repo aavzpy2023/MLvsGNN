@@ -230,8 +230,9 @@ def main():
     smiles, y = load_data()
     print(f"[1] Dataset loaded successfully: {len(smiles)} compounds.")
 
-    print("\n[2] Evaluating ChemProp (D-MPNN 5x5 CV)...")
-    res_chemprop = run_chemprop_cv(smiles, y, n_splits=5, n_repeats=5, random_state=RANDOM_STATE)
+    print(f"\n[2] Evaluating ChemProp (D-MPNN {CFG['OUTER_N_SPLITS']}x{CFG['OUTER_N_REPEATS']} CV)...")
+    res_chemprop = run_chemprop_cv(smiles, y, n_splits=CFG['OUTER_N_SPLITS'],
+                                   n_repeats=CFG['OUTER_N_REPEATS'], random_state=RANDOM_STATE)
 
     results = [res_chemprop]
     valid = [r for r in results if r is not None]

@@ -65,6 +65,9 @@ LATEX_ADMET_TABLE = os.path.join(LATEX_DIR, "admet_table.tex")
 LATEX_LADDER_TABLE = os.path.join(LATEX_DIR, "leakage_ladder_table.tex")
 LATEX_STRONG_TABLE = os.path.join(LATEX_DIR, "strong_baselines_table.tex")
 LATEX_SCAFFOLD_TABLE = os.path.join(LATEX_DIR, "scaffold_table.tex")
+LATEX_PAIRWISE_TABLE = os.path.join(LATEX_DIR, "pairwise_nb_table.tex")
+LATEX_SCAFFOLD_PAIRWISE_TABLE = os.path.join(LATEX_DIR, "scaffold_pairwise_table.tex")
+LATEX_STRONG_PAIRWISE_TABLE = os.path.join(LATEX_DIR, "strong_pairwise_table.tex")
 
 # Figure files
 FIGURE_NESTED_CV = os.path.join(FIGURES_DIR, "r2_by_representation_boxplot.png")
