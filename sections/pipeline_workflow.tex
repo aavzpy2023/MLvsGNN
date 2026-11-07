@@ -1,4 +1,6 @@
-\newcommand{\boxheight}{4.55cm}
+% Figure 1: what the study does, in the order of the paper. Every number is a macro produced by the pipeline, so the
+% figure cannot drift from the results; step 11 verifies that each one exists.
+\newcommand{\boxheight}{4.75cm}
 \begin{figure}[!h]
 	\centering
 	\resizebox{\textwidth}{!}{%
@@ -13,92 +15,89 @@
 				anchor=center,
 				align=center
 			},
-			phase1/.style={basebox, draw=blue!75!black, fill=blue!4},
-			phase2/.style={basebox, draw=violet!75!black, fill=violet!4},
+			phase1/.style={basebox, draw=red!70!black, fill=red!4},
+			phase2/.style={basebox, draw=blue!75!black, fill=blue!4},
 			phase3/.style={basebox, draw=teal!80!black, fill=teal!4},
-			phase4/.style={basebox, draw=orange!85!black, fill=orange!4},
-			phase5/.style={basebox, draw=green!60!black, fill=green!5},
+			phase4/.style={basebox, draw=violet!75!black, fill=violet!4},
+			phase5/.style={basebox, draw=gray!70!black, fill=gray!5},
 			arrowline/.style={->, ultra thick, draw=gray!65}
 			]
-			
-			% FASE 1: ML BENCHMARKING (5x5 Repeated NCV)
+
+			% STAGE 1: AUDIT OF THE PUBLISHED PIPELINE
 			\node[phase1] (box1) {
 				\begin{minipage}[t][\boxheight][t]{3.15cm}
 					\centering
-					\textbf{\footnotesize Phase 1: ML Modeling} \par\vspace{2pt}\hrule\vspace{7pt}
-					\textbf{Training Set:} \\$N = \NCompounds$ TgDHFR \par\vspace{4pt}
-					\textbf{Validation:} \\$5 \times 5$ Repeated NCV \par\vspace{4pt}
-					\textbf{Descriptors:} \\ECFP4, 2D, 2D+FP, 2D+3D+FP \par\vspace{4pt}
-					\textbf{Ensemble:} \\Stacking + RidgeCV \par\vspace{4pt}
-					\textbf{Ablation:} \\PI + Gaussian Noise
+					\textbf{\footnotesize 1. Audit} \par\vspace{2pt}\hrule\vspace{7pt}
+					\textbf{Object:} \\published code, re-run as released \par\vspace{4pt}
+					\textbf{Leak classes:} \\re-split after augmentation; early stopping on test; in-sample importance; duplicates \par\vspace{4pt}
+					\textbf{Removed one at a time:} \\$R^2$ \KarLadderRungZeroRTwoMean\ $\rightarrow$ \KarLadderRungFourRTwoMean
 				\end{minipage}
 			};
-			
-			% FASE 2: FDA SCREENING
+
+			% STAGE 2: LEAKAGE-FREE BENCHMARK
 			\node[phase2, right=of box1] (box2) {
 				\begin{minipage}[t][\boxheight][t]{3.15cm}
 					\centering
-					\textbf{\footnotesize Phase 2: Virtual Screen} \par\vspace{2pt}\hrule\vspace{7pt}
-					\textbf{Target Space:} \\FDA Approved \par\vspace{4pt}
-					\textbf{Library Size:} \\$N = \ScreenNLibrary$ \par\vspace{4pt}
-					\textbf{PhysChem:} MW \\$\le 1000$\,Da \par\vspace{4pt}
-					\textbf{Applicability:} \\Tanimoto similarity to the training set \par\vspace{4pt}
-					\textbf{Prioritized Set:} \\$N = \ScreenNCandidates$ candidates
+					\textbf{\footnotesize 2. Benchmark} \par\vspace{2pt}\hrule\vspace{7pt}
+					\textbf{Data:} \\$N = \NCompounds$ TgDHFR \par\vspace{4pt}
+					\textbf{Protocol:} \\$\OuterKFolds \times \OuterRepeats$ nested CV, \TotalOuterFolds\ shared folds \par\vspace{4pt}
+					\textbf{Models:} \\4 representations vs.\ 7 neural \par\vspace{4pt}
+					\textbf{Inference:} \\Nadeau--Bengio, Holm, TOST
 				\end{minipage}
 			};
-			
-			% FASE 3: MOLECULAR DOCKING
+
+			% STAGE 3: ROBUSTNESS
 			\node[phase3, right=of box2] (box3) {
 				\begin{minipage}[t][\boxheight][t]{3.15cm}
 					\centering
-					\textbf{\footnotesize Phase 3: 3D Consensus} \par\vspace{2pt}\hrule\vspace{7pt}
-					\textbf{Receptor:} \\TgDHFR (6AOG, Ch.~\RedockChain{}) \par\vspace{4pt}
-					\textbf{Engine:} \\AutoDock Vina \par\vspace{4pt}
-					\textbf{Exhaustiveness:}\\ \DockExhaustiveness{} \par\vspace{4pt}
-					\textbf{Redock Fidelity:} \\heavy-atom RMSD = \RedockRMSD{}\,\AA \par\vspace{4pt}
-					\textbf{Consensus:} \\ML--Physics overlap
+					\textbf{\footnotesize 3. Robustness} \par\vspace{2pt}\hrule\vspace{7pt}
+					\textbf{Chance correlation:} \\y-randomization, 4 forms \par\vspace{4pt}
+					\textbf{Chemotype shift:} \\scaffold-grouped splits (\ScaffoldNGroups\ groups) \par\vspace{4pt}
+					\textbf{Curation:} \\extreme-potency records retained \par\vspace{4pt}
+					\textbf{Cost:} \\wall-clock time per model
 				\end{minipage}
 			};
-			
-			% FASE 4: ADMET PROFILING
+
+			% STAGE 4: FINDINGS
 			\node[phase4, right=of box3] (box4) {
 				\begin{minipage}[t][\boxheight][t]{3.15cm}
 					\centering
-					\textbf{\footnotesize Phase 4: ADMET Profiling} \par\vspace{2pt}\hrule\vspace{7pt}
-					\textbf{Input:} \\All docked candidates \par\vspace{4pt}
-					\textbf{Druggability:} \\Lipinski Rule of 5 \par\vspace{4pt}
-					\textbf{Route Profiling:} \\Caco-2 (Oral vs. IV) \par\vspace{4pt}
-					\textbf{Safety Filter:} \\hERG ($P_\mathrm{block} < 0.5$) \par\vspace{4pt}
-					\textbf{Framework:} \\TDC Benchmarks
+					\textbf{\footnotesize 4. Findings} \par\vspace{2pt}\hrule\vspace{7pt}
+					\textbf{Morgan ensemble:} \\$R^2 = \MorganRTwoMean$ \par\vspace{4pt}
+					\textbf{Default D-MPNN:} \\$R^2 = \ChemPropDMPNNFoldRTwoMean$ \par\vspace{4pt}
+					\textbf{Pretrained D-MPNN:} \\$R^2 = \ChemeleonRTwoMean$, the only equivalent model \par\vspace{4pt}
+					\textbf{Reported gain:} \\accounted for by the leaks
 				\end{minipage}
 			};
-			
-			% OUTCOME / FINAL CANDIDATES
+
+			% STAGE 5: APPLICATION
 			\node[phase5, right=of box4] (box5) {
 				\begin{minipage}[t][\boxheight][t]{3.15cm}
 					\centering
-					\textbf{\footnotesize Prioritized Candidates} \par\vspace{2pt}\hrule\vspace{5pt}
-					\textbf{\DockBestCandidate} \par\vspace{1pt}
-					\textit{Top Consensus Hit} \par
-					$p\mathrm{IC}_{50} = \DockBestMLpIC$ \\$\DockBestDockScore$\,kcal/mol \par\vspace{4pt}
-					\textbf{Triamterene} \par\vspace{1pt}
-					\textit{Most Ligand-Efficient} \par
-					$p\mathrm{IC}_{50} = \TriamtereneMLpIC$ \\$\TriamtereneDockScore$\,kcal/mol \par\vspace{4pt}
-					\hrule\vspace{3pt}
-					\textit{\DockNValidatedUnique{} Unique Consensus Hits (Docking)}
+					\textbf{\footnotesize 5. Application} \par\vspace{2pt}\hrule\vspace{7pt}
+					\textbf{Library:} \\$N = \ScreenNLibrary$ FDA-approved \par\vspace{4pt}
+					\textbf{Applicability domain:} \\\ScreenNDomain\ of \ScreenNStructural\ inside \par\vspace{4pt}
+					\textbf{Orthogonal check:} \\docking, redock RMSD \RedockRMSD\,\AA \par\vspace{4pt}
+					\textit{Hypotheses, not leads; no selectivity assay}
 				\end{minipage}
 			};
-			
-			% FLECHAS DE CONEXIÓN
+
 			\draw[arrowline] (box1) -- (box2);
 			\draw[arrowline] (box2) -- (box3);
 			\draw[arrowline] (box3) -- (box4);
 			\draw[arrowline] (box4) -- (box5);
-			
+
 		\end{tikzpicture}%
 	}
-	\caption{\textbf{Schematic overview of the multi-tier computational screening and prioritization pipeline.} 
-		The hierarchical funnel integrates: (1) 2D ligand-based representation benchmarking under nested cross-validation, (2) screening of FDA-approved compounds with an applicability-domain assessment, (3) orthogonal physics-based consensus filtering via molecular docking (AutoDock Vina), and (4) in silico ADMET profiling (Caco-2 permeability route categorization and hERG cardiotoxicity filtering) to prioritize TgDHFR candidates for experimental testing.}
+	\caption{\textbf{Structure of the study.} The published pipeline is first re-executed and taken apart one leak at a
+		time, which measures what each class of leak contributes to its reported $R^2$ (1). The same data are then used
+		for a leakage-free benchmark in which every model is scored on identical outer folds and every comparison is
+		corrected for the overlap of training sets and tested for equivalence (2), and the conclusions are checked
+		against chance correlation, a harder splitting scheme, the curation decision and computational cost (3). The
+		findings (4) are that a fingerprint ensemble is not outperformed by a graph network at this data volume, that
+		only a pretrained network reaches equivalence with it, and that the gain reported by the original study is
+		accounted for by the leaks removed in (1). The final model is applied to approved drugs as hypothesis
+		generation, with each candidate placed relative to the applicability domain (5).}
 	\label{fig:pipeline_flowchart}
 	\vspace{-10pt}
 \end{figure}

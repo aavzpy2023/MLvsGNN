@@ -1,0 +1,93 @@
+% Figure 2: one outer fold of the protocol of Section 2.4. The point of the figure is the hatched marker: every
+% data-dependent transformation is estimated inside the partition that encloses it, never on the data it is scored on.
+\begin{figure}[!h]
+	\centering
+	\resizebox{0.93\textwidth}{!}{%
+		\begin{tikzpicture}[
+			font=\sffamily\small,
+			>=Stealth,
+			node distance=6mm and 9mm,
+			cvbox/.style={draw=gray!60!black, fill=gray!4, thick, rounded corners=3pt,
+				align=center, text width=4.5cm, inner sep=5pt},
+			outerstep/.style={cvbox, draw=blue!70!black, fill=blue!5},
+			innerstep/.style={cvbox, draw=teal!70!black, fill=teal!5},
+			fitstep/.style={cvbox, draw=orange!85!black, fill=orange!8, text width=4.9cm},
+			testbox/.style={cvbox, draw=red!65!black, fill=red!4, text width=3.9cm},
+			flow/.style={->, thick, draw=gray!65},
+			note/.style={font=\sffamily\scriptsize\itshape, text=gray!45!black, align=left, text width=4.3cm}
+			]
+
+			\node[cvbox, text width=5.2cm] (data)
+			{\textbf{Data set}\\$N = \NCompounds$ compounds};
+
+			\node[outerstep, below=of data, text width=5.2cm] (split)
+			{\textbf{Outer split}\\$\OuterKFolds$ folds $\times\ \OuterRepeats$ repeats $=\ \TotalOuterFolds$ evaluations\\\footnotesize shared by every representation and model};
+
+			\node[outerstep, below left=8mm and 6mm of split] (pool)
+			{\textbf{Outer training pool}};
+
+			\node[testbox, below right=8mm and 6mm of split] (test)
+			{\textbf{Outer test fold}\\\footnotesize held out from everything below};
+
+			\draw[flow] (data) -- (split);
+			\draw[flow] (split) -- (pool);
+			\draw[flow] (split) -- (test);
+
+			% ---- inner loop ----
+			\node[innerstep, below=9mm of pool] (inner)
+			{\textbf{Inner loop: $\InnerKFolds$ folds}\\\footnotesize $\NArchitectureCombos$ candidate architectures\\\footnotesize 1--$\MaxComboSize$ of RF, ET, LGBM, XGB, SVR, kNN};
+
+			\node[fitstep, below=of inner] (prep)
+			{\textbf{Preprocessing, fitted here}\\\footnotesize median imputation $\rightarrow$ scaling $\rightarrow$ feature selection\\\footnotesize estimated on the inner training fold only};
+
+			\node[innerstep, below=of prep] (fit)
+			{\textbf{Fit candidate}\\\footnotesize single model, or stacking with a RidgeCV meta-learner on out-of-fold predictions};
+
+			\node[innerstep, below=of fit] (score)
+			{\textbf{Score inner validation fold}};
+
+			\node[innerstep, below=of score] (select)
+			{\textbf{Select}\\\footnotesize highest mean inner $R^2$; hyperparameters fixed, so only the architecture is chosen};
+
+			\draw[flow] (pool) -- (inner);
+			\draw[flow] (inner) -- (prep);
+			\draw[flow] (prep) -- (fit);
+			\draw[flow] (fit) -- (score);
+			\draw[flow] (score) -- (select);
+
+			% ---- refit and outer scoring ----
+			\node[fitstep, below=11mm of select] (refit)
+			{\textbf{Refit on the whole outer training pool}\\\footnotesize the preprocessing is estimated again, on this pool};
+
+			\node[outerstep, below=of refit, text width=4.9cm] (predict)
+			{\textbf{Predict the outer test fold once}\\\footnotesize predictions clipped to the training range $\pm\ 3$ $pIC_{50}$};
+
+			\node[outerstep, below=of predict, text width=5.6cm] (agg)
+			{\textbf{Aggregate the \TotalOuterFolds\ outer folds}\\\footnotesize $R^2$ and MAE; Nadeau--Bengio corrected paired $t$-test, Holm adjustment, TOST at $\pm 0.05$};
+
+			\draw[flow] (select) -- (refit);
+			\draw[flow] (refit) -- (predict);
+			\draw[flow] (predict) -- (agg);
+			\draw[flow] (test.south) |- ($(predict.north)+(0,4mm)$) -| (predict.east);
+
+			\begin{scope}[on background layer]
+				\node[draw=teal!70!black, fill=teal!3, rounded corners=5pt, inner sep=7pt,
+				fit=(inner)(prep)(fit)(score)(select),
+				label={[text=teal!60!black, font=\sffamily\bfseries\small]above:Inner loop: architecture selection}] {};
+				\node[draw=blue!70!black, fill=blue!2, rounded corners=5pt, inner sep=11pt,
+				fit=(split)(pool)(test)(inner)(prep)(fit)(score)(select)(refit)(predict)(agg),
+				label={[text=blue!60!black, font=\sffamily\bfseries\small]above:Outer loop: performance estimation}] {};
+			\end{scope}
+
+		\end{tikzpicture}%
+	}
+	\caption{\textbf{One outer fold of the evaluation protocol.} The outer loop estimates performance and the inner
+		loop selects the architecture, so that no model is scored on the data that chose it. The two orange steps are
+		the reason the estimate is leakage-free: imputation, scaling and supervised feature selection are not computed
+		once on the whole data set but estimated again inside each partition they are used in, first on the inner
+		training fold during selection and then on the outer training pool for the final fit, and applied to the
+		held-out data without re-estimation. The outer test fold enters only at the prediction step. Because the
+		\TotalOuterFolds\ outer partitions are shared by every representation and every model, all comparisons in this
+		study are paired on the same molecules.}
+	\label{fig:nested_cv}
+\end{figure}

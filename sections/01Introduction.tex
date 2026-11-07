@@ -98,22 +98,35 @@ architecture when it comes from leakage instead \citep{rojas2026}.
 % 1. SECTION 1.4
 % ==========================================
 
-\subsection{Objectives and Principal Contributions}
+\subsection{Scope and Contributions}
 
-This study asks whether, on one small and well-characterized bioactivity set (\NCompounds\ TgDHFR inhibitors), graph networks, 3D descriptors, feature selection and data augmentation improve on classical ensembles trained on fingerprints once the evaluation is free of leakage. We do not assume the answer; we design the evaluation so that either outcome would be detectable. Our contributions are:
+This study asks whether, on one small and well-characterized bioactivity set (\NCompounds\ TgDHFR inhibitors), graph
+networks, 3D descriptors, feature selection and data augmentation improve on classical ensembles trained on
+fingerprints once the evaluation is free of leakage. We do not assume the answer; the evaluation is designed so that
+either outcome would be detectable. Every model is scored on the same $\OuterKFolds \times \OuterRepeats$ repeated
+nested cross-validation folds, with each preprocessing and selection step fitted inside the training partitions, and
+every comparison is made with the Nadeau--Bengio corrected $t$-test under Holm adjustment and with an equivalence test
+against a pre-specified margin, so that ``no significant difference'' is distinguished from ``demonstrated
+equivalence''. The conclusions are checked under scaffold-grouped splits, with the extreme-potency records retained,
+and against four forms of y-randomization. On that basis we contribute:
 
 \begin{itemize}
-	\item \textbf{Leakage-free, paired evaluation:} A reproducible Python pipeline built on a $\OuterKFolds \times \OuterRepeats$ repeated nested cross-validation protocol (\TotalOuterFolds{} outer evaluations) in which every preprocessing and selection step is fitted inside the training partitions, and in which the classical models and the D-MPNN are scored on exactly the same folds.
+	\item \textbf{A quantified taxonomy of leaks.} Four ways in which information about the test molecules reaches a
+	model in low-data molecular machine learning---re-partitioning after augmentation, early stopping on the test set,
+	feature importance computed in sample, and duplicate structures---are removed one at a time from a published
+	pipeline, so that the contribution of each to the reported $R^2$ is measured rather than asserted.
 
-	\item \textbf{Calibrated statistical inference:} Use of the Nadeau--Bengio corrected $t$-test with Holm adjustment for the comparisons, which accounts for the overlap of training sets across repeated folds, and of an equivalence test (TOST) with a pre-specified margin, so that ``no significant difference'' is distinguished from ``demonstrated equivalence''.
+	\item \textbf{The reported gain, reproduced as an artifact.} The feature selection and Gaussian-noise augmentation
+	that took the original $R^2$ from \PaperBaselineRTwo{} to \PaperFinalRTwo{} do not improve a classical learner under
+	the same hold-out protocol, but the same selection performed leakily on that learner reproduces the improvement, so
+	the gain measures the leak and not the intervention.
 
-	\item \textbf{Classical ensembles versus a graph network:} A comparison of four classical representations against a Chemprop D-MPNN with default hyperparameters and with a hyperparameter search nested in the same folds, extended to a seed ensemble, a descriptor-augmented network, a feed-forward network on the same fingerprints and a pretrained foundation model, together with the measured computational cost of each.
-
-	\item \textbf{Audit of the original pipeline:} Re-execution of the published code, followed by the removal of one information leak at a time, which quantifies what each leak contributes to the reported $R^2$ and how much of it survives.
-
-	\item \textbf{Replication of the original study's gains:} A test of whether the feature selection and Gaussian-noise augmentation reported by \citet{karimova2025}, which took their $R^2$ from \PaperBaselineRTwo{} to \PaperFinalRTwo{} on a single hold-out split, transfer to a classical learner under nested cross-validation, with and without the leak that the original selection contains.
-
-	\item \textbf{Robustness checks:} Repetition of the benchmark under scaffold-grouped splits and with the extreme-potency records retained, to quantify how much the conclusions depend on the splitting scheme and on the curation.
-
-	\item \textbf{Screening as hypothesis generation:} Application of the final model to FDA-approved drugs, followed by molecular docking and in silico ADMET filters, to produce a short list of candidates. These are computational hypotheses; none was tested experimentally, and selectivity against human DHFR was not assessed.
+	\item \textbf{A leakage-free comparison with equivalence testing.} Four representation spaces are compared against
+	seven neural models---a Chemprop D-MPNN with default and with searched hyperparameters, a seed ensemble, a
+	descriptor-augmented network, a feed-forward network on the same fingerprints, a pretrained foundation model, and
+	the original architecture rebuilt without its leaks---on identical folds and with their measured computational
+	cost. A pretrained model is the only network that reaches equivalence with the fingerprint ensemble.
 \end{itemize}
+
+The final model is also applied to a library of approved drugs, which locates the candidates it ranks highest with
+respect to its applicability domain. Those are computational hypotheses and are reported as such.
