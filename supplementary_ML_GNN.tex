@@ -90,7 +90,7 @@ analysis pipeline and read from the same files as the manuscript.
 	\centering
 	\caption{The four y-randomization tests of R\"ucker et al., each with \YRandomNPermutations\ randomizations scored by \YRandomCVFolds-fold cross-validation. Scope ``architecture'' randomizes the stacking ensemble on all \ExpBNFeaturesTotal\ bits; scope ``procedure'' repeats the complete model-building procedure, including the out-of-fold permutation-importance selection that produces the deployed screening model, inside every randomization. The randomization is either a permutation of the response or a replacement of the descriptors by random ones. $Z$ is the distance from the real model to the mean of the randomized ones in units of their standard deviation; $p$ cannot fall below $1/(\YRandomNPermutations + 1)$.}
 	\label{tab:yrandom}
-	\begin{tabular}{llccccc}
+	\begin{tabular}{llcccc}
 		\toprule
 		\textbf{Scope} & \textbf{Randomization} & $R^2$ (real) & $R^2$ (randomized) & $Z$ & $p$ \\
 		\midrule
