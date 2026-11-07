@@ -53,7 +53,9 @@ This study asks whether, on one small and well-characterized bioactivity set (\N
 
 	\item \textbf{Classical ensembles versus a graph network:} A comparison of four classical representations against a Chemprop D-MPNN, with default hyperparameters and with a hyperparameter search nested in the same folds, together with measured computational cost.
 
-	\item \textbf{Replication of the original study's gains:} A test of whether the feature selection and Gaussian-noise augmentation reported by Karimova and Senanayake \cite{karimova2025} (from $R^2 = \PaperBaselineRTwo{}$ to $\PaperFinalRTwo{}$ on a single hold-out split) transfer to a classical learner under nested cross-validation.
+	\item \textbf{Audit of the original pipeline:} Re-execution of the published code, followed by the removal of one information leak at a time, which quantifies what each leak contributes to the reported $R^2$ and how much of it survives.
+
+	\item \textbf{Replication of the original study's gains:} A test of whether the feature selection and Gaussian-noise augmentation reported by Karimova and Senanayake \cite{karimova2025} (from $R^2 = \PaperBaselineRTwo{}$ to $\PaperFinalRTwo{}$ on a single hold-out split) transfer to a classical learner under nested cross-validation, with and without the leak that the original selection contains.
 
 	\item \textbf{Robustness checks:} Repetition of the benchmark under scaffold-grouped splits and with the extreme-potency records retained, to quantify how much the conclusions depend on the splitting scheme and on the curation.
 

@@ -24,7 +24,44 @@ This curation protocol yielded a final benchmark of $\NCompounds$ unique small m
 To explicitly quantify the performance impact of the interventions reported in the original literature, we replicated its hold-out protocol in an isolated ablation study. A 15\% hold-out partition was separated first (seed 42), and everything below was learned from the development partition only. The baseline (A) is the stacking ensemble on all \MorganNFeaturesTotal\ Morgan bits. The feature-selection variant (B) computes the permutation importance of every bit on the development partition (5 repeats, negative mean squared error) and keeps the bits whose mean importance is positive beyond floating-point noise (greater than $10^{-9}$), because bits that the model never uses have an importance that is zero up to rounding error. The augmentation variant (C) adds, to the selected features, perturbation of the training features via additive Gaussian noise: applying two distinct noise levels ($\sigma = 0.01$ and $\sigma = 0.001$) generated two synthetic variants per original molecule, which effectively triplicated the training space (to \ExpCAugSizeTrain\ rows) while maintaining absolute isolation of the empirical test set. Each variant is the average of five stacking ensembles that differ in the seed of their tree models.
 
 % ==========================================
-% 2. SECTION 2.2
+% 2. SECTION 2.2 (audit of the original pipeline)
+% ==========================================
+
+\subsection{Audit of the Original Pipeline}
+\label{sec:materials_audit}
+
+The comparison above treats the figures of the original study as given. To establish what produces them, its published
+code was obtained and run in its original TensorFlow environment before anything was changed, which fixes the object of
+the audit as the pipeline as published rather than a reimplementation of it. Because one run of a stochastic pipeline
+carries its own variability, every stage was then repeated over \KarReproNSeeds\ random seeds.
+
+The pipeline was then taken apart one leak at a time. Starting from the published protocol (R0), four modifications were
+applied in sequence, each removing one path by which information about the test molecules reaches the fitted model and
+changing nothing else: (R1) the synthetic copies produced by Gaussian augmentation are no longer re-partitioned after
+augmentation, so a perturbed copy of a test molecule can no longer train the model; (R2) early stopping and model choice
+use an internal split of the training partition instead of the test set; (R3) the permutation importance that drives
+feature selection is computed out of fold inside the training rows instead of on the test molecules; and (R4) structures
+that occur more than once are removed from both sides of the split. Every rung was run over \KarReproNSeeds\ seeds.
+Rungs R1 to R4 are scored on the \KarLadderNCommonTest\ molecules common to all of them, so their differences are paired
+over seeds and over molecules and a percentile bootstrap over those molecules gives their confidence intervals; the
+published protocol builds its own evaluation partition and is therefore not paired with them. A reference model with no
+feature selection of any kind was fitted on the same clean split.
+
+The same contrast was applied to our own classical replication, where it can be measured without any deep network.
+Variant B of the ablation above selects fingerprint bits by a permutation importance computed on the development
+partition alone. A second version of it, identical except that the importance is computed on the complete data set as
+the original study does, was fitted and scored on the same held-out molecules, and the two sets of selected bits were
+compared by their Jaccard index. Variant C was treated in the same way.
+
+Finally, the original architecture was re-evaluated without the leaks on the \TotalOuterFolds\ outer folds of
+Section~\ref{sec:materials_ncv}, in two variants: the deep ensemble on all descriptors (DNN baseline) and the complete
+original pipeline of importance-based selection and Gaussian augmentation (DNN full), both with the selection and the
+augmentation confined to each training partition and with early stopping on an internal split. This separates what the
+architecture contributes from what the protocol contributes, and places the original model on the same folds as every
+other model in this study.
+
+% ==========================================
+% 2. SECTION 2.3
 % ==========================================
 
 \subsection{Representation Spaces: Molecular Fingerprints and Conformational Descriptors}
@@ -39,7 +76,7 @@ Although integrating spatial information remains critical for molecular image-ba
 
 
 % ==========================================
-% 2. SECTION 2.3
+% 2. SECTION 2.4
 % ==========================================
 \subsection{Nested Cross-Validation Protocol and Variance Correction}
 \label{sec:materials_ncv}
@@ -57,7 +94,7 @@ The inner loop governed architecture selection. Within each outer training pool,
 This inner loop also serves as a structural safeguard against preprocessing leakage. Executing global transformations---such as z-score standardization, median imputation, or supervised feature selection---prior to fold partitioning inadvertently leaks dataset-wide statistics into the training phase \cite{cawley2010, varma2006}. To eliminate this vulnerability, every transformation was implemented as a step of the model pipeline, so that its parameters were computed only on the training partition at hand (an inner training fold during selection, the outer training pool for the final fit) and subsequently applied to the validation or test data without re-estimation \cite{brva2026}. For the continuous descriptor spaces, the pipeline chained median imputation, standardization (\texttt{StandardScaler}), and feature selection that kept every descriptor with a strictly positive importance in a Random Forest (\texttt{SelectFromModel}) before the regressor; the binary Morgan space was passed to the regressors unchanged. By confining model selection and these transformations entirely within the training partitions, we prevent inadvertent information leakage. This strict encapsulation guarantees that reported metrics reflect genuine generalizability rather than selection artifacts \cite{parvandeh2020, lewis2023, calle2025}.
 
 % ==========================================
-% 2. SECTION 2.4 
+% 2. SECTION 2.5 
 % ==========================================
 \subsection{Deep learning baseline: Directed message passing neural networks}
 \label{sec:materials_gnn}
@@ -75,7 +112,7 @@ The tuned variant searched a grid of \GnnTunedNConfigs\ configurations (hidden s
 Out-of-sample performance was quantified using the coefficient of determination ($R^2$) and Mean Absolute Error (MAE) averaged across all \TotalOuterFolds\ folds. This protocol yielded a final cross-validated test performance of $R^2 = \ChemPropDMPNNFoldRTwoMean \pm \ChemPropDMPNNFoldRTwoStd$ and an MAE of \ChemPropDMPNNFoldMae, establishing the deep learning baseline for subsequent comparative analysis.
 
 % ==========================================
-% 2. SECTION 2.5
+% 2. SECTION 2.6
 % ==========================================
 \subsection{Virtual Screening Protocol and Ligand Efficiency Profiling}
 
@@ -96,7 +133,7 @@ To account for heteroatom contributions and total mass, the Binding Efficiency I
 Furthermore, to balance potency against lipophilicity and mitigate the risk of nonspecific binding, Lipophilic Ligand Efficiency (LLE) was computed as the difference between predicted potency and the calculated partition coefficient ($\text{LLE} = pIC_{50} - \text{cLogP}$, Crippen method in RDKit). Finally, the Surface Efficiency Index (SEI) evaluated potency relative to the topological polar surface area (TPSA), providing a proxy for membrane permeability potential ($\text{SEI} = (pIC_{50} / \text{TPSA}) \times 100$). Because composite indices combining logarithmic potency values with linear physical parameters can introduce size-dependent mathematical artifacts \cite{shultz2013}, these four metrics (LE, BEI, LLE, SEI) were computed from the predicted $pIC_{50}$ and reported alongside it for interpretation; candidates were ranked and selected by predicted potency, and none of the metrics was used as a filter.
 
 % ==========================================
-% 2. SECTION 2.6
+% 2. SECTION 2.7
 % ==========================================
 
 \subsection{Orthogonal Physics-Based Validation via Molecular Docking}
@@ -110,7 +147,7 @@ Prior to screening the machine learning candidates, the docking protocol was che
 Following validation, Vina evaluated all \DockNTotal{} candidates of the screening step (the 10 top-ranked compounds plus the reference entries). For each compound the largest fragment was retained to remove counter-ions, hydrogens were added, a single 3D conformer was generated with ETKDGv3 (fixed seed) and minimized with MMFF, and a flexible-ligand PDBQT file was prepared with Meeko, keeping the protonation state of the input structure. Docking used a fixed random seed and returned the \DockNPoses\ best poses. Poses were ranked by the predicted binding free energy ($\Delta G$) in kcal/mol, where lower energies denote stronger predicted binding \cite{feng2023}; this is an empirical, rigid-receptor estimate and not a measured thermodynamic quantity. The docking ligand efficiency was computed as the best score per heavy atom. To systematically evaluate the consensus between the ligand-based and structure-based approaches, we established quantitative thresholds. Compounds were classified as validated consensus hits only if they exhibited both high ML-predicted potency ($pIC_{50} > \DockMLActiveThresh$) and strong docking affinity ($\Delta G < \DockActiveThresh\text{ kcal/mol}$). Compounds meeting the ML threshold but failing the docking criterion were flagged as potential ML false positives. Conversely, compounds with $pIC_{50} < \DockMLInactiveThresh$ were labeled validated negatives if $\Delta G > \DockInactiveThresh\text{ kcal/mol}$ and potential ML false negatives if $\Delta G < \DockActiveThresh\text{ kcal/mol}$; all remaining compounds were classed as neutral. Finally, to quantify the monotonic agreement between the two orthogonal methods without assuming linearity, a Spearman rank correlation analysis was conducted between the continuous $pIC_{50}$ predictions and the Vina docking scores (Section~\ref{sec:consensus_results}).
 
 % ==========================================
-% 2. SECTION 2.7
+% 2. SECTION 2.8
 % ==========================================
 
 \subsection{In Silico Pharmacokinetic (ADMET) Profiling}
@@ -123,7 +160,7 @@ A \texttt{RandomForestClassifier} trained on the TDC hERG dataset evaluated card
 These models are screening-level estimates rather than experimental toxicity or absorption data, and their predictive performance was not assessed here. Some candidates are also present in the training sets (of the \AdmetNLipinski\ compounds that passed the Lipinski filter and were scored by the two models, \AdmetOverlapHerg\ appear in the hERG set and \AdmetOverlapCaco\ in the Caco-2 set), so their predictions are not independent. Hepatic metabolism, off-target toxicity and blood-brain barrier penetration, which matters for a parasite that infects the brain, were not modeled. The profile therefore prioritizes compounds for further evaluation and does not by itself establish safety.
 
 % ==========================================
-% 2. SECTION 2.8
+% 2. SECTION 2.9
 % ==========================================
 
 \subsection{Computational Environment and Reproducibility}

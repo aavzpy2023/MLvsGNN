@@ -1,7 +1,61 @@
 \section{Results}
 
 % ==========================================
-% 3. SECTION 3.1
+% 3. SECTION 3.1 (what the original pipeline measured)
+% ==========================================
+\subsection{The Reported Gain and Where It Comes From}
+\label{sec:audit_results}
+
+Run unmodified, the published code reproduced its own printed results: $R^2 = \KarVerbAugRerunRTwo$ against the printed
+\KarVerbAugPrintedRTwo\ for the final augmented ensemble, \KarVerbSelAllRerunRTwo\ against \KarVerbSelAllPrintedRTwo\ and
+\KarVerbSelFinalRerunRTwo\ against \KarVerbSelFinalPrintedRTwo\ for the two feature-selected stages; only the unselected
+baseline differed appreciably (\KarVerbBaselineRerunRTwo\ against \KarVerbBaselinePrintedRTwo). Over \KarReproNSeeds\
+seeds the final model gave $R^2 = \KarReproAugFreshRTwoMean \pm \KarReproAugFreshRTwoSd$, so the published value is not
+the product of a fortunate seed. What follows therefore concerns the pipeline as published.
+
+Removing its leaks one at a time accounts for most of that value (Table~\ref{tab:ladder}). The largest single
+contribution comes from the step that is hardest to see in the code: the permutation importance that selects the
+descriptors is computed on the test molecules, which is worth $\KarDeltaRungThreeVsRungTwoRTwo$ in $R^2$ (95\% CI
+[$\KarDeltaRungThreeVsRungTwoCILow$, $\KarDeltaRungThreeVsRungTwoCIHigh$]). Guiding early stopping with the test set adds
+$\KarDeltaRungTwoVsRungOneRTwo$ ([$\KarDeltaRungTwoVsRungOneCILow$, $\KarDeltaRungTwoVsRungOneCIHigh$]), and
+re-partitioning the data after augmentation, which lets a noisy copy of a test molecule train the model, adds
+$\KarDeltaRungOneVsRungZeroRTwo$. Each of these three moves in the same direction in every seed. Removing duplicate
+structures from both sides of the split costs a further $\KarDeltaRungFourVsRungThreeRTwo$, the only step whose interval
+contains zero ([$\KarDeltaRungFourVsRungThreeCILow$, $\KarDeltaRungFourVsRungThreeCIHigh$]).
+
+\begin{table}[htbp]
+	\centering
+	\caption{Performance of the original pipeline as each information leak is removed, over \KarReproNSeeds\ seeds. $\Delta R^2$ is the change with respect to the rung above, with its 95\% bootstrap confidence interval over the \KarLadderNCommonTest\ molecules common to rungs R1--R4. R0 builds its own evaluation partition and is therefore not paired with the rest, so its difference carries no interval. The last row is a model with no feature selection, fitted on the same clean split.}
+	\label{tab:ladder}
+	\resizebox{\textwidth}{!}{\input{latex/leakage_ladder_table.tex}}
+\end{table}
+
+Together the four corrections take the model from $R^2 = \KarLadderRungZeroRTwoMean$ to \KarLadderRungFourRTwoMean, a
+drop of $\KarDeltaRungFourVsRungZeroRTwo \pm \KarDeltaRungFourVsRungZeroRTwoSd$. The end point cannot be distinguished
+from a model with no feature selection at all ($\KarLadderCleanBaselineRTwoMean \pm \KarLadderCleanBaselineRTwoSd$;
+difference $\KarDeltaRungFourVsCleanBaselineRTwo$, 95\% CI [$\KarDeltaRungFourVsCleanBaselineCILow$,
+$\KarDeltaRungFourVsCleanBaselineCIHigh$]): once the importance is computed honestly, the selection buys nothing. That
+level is also the one reported by the original study for its own unselected baseline (\PaperBaselineRTwo) and the one
+the classical ensembles reach in Section~\ref{sec:res_classical}.
+
+The evaluation partition itself shows the mechanism most directly. Because the published protocol augments the data and
+then splits it again, the partition it scores as a test set holds \KarRZeroNScored\ molecules, of which
+\KarRZeroFromOriginalTrain\ come from the original training set and only \KarRZeroFromOriginalTest\ are molecules the
+model had not already seen.
+
+The same mechanism is visible in our own classical replication, with no neural network involved. Computing the
+permutation importance of variant B on the complete data set, as the original study does, instead of on the development
+partition alone, raises the hold-out $R^2$ from \ExpBRTwoMean\ to \ExpBleakyRTwoMean\ ($\Delta =
+\ExpBleakyvsBDeltaRTwo$, 95\% CI [$\ExpBleakyvsBDeltaCILow$, $\ExpBleakyvsBDeltaCIHigh$]), and that of variant C from
+\ExpCRTwoMean\ to \ExpCleakyRTwoMean\ ($\Delta = \ExpCleakyvsCDeltaRTwo$, [$\ExpCleakyvsCDeltaCILow$,
+$\ExpCleakyvsCDeltaCIHigh$]). The two procedures do not even select the same features: the leaky and the clean sets of
+bits overlap by a Jaccard index of \ExpLeakyMaskJaccard. A leaky selection on a classical learner thus reaches
+\ExpBleakyRTwoMean, close to the \PaperSelectedRTwo\ reported for the feature-selected model of the original study,
+while the same selection performed correctly reaches \ExpBRTwoMean. The gain credited to feature selection is
+reproducible only when the selection is allowed to see the test data.
+
+% ==========================================
+% 3. SECTION 3.2
 % ==========================================
 \subsection{Comparative Performance of Classical ML Across Feature Spaces}
 \label{sec:res_classical}
@@ -58,7 +112,7 @@ To test whether the interventions credited with the gains of the original study 
 \end{figure}
 
 % ==========================================
-% 3. SECTION 3.2
+% 3. SECTION 3.3
 % ==========================================
 \subsection{Benchmarking Tree-Based Ensembles Against Graph Neural Networks}
 \label{sec:gnn_results}
@@ -90,7 +144,7 @@ Computational cost does not favor the classical approach in this protocol, but t
 \end{figure}
 
 % ==========================================
-% 3. SECTION 3.3 (screening, docking and ADMET: hypothesis generation)
+% 3. SECTION 3.4 (screening, docking and ADMET: hypothesis generation)
 % ==========================================
 \subsection{Hypothesis Generation: Screening, Docking and ADMET}
 \label{sec:screening_results}
@@ -117,7 +171,7 @@ Of the \AdmetNDocked{} docked entries, \AdmetNLipinski{} satisfied the three Lip
 This whole stage is a computational prioritization. The receptor is rigid, no water molecules or protonation states are modelled, Vina scores are empirical estimates, and the ADMET classifiers were trained on public data whose accuracy was not evaluated here, with some of these compounds in their training sets. The consensus hits are therefore hypotheses for experimental testing and not confirmed inhibitors.
 
 % ==========================================
-% 3. SECTION 3.6
+% 3. SECTION 3.5
 % ==========================================
 \subsection{Robustness to Scaffold-Grouped Splits}
 \label{sec:scaffold_results}
@@ -143,7 +197,7 @@ Both families lost about 0.2 units of $R^2$ when scaffolds were held out: from $
 The comparison between families kept its direction but not its resolution. Under scaffold splits the D-MPNN was lower than the Morgan ensemble by $\Delta R^2 = \ScaffoldGnnVsMorganDiffRTwo$ (corrected $p = \ScaffoldGnnVsMorganPRTwo$, Holm-adjusted; $\Delta$MAE $= \ScaffoldGnnVsMorganDiffMae$, $p = \ScaffoldGnnVsMorganPMae$). The 90\% confidence interval of the $R^2$ difference, $[\ScaffoldGnnVsMorganCILowRTwo, \ScaffoldGnnVsMorganCIHighRTwo]$, excludes zero only barely, and its lower limit extends far beyond the $\pm 0.05$ equivalence margin; the equivalence test was accordingly not significant ($p = \ScaffoldGnnVsMorganEquivPRTwo$). The interval carries no multiplicity adjustment while the $p$ values do, which is why the two do not point the same way. With the present data we can thus neither claim a difference nor equivalence between the two families on new scaffolds; the sample (\NCompounds\ compounds) is too small to separate them given the larger variance of this protocol.
 
 % ==========================================
-% 3. SECTION 3.7
+% 3. SECTION 3.6
 % ==========================================
 \subsection{Sensitivity to Extreme Potency Values}
 \label{sec:outlier_sensitivity}
