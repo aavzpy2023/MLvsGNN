@@ -1,91 +1,86 @@
-% Figure 2: one outer fold of the protocol of Section 2.4. The point of the figure is the two orange steps: every
-% data-dependent transformation is estimated inside the partition that encloses it, never on the data it is scored on.
-% Laid out in three columns so that scaling it to the text width does not make it taller than the page.
+% Figure 2: one outer fold of the protocol of Section 2.4. Two parallel columns starting at the split: the inner loop
+% on the left and the outer fold on the right, which meet again at the refit. The point of the figure is the two
+% orange steps: every data-dependent transformation is estimated inside the partition that encloses it.
+% Sized by height, not width: a narrow, tall diagram scaled to the text width would be taller than the page.
 \begin{figure}[!htbp]
 	\centering
-	\resizebox{\textwidth}{!}{%
+	\resizebox{!}{0.68\textheight}{%
 		\begin{tikzpicture}[
 			font=\sffamily\small,
 			>=Stealth,
-			node distance=5mm and 12mm,
+			node distance=8mm and 11mm,
 			cvbox/.style={draw=gray!60!black, fill=gray!4, thick, rounded corners=3pt,
-				align=center, text width=4.6cm, inner sep=5pt},
+				align=center, text width=4.5cm, inner sep=5pt},
 			outerstep/.style={cvbox, draw=blue!70!black, fill=blue!5},
 			innerstep/.style={cvbox, draw=teal!70!black, fill=teal!5},
 			fitstep/.style={cvbox, draw=orange!85!black, fill=orange!9},
 			testbox/.style={cvbox, draw=red!65!black, fill=red!4},
-			flow/.style={->, thick, draw=gray!65}
+			flow/.style={->, thick, draw=gray!65},
+			held/.style={->, thick, draw=red!55!black, dashed}
 			]
 
-			% ---- column A: the outer split ----
+			% ---- head: the data and the outer split ----
 			\node[cvbox] (data)
 			{\textbf{Data set}\\$N = \NCompounds$ compounds};
 
 			\node[outerstep, below=of data] (split)
-			{\textbf{Outer split}\\$\OuterKFolds$ folds $\times\ \OuterRepeats$ repeats\\$=\ \TotalOuterFolds$ evaluations};
+			{\textbf{Outer split}\\$\OuterKFolds$ folds $\times\ \OuterRepeats$ repeats $=\ \TotalOuterFolds$ evaluations};
 
-			\node[outerstep, below=of split] (pool)
-			{\textbf{Outer training pool}\\\footnotesize everything below is learned from it alone};
+			% ---- the two branches, starting at the same level ----
+			\node[outerstep, below left=9mm and 7mm of split] (pool)
+			{\textbf{Outer training pool}\\\footnotesize everything in the left column is learned from it alone};
 
-			% ---- column B: the inner loop ----
-			\node[innerstep, right=of data] (inner)
-			{\textbf{Inner loop: $\InnerKFolds$ folds}\\\footnotesize $\NArchitectureCombos$ candidates, 1--$\MaxComboSize$ of RF, ET, LGBM, XGB, SVR, kNN};
+			\node[testbox, below right=9mm and 7mm of split] (test)
+			{\textbf{Outer test fold}\\\footnotesize held out from the whole left column};
 
-			\node[fitstep, below=of inner] (prep)
-			{\textbf{Preprocessing, fitted here}\\\footnotesize imputation $\rightarrow$ scaling $\rightarrow$ feature selection, on the inner training fold only};
+			% ---- left column: the inner loop ----
+			\node[fitstep, below=of pool] (prep)
+			{\textbf{Preprocessing, fitted here}\\\footnotesize imputation, scaling and feature selection, estimated on the inner training fold only};
 
 			\node[innerstep, below=of prep] (fit)
-			{\textbf{Fit candidate}\\\footnotesize one model, or stacking with a RidgeCV meta-learner};
+			{\textbf{Fit and score each candidate}\\\footnotesize one model, or stacking with a RidgeCV meta-learner, scored on the inner validation fold};
 
-			\node[innerstep, below=of fit] (score)
-			{\textbf{Score the inner validation fold}};
-
-			\node[innerstep, below=of score] (select)
+			\node[innerstep, below=of fit] (select)
 			{\textbf{Select}\\\footnotesize highest mean inner $R^2$; hyperparameters fixed, so only the architecture is chosen};
 
-			% ---- column C: back to the outer loop ----
-			\node[testbox, right=of inner] (test)
-			{\textbf{Outer test fold}\\\footnotesize held out from every step at the left};
-
-			\node[fitstep, below=of test] (refit)
+			% ---- right column: the outer fold resumes ----
+			\node[fitstep, right=of select] (refit)
 			{\textbf{Refit on the outer training pool}\\\footnotesize the preprocessing is estimated again, on this pool};
 
 			\node[outerstep, below=of refit] (predict)
 			{\textbf{Predict the test fold once}\\\footnotesize clipped to the training range $\pm\,3$ $pIC_{50}$};
 
 			\node[outerstep, below=of predict] (agg)
-			{\textbf{Aggregate the \TotalOuterFolds\ folds}\\\footnotesize $R^2$, MAE; Nadeau--Bengio corrected $t$-test, Holm, TOST at $\pm 0.05$};
+			{\textbf{Aggregate the \TotalOuterFolds\ folds}\\\footnotesize $R^2$ and MAE; Nadeau--Bengio corrected $t$-test, Holm adjustment, TOST at $\pm 0.05$};
 
 			\draw[flow] (data) -- (split);
 			\draw[flow] (split) -- (pool);
-			\draw[flow] (pool.east) -- ++(6mm,0) |- (inner.west);
-			% The test fold leaves the flow at the split; the path goes over the inner loop rather than through it.
-			\coordinate (overtop) at ($(inner.north)+(0,9mm)$);
-			\draw[flow] (split.east) -- ++(6mm,0) |- (overtop) -| (test.north);
-			\draw[flow] (inner) -- (prep);
+			\draw[flow] (split) -- (test);
+			\draw[flow] (pool) -- (prep);
 			\draw[flow] (prep) -- (fit);
-			\draw[flow] (fit) -- (score);
-			\draw[flow] (score) -- (select);
-			\draw[flow] (select.east) -- ++(6mm,0) |- (refit.west);
-			\draw[flow] (test) -- (refit);
+			\draw[flow] (fit) -- (select);
+			\draw[flow] (select) -- (refit);
+			\draw[held] (test) -- node[right, font=\sffamily\footnotesize\itshape, text=red!55!black]
+			{\ held, untouched} (refit);
 			\draw[flow] (refit) -- (predict);
 			\draw[flow] (predict) -- (agg);
 
 			\begin{scope}[on background layer]
-				\node[draw=teal!70!black, fill=teal!3, rounded corners=5pt, inner sep=7pt,
-				fit=(inner)(prep)(fit)(score)(select),
-				label={[text=teal!60!black, font=\sffamily\bfseries\small]below:Inner loop: architecture selection}] {};
+				\node[draw=teal!70!black, fill=teal!3, rounded corners=5pt, inner sep=8pt,
+				fit=(prep)(fit)(select),
+				label={[text=teal!60!black, font=\sffamily\bfseries\small]left:{\rotatebox{90}{Inner loop: $\InnerKFolds$ folds, $\NArchitectureCombos$ candidates}}}] {};
 			\end{scope}
 
 		\end{tikzpicture}%
 	}
-	\caption{\textbf{One outer fold of the evaluation protocol.} The outer loop estimates performance and the inner
-		loop selects the architecture, so that no model is scored on the data that chose it: the test fold leaves the
-		flow at the split and returns only at the prediction step. The two orange boxes are the reason the estimate is
-		leakage-free. Imputation, scaling and supervised feature selection are not computed once on the whole data set
-		but estimated again inside each partition they are used in, first on the inner training fold during selection
-		and then on the outer training pool for the final fit, and applied to held-out data without re-estimation.
-		Because the \TotalOuterFolds\ outer partitions are shared by every representation and every model, all
-		comparisons in this study are paired on the same molecules.}
+	\caption{\textbf{One outer fold of the evaluation protocol.} The split sends the training pool down the left
+		column and the test fold down the right one, and the two meet again only at the refit, so that no model is
+		scored on the data that chose it. The inner loop on the left selects the architecture among the
+		\NArchitectureCombos\ candidates; the test fold on the right is held untouched throughout it. The two orange
+		boxes are the reason the estimate is leakage-free: imputation, scaling and supervised feature selection are
+		not computed once on the whole data set but estimated again inside each partition they are used in, first on
+		the inner training fold during selection and then on the outer training pool for the final fit, and applied to
+		held-out data without re-estimation. Because the \TotalOuterFolds\ outer partitions are shared by every
+		representation and every model, all comparisons in this study are paired on the same molecules.}
 	\label{fig:nested_cv}
 \end{figure}
