@@ -1,0 +1,13 @@
+dataset,chembl_id,target,abbreviation,endpoint,receptor_class,n,cliff_pct,pic50_min,pic50_max
+CHEMBL2835_Ki,CHEMBL2835,Janus kinase 1,JAK1,Ki,Kinase,615,7.0,5.34,10.0
+CHEMBL2047_EC50,CHEMBL2047,Farnesoid X receptor,FXR,EC50,NR,631,39.0,4.04,9.52
+CHEMBL1871_Ki,CHEMBL1871,Androgen Receptor,AR,Ki,NR,659,24.0,4.25,9.6
+CHEMBL4616_EC50,CHEMBL4616,Ghrelin receptor,GHSR,EC50,GPCR,682,48.0,4.85,10.0
+CHEMBL4203_Ki,CHEMBL4203,Dual specificity protein kinase CLK4,CLK4,Ki,Kinase,731,9.0,4.1,9.5
+CHEMBL2034_Ki,CHEMBL2034,Glucocorticoid receptor,GR,Ki,NR,750,31.0,4.73,10.0
+CHEMBL1862_Ki,CHEMBL1862,Tyrosine-protein kinase ABL1,ABL1,Ki,Kinase,794,32.0,4.0,10.73
+CHEMBL262_Ki,CHEMBL262,Glycogen synthase kinase-3 beta,GSK3,Ki,Kinase,856,18.0,4.0,10.05
+CHEMBL237_EC50,CHEMBL237,Kappa opioid receptor,KOR,EC50,GPCR,955,42.0,4.3,10.96
+CHEMBL4005_Ki,CHEMBL4005,PI3-kinase p110-alpha subunit,PIK3CA,Ki,Transferase,960,37.0,4.65,10.52
+CHEMBL231_Ki,CHEMBL231,Histamine H1 receptor,HRH1,Ki,GPCR,973,23.0,4.0,10.31
+CHEMBL2971_Ki,CHEMBL2971,Janus kinase 2,JAK2,Ki,Kinase,976,12.0,4.0,10.22

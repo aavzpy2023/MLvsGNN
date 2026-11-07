@@ -124,3 +124,5 @@ scripts/qsartools/references/
 # Manual backup copy of results/
 results copy/
 quick_run/
+generalization/
+data/moleculeace/_source/

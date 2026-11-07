@@ -111,6 +111,19 @@ PROFILES = {
         INNER_N_SPLITS=3,
         N_ESTIMATORS_TREES=50,
     ),
+    # Generalization benchmark over the MoleculeACE targets (run_pipeline.py --only G..). Identical to 'workstation'
+    # except for a single outer repeat: 12 targets at five repeats each would cost weeks, and the comparison between
+    # models is paired within every target, so it does not need the 25 folds of the main benchmark. The main TgDHFR
+    # analysis keeps its 5x5 protocol; it is re-run under this profile only to place it among the other targets.
+    'generalization': dict(
+        N_JOBS=46,
+        FEATURE_MODES=['morgan', 'rdkit2d'],
+        MAX_COMBO_SIZE=3,
+        OUTER_N_SPLITS=5,
+        OUTER_N_REPEATS=1,
+        INNER_N_SPLITS=5,
+        N_ESTIMATORS_TREES=200,
+    ),
     'workstation': dict(
         N_JOBS=46,
         FEATURE_MODES=['morgan', 'rdkit2d', 'rdkit2d_fp', 'rdkit2d3d_fp'],
