@@ -51,21 +51,6 @@ analysis pipeline and read from the same files as the manuscript.
 
 \clearpage
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=\textwidth]{figures/01_nested_cv_performance_summary.png}
-	\caption{Per-fold performance of the four representations over the \TotalOuterFolds\ outer folds. (A) $R^2$ of each fold (faint points), with the mean and its 95\% confidence interval; (B) the same for the mean absolute error. The vertical lines mark the D-MPNN of this study and the three values reported by the original study, which come from a single hold-out split of a pipeline with the leaks quantified in Section 3.1 of the manuscript and are therefore shown for reference only, not as a paired comparison.}
-	\label{fig:performance_summary}
-\end{figure}
-
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=\textwidth]{figures/S1_nested_cv_selection_full_heatmap.png}
-	\caption{Stacking ensemble selected by the inner loop in each of the \TotalOuterFolds\ outer folds, for each molecular representation. Cell values are the number of outer folds in which that exact combination of base learners (RF, random forest; ET, extra trees; LGBM, LightGBM; XGB, XGBoost; SVM, support vector regression; kNN, $k$-nearest neighbors) was chosen. No combination was chosen consistently, which shows that the inner search does not converge on a single architecture.}
-	\label{fig:selection_heatmap}
-\end{figure}
-
 \begin{table}[htbp]
 	\centering
 	\caption{Coefficient of determination of every rung of the leakage ladder, seed by seed. R0 is the published
@@ -89,6 +74,14 @@ analysis pipeline and read from the same files as the manuscript.
 	\resizebox{\textwidth}{!}{\input{latex/ablation_table.tex}}
 \end{table}
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=\textwidth]{figures/01_nested_cv_performance_summary.png}
+	\caption{Per-fold performance of the four representations over the \TotalOuterFolds\ outer folds. (A) $R^2$ of each fold (faint points), with the mean and its 95\% confidence interval; (B) the same for the mean absolute error. The vertical lines mark the D-MPNN of this study and the three values reported by the original study, which come from a single hold-out split of a pipeline with the leaks quantified in Section 3.1 of the manuscript and are therefore shown for reference only, not as a paired comparison.}
+	\label{fig:performance_summary}
+\end{figure}
+
+
 \begin{table}[htbp]
 	\centering
 	\caption{Every pairwise comparison between the four molecular representations over the \TotalOuterFolds\ shared outer folds, in both metrics. Differences are A minus B, the interval is the 90\% confidence interval used by the equivalence test, $p$ is the Nadeau--Bengio corrected paired $t$-test, $p_{\mathrm{Holm}}$ its step-down adjustment within the six comparisons of each metric, and $p_{\mathrm{equiv}}$ the two one-sided tests against the $\pm \EquivMarginRTwo$ margin.}
@@ -102,6 +95,13 @@ analysis pipeline and read from the same files as the manuscript.
 	\label{tab:yrandom}
 	\input{latex/yrandom_table.tex}
 \end{table}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=\textwidth]{figures/S1_nested_cv_selection_full_heatmap.png}
+	\caption{Stacking ensemble selected by the inner loop in each of the \TotalOuterFolds\ outer folds, for each molecular representation. Cell values are the number of outer folds in which that exact combination of base learners (RF, random forest; ET, extra trees; LGBM, LightGBM; XGB, XGBoost; SVM, support vector regression; kNN, $k$-nearest neighbors) was chosen. No combination was chosen consistently, which shows that the inner search does not converge on a single architecture.}
+	\label{fig:selection_heatmap}
+\end{figure}
 
 \begin{table}[htbp]
 	\centering
@@ -144,6 +144,7 @@ analysis pipeline and read from the same files as the manuscript.
 	\label{tab:scaffold_pairwise}
 	\resizebox{\textwidth}{!}{\input{latex/scaffold_pairwise_table.tex}}
 \end{table}
+
 
 
 \clearpage
