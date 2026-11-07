@@ -20,6 +20,7 @@ import argparse
 import importlib.util
 import os
 import platform
+import re
 import subprocess
 import sys
 import time
@@ -27,7 +28,9 @@ from datetime import datetime
 from importlib import metadata
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-LOGS_DIR = os.path.join(ROOT, "logs")
+# MLGNN_OUT_DIR redirects every output, as it does in paths_config, so that a reduced run (--quick) cannot overwrite
+# the logs of the real one. A normal run never has it set: it is passed to the sensitivity and scaffold steps alone.
+LOGS_DIR = os.path.join(os.environ.get("MLGNN_OUT_DIR") or ROOT, "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
 
 PIPELINE = [
@@ -330,6 +333,51 @@ def run_pipeline(steps=None):
     print("\n[SUCCESS] Entire pipeline executed flawlessly.")
 
 
+def step_log_duration(step_id_, script_path, extra_env):
+    """Wall-clock duration of the last run of this step, from its log, or None if it has not run here.
+
+    The log's first line carries the start time and the file's modification time is the end, which is what the step
+    costs on this machine; it is a measurement, not a promise.
+    """
+    logs_dir = os.path.join(extra_env["MLGNN_OUT_DIR"], "logs") if extra_env and "MLGNN_OUT_DIR" in extra_env else LOGS_DIR
+    path = os.path.join(logs_dir, os.path.basename(script_path).replace(".py", ".log"))
+    try:
+        with open(path, encoding="utf-8") as f:
+            head = f.readline()
+        start = datetime.strptime(re.search(r"\[([\d-]+ [\d:]+)\]", head).group(1), "%Y-%m-%d %H:%M:%S")
+    except (OSError, AttributeError, ValueError):
+        return None
+    seconds = os.path.getmtime(path) - start.timestamp()
+    return seconds if seconds >= 0 else None
+
+
+def human_duration(seconds):
+    if seconds is None:
+        return "not run here"
+    if seconds < 90:
+        return f"{seconds:.0f} s"
+    if seconds < 5400:
+        return f"{seconds / 60:.0f} min"
+    return f"{seconds / 3600:.1f} h"
+
+
+def list_steps():
+    """Every step in the order a full run executes them, with what its last run cost on this machine."""
+    steps = all_steps()
+    total = 0.0
+    print(f"{'STEP':>5}  {'SCRIPT':<44} LAST RUN HERE")
+    for sid, script, extra_env in steps:
+        seconds = step_log_duration(sid, script, extra_env)
+        total += seconds or 0.0
+        print(f"{sid:>5}  {script:<44} {human_duration(seconds)}")
+    print(f"\n{len(steps)} steps; the runs recorded in the logs add up to {total / 3600:.1f} h on this machine.")
+    print("These are the durations of the LAST run of each step, so a step that resumed from a checkpoint, or that only\n"
+          "re-summarized existing results, shows seconds instead of the hours it costs from scratch. A full run from\n"
+          "scratch takes days: 01, S01 and SC01 are the nested cross-validations, 03 the y-randomization and 19/SC19\n"
+          "the pretrained graph networks. Steps 01 and 03 checkpoint their progress and resume if interrupted. Use\n"
+          "--quick for a reduced smoke run of the whole pipeline (its numbers are not the published ones).")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Run the ML vs GNN computational pipeline.")
     ap.add_argument("--list", action="store_true", help="list pipeline steps and exit")
@@ -342,11 +390,24 @@ def main():
                     help="skip the scaffold-split robustness analysis (steps SC01, SC09, 13) in a full run")
     ap.add_argument("--strict", action="store_true",
                     help="fail instead of silently skipping a model whose libraries cannot be imported (step 09)")
+    ap.add_argument("--quick", action="store_true",
+                    help="reduced smoke run of the whole pipeline, written to quick_run/ so that it cannot overwrite "
+                         "the published results; its numbers are NOT the published ones")
     args = ap.parse_args()
 
+    if args.quick and os.environ.get("MLGNN_PROFILE") != "quick":
+        # Restart with the reduced profile in place: paths_config reads it at import time, here and in every step, and
+        # the output directories must be redirected before anything writes. An MLGNN_OUT_DIR already set is respected.
+        out_dir = os.environ.get("MLGNN_OUT_DIR") or os.path.join(ROOT, "quick_run")
+        env = dict(os.environ, MLGNN_PROFILE="quick", MLGNN_OUT_DIR=out_dir,
+                   MLGNN_SENS_DIR=os.environ.get("MLGNN_SENS_DIR") or os.path.join(out_dir, "sensitivity"),
+                   MLGNN_SCAFFOLD_DIR=os.environ.get("MLGNN_SCAFFOLD_DIR") or os.path.join(out_dir, "scaffold"))
+        os.makedirs(out_dir, exist_ok=True)
+        print(f"[QUICK] reduced profile; every output goes to {out_dir}", flush=True)
+        os.execve(sys.executable, [sys.executable, *sys.argv], env)
+
     if args.list:
-        for sid, script, _ in all_steps():
-            print(f"{sid:>5}  {script}")
+        list_steps()
         return
     if args.check:
         sys.exit(0 if check_dependencies() else 1)

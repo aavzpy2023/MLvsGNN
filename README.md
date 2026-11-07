@@ -70,7 +70,7 @@ sudo apt-get update && sudo apt-get install openbabel libxrender1 libxext6   # o
 ## 3. Running the pipeline
 
 ```bash
-python run_pipeline.py --list            # show all 24 steps in execution order
+python run_pipeline.py --list            # show all 32 steps in execution order, with what each cost on this machine
 python run_pipeline.py --check           # verify every dependency actually imports (no computation)
 python run_pipeline.py                   # run everything: main analysis (00 -> 09), outlier sensitivity (S01, S02, 10), scaffold-split robustness (SC01, SC09, 13), then the figure stage
 python run_pipeline.py --from 05         # resume from step 05 onward (e.g. after an interruption)
@@ -78,6 +78,21 @@ python run_pipeline.py --only 07 07.1    # run only the listed steps
 python run_pipeline.py --no-sensitivity  # skip the with-extreme-values re-run
 python run_pipeline.py --no-scaffold     # skip the scaffold-split re-run (SC01, SC09, 13)
 python run_pipeline.py --only figures    # rebuild every figure and table from existing results (seconds, no recomputation)
+python run_pipeline.py --quick           # reduced smoke run of the WHOLE pipeline, written to quick_run/ (see below)
+```
+
+`--quick` is for checking that the pipeline runs end to end without waiting days for it. It selects the `quick`
+hardware profile (one outer repeat instead of five, a 3-fold inner loop, 50 trees, 5 y-randomization permutations, 2
+ensemble runs) while keeping all four representations, so every figure, table and LaTeX variable is still produced.
+**Its numbers are not the published ones**, and for that reason it redirects every output -- results, figures, LaTeX
+variables and logs -- to `quick_run/`, where it cannot overwrite a real run. Set `MLGNN_OUT_DIR` to send them
+somewhere else.
+
+The TensorFlow steps (15, 16, 17, SC17) run under a separate interpreter, because TensorFlow is not part of the main
+environment. Point `MLGNN_TF_PYTHON` at it; a full run stops immediately, before computing anything, if it is missing:
+
+```bash
+export MLGNN_TF_PYTHON=/path/to/tf-env/bin/python   # see requirements-tf-lock.txt
 ```
 
 Each run writes a master log to `logs/master_pipeline_<timestamp>.log` in addition to each script's own `logs/<script>.log`. On a non-zero exit code the pipeline halts immediately; re-run with `--from <step>` after fixing the issue rather than restarting from scratch.
@@ -95,34 +110,33 @@ export MLGNN_N_JOBS=8              # override the number of threads (default: mi
 
 ## 4. Expected runtime (validated hardware: 48 threads / 248 GB RAM)
 
+`python run_pipeline.py --list` prints every step with the wall-clock time of its last run **on your machine**, read
+from the step logs, so the numbers below do not have to be kept in sync by hand. Note that a step which resumed from a
+checkpoint, or which only re-summarized existing results, is listed with the seconds it took that time, not with its
+from-scratch cost.
+
+The pipeline is dominated by a handful of steps. Measured here, from scratch:
+
 | Step | Description | Approx. time |
 | :--- | :--- | :--- |
-| 00 | Builds the training sets from the raw table (Tukey-fence outlier removal, duplicate collapse) | seconds |
-| 01 | Nested CV stacking (4 representations x 5x5 folds) | ~13 h (dominant cost; from-scratch only — resumes from a checkpoint on partial re-runs) |
-| 01.1 | Figures for step 01 (figure stage: needs the step 09 results for the D-MPNN reference lines) | seconds |
-| 02 | Nadeau-Bengio corrected t-tests and equivalence tests (TOST) | <1 s |
-| 03 | Y-randomization (100 permutations) | ~2.7 h |
-| 04 | Feature selection (Exp B) + Gaussian augmentation (Exp C) | ~26 min (see reproducibility note below — Exp B is intentionally single-threaded) |
-| 04.1 | Figures for step 04 | seconds |
-| 05 | Virtual screening (FDA library) | ~6 s |
-| 05.1 | Figures for step 05 | seconds |
-| 06 | Redocking validation (crystal ligand) | ~8 s |
-| 07 | Molecular docking (17 candidates, AutoDock Vina) | ~4-5 min |
-| 07.1 | Figures for step 07 | seconds |
-| 08 | ADMET profiling (hERG / Caco-2, TDC) | ~2 s |
-| 08.1 | Figures for step 08 | seconds |
-| 09 | ChemProp D-MPNN, 5x5 repeated CV | ~85 min |
-| 09.1 | Figures for step 09 | seconds |
-| 12 | D-MPNN with a hyperparameter search inside every outer fold (8 configurations, 2 worker processes by default, `MLGNN_GNN_WORKERS`) | ~7.8 h (about 15 h of worker time) |
-| S01 | Step 01 re-run on the set that keeps the 2 extreme pIC50 values (outputs in `sensitivity/`) | ~13 h on the validated hardware |
-| S02 | Step 02 on the sensitivity run | <1 s |
-| 10 | Main vs. sensitivity comparison; prediction error on the 2 extremes | ~1 min |
-| SC01 | Step 01 for the Morgan representation on scaffold-grouped outer folds (outputs in `scaffold/`) | ~2.9 h |
-| SC09 | Step 09 (default D-MPNN) on the same scaffold-grouped folds | ~85 min |
-| 13 | Random vs. scaffold folds: summary and paired test of the network against the ensemble | seconds |
-| 11 | Manuscript check: every figure, included file and result variable used by the paper exists | seconds |
+| 01 | Nested CV, 4 representations x 25 outer folds, 41 stacking candidates per inner loop | ~46 h |
+| S01 | Step 01 re-run on the set that keeps the 2 extreme pIC50 values (`sensitivity/`) | ~57 h |
+| SC01 | Step 01 on scaffold-grouped outer folds (`scaffold/`) | ~56 h |
+| 03 | Y-randomization, 4 tests x 100 permutations, selection repeated inside every permutation | ~19 h |
+| 12 | D-MPNN with a hyperparameter search inside every outer fold | ~15 h of worker time |
+| SC19 | Pretrained graph networks (CheMeleon, D-MPNN ensemble) on scaffold folds | ~12 h |
+| 16, 17, SC17 | TensorFlow audit of the original network (leakage ladder, nested CV) | ~1.5 h each |
+| 09, SC09, 15 | Default D-MPNN (random and scaffold folds), verbatim re-run of the original notebooks | ~1.3 h each |
+| 04 | Feature selection (Exp B) and Gaussian augmentation (Exp C) | ~70 min |
+| 00, 02, 05-08, 10, 13, 14, 18, 19, figures, 11 | Everything else: screening, docking, ADMET, summaries, figures and the manuscript check | seconds to minutes |
 
-**Total, full pipeline from a clean state: roughly 43 hours** on the validated hardware. Step 04 can look "stuck" for several minutes with no console output during Experiment B (single-threaded by design, see below); this is expected, not a hang.
+**A full run from a clean state is on the order of 8-9 days of wall-clock time** on this hardware. Steps 01 and 03
+checkpoint every result as it is produced and resume where they left off, so an interruption costs only the work in
+flight. Use `tmux` or `nohup` for unattended runs, and `--quick` (above) when the point is to verify that the pipeline
+executes rather than to reproduce the numbers.
+
+Step 04 can look "stuck" for several minutes with no console output during Experiment B (single-threaded by design,
+see below); this is expected, not a hang.
 
 ---
 
@@ -133,7 +147,8 @@ Every step uses a fixed random seed (`RANDOM_STATE = 42` in `paths_config.py`, p
 - **Step 04 (baseline, feature selection, augmentation):** every model of this step is fitted single-threaded and the parallelism is applied across independent tasks (features in the permutation importance, runs of the 5-run ensemble), so the results do not depend on the number of workers. The cause of the earlier run-to-run differences was identified: a multi-threaded `RandomForest.predict()` sums the trees in a thread-dependent order, which changes the last bits of the predictions, and the old selection rule `importance > 0` then flipped the ~750 features whose importance is zero up to floating-point noise (about 1e-15; the smallest genuine importances are about 1e-7). Two executions of the old code retained 1389 and 1826 bits of the same split. The selection now keeps features with importance above `IMPORTANCE_TOL = 1e-9` and the fits use `n_jobs=1`; permutation importances computed with 46 and with 8 workers were bitwise identical and retained the same 1255 bits.
 - **Ensemble of runs (step 04):** the 5 runs of the ensemble now use different seeds for the tree ensembles (`RANDOM_STATE + run`). Previously the reseeding was never applied (the stacking object has no `random_state`), so the 5 runs were identical copies.
 - **Redocking validation (step 06) and docking (step 07):** deterministic given the fixed Vina seed (42); centroid distance for the redocking control reproduced at 0.317 Å (threshold: 2.0 Å) across repeated runs.
-- **ChemProp / GNN (step 09):** PyTorch/Lightning training on CPU with multiple threads is not bit-reproducible even with a fixed seed, for the same floating-point non-associativity reason as above. Repeated 5x5 CV runs agree to about the third decimal rather than to the last one (observed mean fold R² between 0.725 and 0.729 across three executions on the current data set).
+- **ChemProp / GNN (steps 09, 12, 19 and their scaffold counterparts):** PyTorch/Lightning training on CPU with multiple threads is not bit-reproducible even with a fixed seed, for the same floating-point non-associativity reason as above. Repeated 5x5 CV runs agree to about the third decimal rather than to the last one: the mean fold R² of the default D-MPNN has been 0.7248, 0.7213 and 0.7249 across executions of the same code on the same folds. Expect the third decimal of any neural result to move; the classical steps do not move at all.
+- **Everything else is deterministic.** Re-running the pipeline end to end reproduces the classical results exactly, because the outer folds come from a fixed seed, the preprocessing and the architecture search live inside each fold, and the fits that could depend on thread scheduling are single-threaded. The published LaTeX variables of steps 01-08 and 10-13 are therefore reproducible bit for bit; only the neural ones are not.
 
 If you reproduce this pipeline on different hardware, expect small variation in the GNN's R², but not in the qualitative conclusions reported in the manuscript.
 

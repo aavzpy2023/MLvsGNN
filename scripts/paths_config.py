@@ -79,11 +79,26 @@ SPLIT_KIND = os.environ.get('MLGNN_SPLIT', 'random')
 PROFILE = os.environ.get('MLGNN_PROFILE', 'workstation')
 
 PROFILES = {
+    # One representation only: enough to develop or debug a single step, but the figures and the LaTeX variables of the
+    # other three representations are then never written, so this profile cannot produce a complete manuscript.
     'laptop': dict(
         N_JOBS=2,
         FEATURE_MODES=['morgan'],
         MAX_COMBO_SIZE=2,
         OUTER_N_SPLITS=3,
+        OUTER_N_REPEATS=1,
+        INNER_N_SPLITS=3,
+        N_ESTIMATORS_TREES=50,
+    ),
+    # Smoke run of the whole pipeline (run_pipeline.py --quick). It keeps every representation and every combination
+    # size, so each figure, table and LaTeX variable of the manuscript is still produced, and cuts only what costs time:
+    # one outer repeat instead of five, a smaller inner loop, fewer trees, fewer permutations and fewer ensemble runs.
+    # The numbers it produces are therefore NOT the published ones; --quick writes them to a separate output directory.
+    'quick': dict(
+        N_JOBS=46,
+        FEATURE_MODES=['morgan', 'rdkit2d', 'rdkit2d_fp', 'rdkit2d3d_fp'],
+        MAX_COMBO_SIZE=3,
+        OUTER_N_SPLITS=5,
         OUTER_N_REPEATS=1,
         INNER_N_SPLITS=3,
         N_ESTIMATORS_TREES=50,
@@ -124,7 +139,9 @@ mode_labels = {
 # =========================================================
 # y-RANDOMIZATION EXPERIMENT CONFIGURATION (3)
 # =========================================================
-N_PERMUTATIONS = 100
+# 100 in a real run: the smallest attainable p is 1/(N+1), so alpha = 0.01 needs at least 99. The 'quick' profile uses
+# 5, which cannot reach that alpha and is only meant to prove that the step runs.
+N_PERMUTATIONS = 5 if PROFILE == 'quick' else 100
 
 # Inner cross-validation of the nested CV (Krstajic et al., 2014, Algorithm 1): number of repeats of the inner K-fold (Nexp1)
 # and how a candidate is scored ('pooled': all out-of-fold predictions of a repeat together; 'fold_mean': mean of per-fold
@@ -143,7 +160,7 @@ N_JOBS = ACTIVE_CFG.get('N_JOBS', 1)
 # CONFIGURATION & PARAMETERS FOR DATA AUGMENTATION (4)
 # =========================================================
 TEST_SIZE = 0.15  # 15% holdout test set (identical to paper)
-N_ENSEMBLE_RUNS = 5  # 5 stochastic ensemble runs (averaged)
+N_ENSEMBLE_RUNS = 2 if PROFILE == 'quick' else 5  # stochastic ensemble runs (averaged)
 # Fixed architecture of the deployed screening model (base-estimator names of step 01), shared by steps 03 and 04.
 DEPLOYED_ARCHITECTURE = ('RF', 'XGB', 'SVM')
 PI_CV_FOLDS = 5  # folds of the out-of-fold permutation importance inside the development partition
