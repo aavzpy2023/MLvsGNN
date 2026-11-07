@@ -26,9 +26,11 @@
 			{\textbf{Outer split}\\$\OuterKFolds$ folds $\times\ \OuterRepeats$ repeats $=\ \TotalOuterFolds$ evaluations};
 
 			% ---- the two branches leave the split at the same level ----
-			\node[outerstep, below left=11mm and 4mm of split] (pool)
+			% Offset from the centre of the split, not from its corners: anchoring to the corners would leave a gap
+			% as wide as the split box itself between the two tracks.
+			\node[outerstep, below=11mm of split, xshift=-38mm] (pool)
 			{\textbf{Outer training pool}};
-			\node[testbox, below right=11mm and 4mm of split] (test)
+			\node[testbox, below=11mm of split, xshift=38mm] (test)
 			{\textbf{Outer test fold}\\\footnotesize held out from the whole left track};
 
 			% ---- left track: the inner loop ----
