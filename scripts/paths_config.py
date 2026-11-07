@@ -68,6 +68,8 @@ LATEX_SCAFFOLD_TABLE = os.path.join(LATEX_DIR, "scaffold_table.tex")
 LATEX_PAIRWISE_TABLE = os.path.join(LATEX_DIR, "pairwise_nb_table.tex")
 LATEX_SCAFFOLD_PAIRWISE_TABLE = os.path.join(LATEX_DIR, "scaffold_pairwise_table.tex")
 LATEX_STRONG_PAIRWISE_TABLE = os.path.join(LATEX_DIR, "strong_pairwise_table.tex")
+LATEX_SELECTION_TABLE = os.path.join(LATEX_DIR, "selection_table.tex")
+LATEX_YRANDOM_TABLE = os.path.join(LATEX_DIR, "yrandom_table.tex")
 
 # Figure files
 FIGURE_NESTED_CV = os.path.join(FIGURES_DIR, "r2_by_representation_boxplot.png")

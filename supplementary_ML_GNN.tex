@@ -74,32 +74,14 @@ analysis pipeline and read from the same files as the manuscript.
 	\centering
 	\caption{Composition of the stacking ensembles chosen by the inner loop, per representation. Each percentage is the share of the \TotalOuterFolds\ outer folds in which that base learner entered the selected ensemble; stability is the share taken by the single most frequent exact combination. RF, random forest; ET, extra trees; LGBM, LightGBM; XGB, XGBoost; SVM, support vector regression; kNN, $k$-nearest neighbors.}
 	\label{tab:selection}
-	\begin{tabular}{lcccccccc}
-		\toprule
-		\textbf{Representation} & RF & ET & LGBM & XGB & SVM & kNN & \textbf{Most frequent} & \textbf{Stability} \\
-		\midrule
-		Morgan & \SelMorganRFPct\% & \SelMorganETPct\% & \SelMorganLGBMPct\% & \SelMorganXGBPct\% & \SelMorganSVMPct\% & \SelMorgankNNPct\% & \MorganBestArchitecture & \MorganStability\% \\
-		RDKit 2D & \SelRdkitTwoDRFPct\% & \SelRdkitTwoDETPct\% & \SelRdkitTwoDLGBMPct\% & \SelRdkitTwoDXGBPct\% & \SelRdkitTwoDSVMPct\% & \SelRdkitTwoDkNNPct\% & \RdkitTwoDBestArchitecture & \RdkitTwoDStability\% \\
-		RDKit 2D+FP & \SelRdkitTwoDFpRFPct\% & \SelRdkitTwoDFpETPct\% & \SelRdkitTwoDFpLGBMPct\% & \SelRdkitTwoDFpXGBPct\% & \SelRdkitTwoDFpSVMPct\% & \SelRdkitTwoDFpkNNPct\% & \RdkitTwoDFpBestArchitecture & \RdkitTwoDFpStability\% \\
-		RDKit 2D+3D+FP & \SelRdkitTwoDThreeDFpRFPct\% & \SelRdkitTwoDThreeDFpETPct\% & \SelRdkitTwoDThreeDFpLGBMPct\% & \SelRdkitTwoDThreeDFpXGBPct\% & \SelRdkitTwoDThreeDFpSVMPct\% & \SelRdkitTwoDThreeDFpkNNPct\% & \RdkitTwoDThreeDFpBestArchitecture & \RdkitTwoDThreeDFpStability\% \\
-		\bottomrule
-	\end{tabular}
+	\scalebox{0.9}{\input{latex/selection_table.tex}}
 \end{table}
 
 \begin{table}[htbp]
 	\centering
 	\caption{The four y-randomization tests of R\"ucker et al., each with \YRandomNPermutations\ randomizations scored by \YRandomCVFolds-fold cross-validation. Scope ``architecture'' randomizes the stacking ensemble on all \ExpBNFeaturesTotal\ bits; scope ``procedure'' repeats the complete model-building procedure, including the out-of-fold permutation-importance selection that produces the deployed screening model, inside every randomization. The randomization is either a permutation of the response or a replacement of the descriptors by random ones. $Z$ is the distance from the real model to the mean of the randomized ones in units of their standard deviation; $p$ cannot fall below $1/(\YRandomNPermutations + 1)$.}
 	\label{tab:yrandom}
-	\begin{tabular}{llcccc}
-		\toprule
-		\textbf{Scope} & \textbf{Randomization} & $R^2$ (real) & $R^2$ (randomized) & $Z$ & $p$ \\
-		\midrule
-		Architecture & Response permuted & \YRandomTrueRTwo & $\YRandomMeanRTwo \pm \YRandomStdRTwo$ & \YRandomZScore & \YRandomPValue \\
-		Architecture & Random descriptors & \YRandomPseudoTrueRTwo & $\YRandomPseudoMeanRTwo \pm \YRandomPseudoStdRTwo$ & \YRandomPseudoZScore & \YRandomPseudoPValue \\
-		Procedure & Response permuted & \YRandomProcTrueRTwo & $\YRandomProcMeanRTwo \pm \YRandomProcStdRTwo$ & \YRandomProcZScore & \YRandomProcPValue \\
-		Procedure & Random descriptors & \YRandomProcPseudoTrueRTwo & $\YRandomProcPseudoMeanRTwo \pm \YRandomProcPseudoStdRTwo$ & \YRandomProcPseudoZScore & \YRandomProcPseudoPValue \\
-		\bottomrule
-	\end{tabular}
+	\input{latex/yrandom_table.tex}
 \end{table}
 
 \begin{table}[htbp]
@@ -155,7 +137,7 @@ analysis pipeline and read from the same files as the manuscript.
 	\centering
 	\caption{Predicted ADMET profile of the \AdmetNConsensus{} consensus hits and of the known inhibitors pyrimethamine and trimethoprim. Structures that appear under several entries are listed once. hERG prob. is the predicted probability of channel blockade (flag above \AdmetHergThresh) and Caco-2 $\log P_{app}$ the predicted permeability (oral if above \AdmetCacoThresh). The predictions come from random forests trained on public data whose accuracy was not evaluated here, and some of these compounds are in their training sets, so the profile is a coarse prioritization and not a safety assessment.}
 	\label{tab:admet}
-	\input{latex/admet_table.tex}
+	\scalebox{0.85}{\input{latex/admet_table.tex}}
 \end{table}
 
 \begin{figure}[htbp]
