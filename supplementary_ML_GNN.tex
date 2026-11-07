@@ -49,12 +49,7 @@ analysis pipeline and read from the same files as the manuscript.
 
 \section*{Benchmark detail}
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=\textwidth]{figures/S1_nested_cv_selection_full_heatmap.png}
-	\caption{Stacking ensemble selected by the inner loop in each of the \TotalOuterFolds\ outer folds, for each molecular representation. Cell values are the number of outer folds in which that exact combination of base learners (RF, random forest; ET, extra trees; LGBM, LightGBM; XGB, XGBoost; SVM, support vector regression; kNN, $k$-nearest neighbors) was chosen. No combination was chosen consistently, which shows that the inner search does not converge on a single architecture.}
-	\label{fig:selection_heatmap}
-\end{figure}
+\clearpage
 
 \begin{figure}[htbp]
 	\centering
@@ -64,11 +59,36 @@ analysis pipeline and read from the same files as the manuscript.
 \end{figure}
 
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=\textwidth]{figures/S1_nested_cv_selection_full_heatmap.png}
+	\caption{Stacking ensemble selected by the inner loop in each of the \TotalOuterFolds\ outer folds, for each molecular representation. Cell values are the number of outer folds in which that exact combination of base learners (RF, random forest; ET, extra trees; LGBM, LightGBM; XGB, XGBoost; SVM, support vector regression; kNN, $k$-nearest neighbors) was chosen. No combination was chosen consistently, which shows that the inner search does not converge on a single architecture.}
+	\label{fig:selection_heatmap}
+\end{figure}
+
+\begin{table}[htbp]
+	\centering
+	\caption{Coefficient of determination of every rung of the leakage ladder, seed by seed. R0 is the published
+		protocol, scored on the evaluation partition its own code builds; R1 to R4 remove one leak each and are scored
+		on the \KarLadderNCommonTest{} molecules common to all of them, and Clean is a reference model with no feature
+		selection. The columns show that the removal of the first three leaks lowers the score in every one of the
+		\KarReproNSeeds{} seeds, while the removal of duplicate structures does not.}
+	\label{tab:ladder_seeds}
+	\input{latex/leakage_ladder_seeds_table.tex}
+\end{table}
+
 \begin{table}[htbp]
 	\centering
 	\caption{Every pairwise comparison between the four molecular representations over the \TotalOuterFolds\ shared outer folds, in both metrics. Differences are A minus B, the interval is the 90\% confidence interval used by the equivalence test, $p$ is the Nadeau--Bengio corrected paired $t$-test, $p_{\mathrm{Holm}}$ its step-down adjustment within the six comparisons of each metric, and $p_{\mathrm{equiv}}$ the two one-sided tests against the $\pm \EquivMarginRTwo$ margin.}
 	\label{tab:pairwise}
 	\resizebox{\textwidth}{!}{\input{latex/pairwise_nb_table.tex}}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{The four y-randomization tests of R\"ucker et al., each with \YRandomNPermutations\ randomizations scored by \YRandomCVFolds-fold cross-validation. Scope ``architecture'' randomizes the stacking ensemble on all \ExpBNFeaturesTotal\ bits; scope ``procedure'' repeats the complete model-building procedure, including the out-of-fold permutation-importance selection that produces the deployed screening model, inside every randomization. The randomization is either a permutation of the response or a replacement of the descriptors by random ones. $Z$ is the distance from the real model to the mean of the randomized ones in units of their standard deviation; $p$ cannot fall below $1/(\YRandomNPermutations + 1)$.}
+	\label{tab:yrandom}
+	\input{latex/yrandom_table.tex}
 \end{table}
 
 \begin{table}[htbp]
@@ -80,9 +100,12 @@ analysis pipeline and read from the same files as the manuscript.
 
 \begin{table}[htbp]
 	\centering
-	\caption{The four y-randomization tests of R\"ucker et al., each with \YRandomNPermutations\ randomizations scored by \YRandomCVFolds-fold cross-validation. Scope ``architecture'' randomizes the stacking ensemble on all \ExpBNFeaturesTotal\ bits; scope ``procedure'' repeats the complete model-building procedure, including the out-of-fold permutation-importance selection that produces the deployed screening model, inside every randomization. The randomization is either a permutation of the response or a replacement of the descriptors by random ones. $Z$ is the distance from the real model to the mean of the randomized ones in units of their standard deviation; $p$ cannot fall below $1/(\YRandomNPermutations + 1)$.}
-	\label{tab:yrandom}
-	\input{latex/yrandom_table.tex}
+	\caption{Configuration of the D-MPNN selected by the nested search in each outer fold, with the inner
+		root-mean-square error of that configuration and of the default one, and the score the refit model obtained on
+		the held-out fold. It is the counterpart, for the network, of the stacking compositions in
+		Table~\ref{tab:selection}, and shows that the search did not settle on one configuration.}
+	\label{tab:gnn_tuned_config}
+	\input{latex/gnn_tuned_config_table.tex}
 \end{table}
 
 \begin{table}[htbp]
@@ -98,22 +121,10 @@ analysis pipeline and read from the same files as the manuscript.
 
 \begin{table}[htbp]
 	\centering
-	\caption{Configuration of the D-MPNN selected by the nested search in each outer fold, with the inner
-		root-mean-square error of that configuration and of the default one, and the score the refit model obtained on
-		the held-out fold. It is the counterpart, for the network, of the stacking compositions in
-		Table~\ref{tab:selection}, and shows that the search did not settle on one configuration.}
-	\label{tab:gnn_tuned_config}
-	\input{latex/gnn_tuned_config_table.tex}
-\end{table}
-
-\begin{table}[htbp]
-	\centering
 	\caption{Each additional neural model against each classical representation over the \TotalOuterFolds\ shared outer folds. Differences are the neural model minus the representation, so a negative value in $R^2$ means the neural model scored lower. $p_{\mathrm{Holm}}$ is adjusted within the four representations of each model and metric.}
 	\label{tab:strong_pairwise}
 	\resizebox{\textwidth}{!}{\input{latex/strong_pairwise_table.tex}}
 \end{table}
-
-\clearpage
 
 \begin{table}[htbp]
 	\centering
@@ -122,16 +133,6 @@ analysis pipeline and read from the same files as the manuscript.
 	\resizebox{\textwidth}{!}{\input{latex/scaffold_pairwise_table.tex}}
 \end{table}
 
-\begin{table}[htbp]
-	\centering
-	\caption{Coefficient of determination of every rung of the leakage ladder, seed by seed. R0 is the published
-		protocol, scored on the evaluation partition its own code builds; R1 to R4 remove one leak each and are scored
-		on the \KarLadderNCommonTest{} molecules common to all of them, and Clean is a reference model with no feature
-		selection. The columns show that the removal of the first three leaks lowers the score in every one of the
-		\KarReproNSeeds{} seeds, while the removal of duplicate structures does not.}
-	\label{tab:ladder_seeds}
-	\input{latex/leakage_ladder_seeds_table.tex}
-\end{table}
 
 \clearpage
 \section*{Virtual screening and molecular docking}
