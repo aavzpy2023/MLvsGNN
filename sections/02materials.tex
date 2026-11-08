@@ -150,9 +150,19 @@ the \OuterRepeats\ repeats, groups were visited in random order and each was ass
 \OuterKFolds\ folds, so that no scaffold appears on both sides of an outer split. Everything else was identical to the
 random-split protocol, and both model families again shared the same folds.
 
+That rule balances the size of the folds but not the response, and the resulting folds show it: across the
+\TotalOuterFolds\ scaffold folds the number of test compounds ranges from \ScaffoldFoldSizeMin\ to
+\ScaffoldFoldSizeMax, while their mean $pIC_{50}$ ranges from \ScaffoldFoldPICMeanMin\ to \ScaffoldFoldPICMeanMax, a
+spread of about one log unit. Stratifying the folds by the response would narrow that spread, but it would also use the
+variable being predicted to build the partition, which is the coupling this study sets out to avoid, and it would
+weaken the purpose of the design: a model facing an unfamiliar scaffold in practice also faces whatever potency range
+that scaffold happens to occupy. The heterogeneity is therefore reported rather than removed, and the drop in
+performance under these folds is to be read as including it.
+
 The inner loop selected the architecture and, at the same time, confined every data-dependent transformation to the
 partition it was fitted on. Within each outer training pool it evaluated all \NArchitectureCombos\ single, pairwise and
-three-way combinations of six regressor families (Random Forest, Extra Trees, LightGBM, XGBoost, SVR with an RBF kernel
+three-way combinations of six regressor families ($\binom{6}{1} + \binom{6}{2} + \binom{6}{3} = 6 + 15 + 20$;
+combinations of four or more members were not considered, so that the search stays affordable inside every fold) (Random Forest, Extra Trees, LightGBM, XGBoost, SVR with an RBF kernel
 and $C = 10$, and $k$-nearest neighbours with $k = 5$ and cosine distance; the tree ensembles used 200 trees) and kept
 the combination with the highest mean inner-fold $R^2$. All hyperparameters were fixed in advance, so the inner loop
 selects among architectures only; multi-model combinations were combined by a \texttt{StackingRegressor} with a
@@ -164,7 +174,12 @@ for the final fit, then applied to the held-out data without re-estimation \cite
 descriptor spaces that pipeline chained median imputation, \texttt{StandardScaler} and \texttt{SelectFromModel} keeping
 every descriptor with a strictly positive Random Forest importance; the binary Morgan space was passed to the
 regressors unchanged. The selected combination was refit on the whole outer training pool and scored once on the
-held-out outer fold, with predictions clipped to the training range extended by 3 $pIC_{50}$ units as a safeguard.
+held-out outer fold. Predictions were clipped to the range of the training responses extended by 3 $pIC_{50}$ units in
+either direction. The safeguard exists because a descriptor far outside the training range can pass through a
+power transform and produce a prediction of implausible magnitude, which a mean squared error reports as a collapse of
+the model; it binds only in that situation, and the bound is wide enough that an ordinary prediction never reaches it.
+Across the \TotalOuterFolds\ outer folds of the four representations, \NClippedPredictions\ predictions were clipped,
+so no result reported for the classical models depends on the safeguard.
 
 Repeated cross-validation violates the independence assumption of standard parametric tests, because its training sets
 overlap across iterations. Every comparison between models was therefore made on the shared outer folds with the
@@ -173,9 +188,16 @@ $J = \TotalOuterFolds$ outer folds from $\hat{\sigma}^2/J$ to $(1/J + n_{test}/n
 $n_{test}/n_{train} = 1/4$ for the \OuterKFolds-fold outer loop; $p$ values within each family of comparisons were then
 adjusted by Holm's step-down procedure \citep{holm1979}. Because a non-significant difference is not evidence that two
 models perform alike, each comparison was additionally submitted to two one-sided tests \citep{schuirmann1987} against
-an equivalence margin of $\pm 0.05$ in $R^2$ and in MAE, equivalence being declared only when the 90\% confidence
-interval of the difference lies entirely inside that margin. The margin is our own choice, as the literature offers no
-standard value for it, and a wider one would make equivalence easier to declare. Confidence intervals for the hold-out
+an equivalence margin, equivalence being declared only when the 90\% confidence interval of the difference lies
+entirely inside it. The two margins happen to coincide numerically at $\pm \EquivMarginRTwo$, but they are not the same
+quantity and were set for different reasons. For $R^2$, $\EquivMarginRTwo$ is about a quarter of the spread between the
+best and the worst representation of this benchmark, so a difference below it cannot change which representation one
+would deploy. For MAE it is $\EquivMarginRTwo$ $pIC_{50}$ units, roughly a tenth of the experimental spread of the
+target and well inside the variation between assays that the curation of Section~\ref{sec:materials_curation} tolerates,
+so a difference below it is smaller than the noise of the measurements being predicted. Neither margin comes from a
+standard, because the literature offers none, and neither was fixed before the data were seen: both were chosen while
+analyzing them, and a wider margin would make equivalence easier to declare. Every confidence interval needed to
+re-read these comparisons against a different margin is reported with them. Confidence intervals for the hold-out
 ablation of Section~\ref{sec:res_classical} come instead from 2000 percentile bootstrap resamples of the held-out
 molecules \citep{efron1993}; the resampled indices depend only on the seed, so the same molecules are drawn for every
 model and the differences are paired.
