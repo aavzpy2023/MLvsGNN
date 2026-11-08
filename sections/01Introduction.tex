@@ -116,13 +116,10 @@ attributed incorrectly to model architecture \citep{rojas2026}.
 
 This study asks whether, on one small and well-characterized bioactivity set (\NCompounds\ TgDHFR inhibitors), graph
 networks, 3D descriptors, feature selection and data augmentation improve on classical ensembles trained on
-fingerprints once the evaluation is free of leakage. We do not assume the answer; the evaluation is designed so that
-either outcome would be detectable. Every model is scored on the same $\OuterKFolds \times \OuterRepeats$ repeated
-nested cross-validation folds, with each preprocessing and selection step fitted inside the training partitions, and
-every comparison is made with the Nadeau--Bengio corrected $t$-test under Holm adjustment and with an equivalence test
-against a pre-specified margin, so that ``no significant difference'' is distinguished from ``demonstrated
-equivalence''. The conclusions are checked under scaffold-grouped splits, with the extreme-potency records retained,
-and against four forms of y-randomization. On that basis we contribute:
+fingerprints once the evaluation is free of leakage. We do not assume the answer: every model is scored on the same
+leakage-free outer folds, and the comparison is designed so that either outcome would be detectable. The conclusions
+are then checked against chance correlation, scaffold-grouped splits and the curation decision. On that basis we
+contribute:
 
 \begin{itemize}
 	\item \textbf{A quantitative audit of four leakage mechanisms.} Four ways in which information about the test molecules reaches a
@@ -136,11 +133,11 @@ and against four forms of y-randomization. On that basis we contribute:
 	the gain measures the leak and not the intervention.
 
 	\item \textbf{A leakage-free comparison with equivalence testing.} Four representation spaces are compared against
-	seven neural models---a Chemprop D-MPNN with default and with searched hyperparameters, a seed ensemble, a
-	descriptor-augmented network, a feed-forward network on the same fingerprints, a pretrained foundation model, and
-	the original architecture rebuilt without its leaks---on identical folds and with their measured computational
-	cost. A pretrained model is the only network that reaches equivalence with the fingerprint ensemble.
+	seven neural models, from a default Chemprop D-MPNN to a pretrained foundation model and the original architecture
+	rebuilt without its leaks, on identical folds and with their measured computational cost. A pretrained model is the
+	only network that reaches equivalence with the fingerprint ensemble.
 \end{itemize}
 
 The final model is also applied to a library of approved drugs, which locates the candidates it ranks highest with
-respect to its applicability domain. Those are computational hypotheses and are reported as such.
+respect to its applicability domain. Those candidates are computational hypotheses, and the study as a whole is a
+target-specific methodological benchmark rather than evidence that one model family is universally superior.
