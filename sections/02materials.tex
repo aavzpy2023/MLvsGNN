@@ -11,18 +11,53 @@ virtual-screening application.
 \subsection{Bioactivity Benchmark Dataset and Curation}
 \label{sec:materials_curation}
 
-This study utilizes a previously published benchmark of \textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR) enzyme inhibitors \citep{karimova2025}. Adopting the baseline dataset compiled by Karimova and Senanayake establishes a rigorous methodological control. This framework isolates the predictive capacity of classical machine learning algorithms from computationally heavy statistical interventions. Omitting synthetic data augmentation during the primary benchmarking phase ensures that performance metrics reflect empirical ground-truth data rather than algorithmic artifacts.
+This study uses the published benchmark of \textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR) inhibitors
+compiled by Karimova and Senanayake \citep{karimova2025}, taken as released, after their curation. Working on their
+data rather than on a set of our own keeps the comparison with their results on one protocol and one object, so that a
+difference in score cannot be attributed to a difference in curation. The primary benchmark uses no synthetic
+augmentation, which leaves the measured performance attributable to the algorithms and to the empirical measurements
+alone.
 
-Initial records merged drug-protein interaction parameters and SMILES structures from BindingDB with bioactivity data from ChEMBL \citep{karimova2025}. Automated standardization protocols, including salt stripping and structural validation, ensured chemical integrity \citep{damilola2025}. The merged table contained \DataNRaw\ curated records. Extreme potency values were screened with Tukey's rule on their $pIC_{50}$ distribution (fences at Q1 $-$ 1.5\,IQR $= \OutlierFenceLow$ and Q3 $+$ 1.5\,IQR $= \OutlierFenceHigh$). \DataNOutliers\ records fell outside the fences: a classical antifolate analogue at $pIC_{50} = \OutlierHighPIC$ (high fence) and a practically inactive compound at $pIC_{50} = \OutlierLowPIC$ (low fence). They were excluded from the primary analysis, which leaves \DataNAfterOutliers\ entries, the size reported in the original study \citep{karimova2025}. Because an exclusion of this kind can itself shape the reported performance, the full benchmark was also run with these two records retained (Section~\ref{sec:outlier_sensitivity}).
+The curation inherited from the original study merged drug--protein interaction parameters and SMILES structures from
+BindingDB with bioactivity data from ChEMBL, standardized the structures by salt stripping and structural validation,
+and resolved compounds measured more than once: assays whose bioactivity varied by more than 1.5 log units were
+discarded by the interquartile-range rule and the remaining values averaged into one measurement per ligand
+\citep{karimova2025}. None of those steps was repeated here. The released table, file
+\texttt{1-Training\_Database/V2-combined\_bd\_chmbl\_unique.csv} of the authors' repository, contains \DataNRaw\
+records, and the copy used here is identical to it.
 
+Two decisions were taken on top of it, and both are ours. The first is an exclusion rule for extreme potencies,
+specified before any model was fitted: Tukey's rule on the $pIC_{50}$ distribution (fences at Q1 $-$ 1.5\,IQR $=
+\OutlierFenceLow$ and Q3 $+$ 1.5\,IQR $= \OutlierFenceHigh$) places \DataNOutliers\ records outside the fences, a
+classical antifolate analogue at $pIC_{50} = \OutlierHighPIC$ and a practically inactive compound at $pIC_{50} =
+\OutlierLowPIC$, which leaves \DataNAfterOutliers\ entries. Because an exclusion of this kind can itself shape the
+reported performance, every conclusion of this study was also re-derived in a separate execution of the complete
+benchmark that keeps the two records (Section~\ref{sec:outlier_sensitivity}).
 
-For compounds exhibiting multiple $IC_{50}$ measurements across varying experimental conditions, we applied the Interquartile Range (IQR) method, as in the original study. Duplicate assays with a bioactivity variance exceeding 1.5 log units were discarded as statistical outliers \citep{karimova2025}. The remaining consistent entries were averaged to yield a single representative measurement per ligand. 
+The second decision is structural deduplication, which the Organization for Economic Co-operation and Development
+(OECD) principles for QSAR validation require \citep{tropsha2010, cherkasov2014, iwuala2025} and without which the
+same molecule can train and test a model. All SMILES were canonicalized with RDKit, and the \DataNAfterOutliers\
+entries turned out to describe only \DataNMain\ distinct structures: \DataNDuplicatesRemoved\ molecules appeared twice
+under different PubChem CIDs, and the second occurrence of each was removed. The measured $pIC_{50}$ values within
+each pair differed by at most \DataDuplicateMaxSpread\ units, so the target distribution is practically unchanged. The
+removed records are listed in \texttt{data/V2-combined\_bd\_chmbl\_unique\_duplicates.csv}.
 
-To adhere to the Organization for Economic Co-operation and Development (OECD) principles for QSAR validation \citep{tropsha2010, cherkasov2014, iwuala2025} and to keep the same structure out of both training and test folds, all SMILES were then canonicalized with RDKit. The \DataNAfterOutliers\ entries turned out to describe only \DataNMain\ distinct structures: \DataNDuplicatesRemoved\ molecules appeared twice under different PubChem CIDs, and the second occurrence of each was removed (the first was retained). The measured $pIC_{50}$ values within each pair differed by at most \DataDuplicateMaxSpread\ units, so the target distribution is practically unchanged. The removed records are listed in \texttt{data/V2-combined\_bd\_chmbl\_unique\_duplicates.csv}.
+Two benchmarks follow from those decisions and are kept distinct throughout. The \emph{primary benchmark} comprises
+the $\OutlierNMain$ unique structures that remain once the two extreme-potency records are excluded, and carries every
+result reported below unless stated otherwise. The \emph{sensitivity benchmark} comprises the $\OutlierNSens$ unique
+structures obtained when those two records are retained, and is used in Section~\ref{sec:outlier_sensitivity} alone.
+The target is $pIC_{50}$ ($-\log_{10}(IC_{50})$) \citep{karimova2025}; the logarithmic transformation places potency
+measurements on the conventional and more numerically tractable scale for regression.
 
-This curation protocol yielded a final benchmark of $\NCompounds$ unique small molecules. The continuous target variable was transformed into $pIC_{50}$ ($-\log_{10}(IC_{50})$) \citep{karimova2025}. This logarithmic conversion standardizes response values and compresses the active range, optimizing the target distribution for robust regression modeling.
+% ==========================================
+% 2. SECTION 2.2 (classical replication of the published interventions)
+% ==========================================
 
-To explicitly quantify the performance impact of the interventions reported in the original literature, we replicated its hold-out protocol in an isolated ablation study. A 15\% hold-out partition was separated first (seed 42), and everything below was learned from the development partition only. The baseline (A) is the stacking ensemble on all \MorganNFeaturesTotal\ Morgan bits. The feature-selection variant (B) computes the permutation importance of every bit on the development partition (5 repeats, negative mean squared error) and keeps the bits whose mean importance is positive beyond floating-point noise (greater than $10^{-9}$), because bits that the model never uses have an importance that is zero up to rounding error. The augmentation variant (C) adds, to the selected features, perturbation of the training features via additive Gaussian noise: applying the two noise levels of the published code ($\sigma = 0.01$ and $\sigma = 0.001$, which that code introduces as a factor to be adjusted to the scale of the data and does not otherwise justify) generated two synthetic variants per original molecule, which effectively triplicated the training space (to \ExpCAugSizeTrain\ rows) while maintaining absolute isolation of the empirical test set. Each variant is the average of five stacking ensembles that differ in the seed of their tree models.
+\subsection{Classical Replication of the Published Interventions}
+\label{sec:materials_replication}
+
+To quantify what the interventions reported in the original study contribute, its hold-out protocol was replicated in
+an isolated ablation. A 15\% hold-out partition was separated first (seed 42), and everything below was learned from the development partition only. The baseline (A) is the stacking ensemble on all \MorganNFeaturesTotal\ Morgan bits. The feature-selection variant (B) computes the permutation importance of every bit on the development partition (5 repeats, negative mean squared error) and keeps the bits whose mean importance is positive beyond floating-point noise (greater than $10^{-9}$), because bits that the model never uses have an importance that is zero up to rounding error. The augmentation variant (C) adds, to the selected features, perturbation of the training features via additive Gaussian noise: applying the two noise levels of the published code ($\sigma = 0.01$ and $\sigma = 0.001$, which that code introduces as a factor to be adjusted to the scale of the data and does not otherwise justify) generated two synthetic variants per original molecule, which triplicated the training space (to \ExpCAugSizeTrain\ rows) with the held-out molecules left untouched. Each variant is the average of five stacking ensembles that differ in the seed of their tree models.
 
 The leak that the original selection contains was also measured on this classical replication, where it needs no deep
 network. Variant B computes its permutation importance on the development partition alone. A second version of it,
@@ -31,7 +66,7 @@ scored on the same held-out molecules, and the two sets of selected bits were co
 C was treated in the same way.
 
 % ==========================================
-% 2. SECTION 2.2 (audit of the original pipeline)
+% 2. SECTION 2.3 (audit of the original pipeline)
 % ==========================================
 
 \subsection{Audit of the Original Pipeline}
@@ -55,7 +90,7 @@ published protocol builds its own evaluation partition and is therefore not pair
 feature selection of any kind was fitted on the same clean split.
 
 % ==========================================
-% 2. SECTION 2.3
+% 2. SECTION 2.4
 % ==========================================
 
 \subsection{Representation Spaces: Molecular Fingerprints and Conformational Descriptors}
@@ -70,7 +105,7 @@ Although integrating spatial information remains critical for molecular image-ba
 
 
 % ==========================================
-% 2. SECTION 2.4
+% 2. SECTION 2.5
 % ==========================================
 \subsection{Nested Cross-Validation Protocol and Variance Correction}
 \label{sec:materials_ncv}
@@ -161,7 +196,7 @@ in this study.
 
 
 % ==========================================
-% 2. SECTION 2.6
+% 2. SECTION 2.7
 % ==========================================
 \subsection{Application: Screening within the Applicability Domain}
 \label{sec:materials_screening}
