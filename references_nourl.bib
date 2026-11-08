@@ -1101,7 +1101,6 @@ ss
   abstract = {Motivation: In life sciences, interpretability of machine learning models is as important as their prediction accuracy. Linear models are probably the most frequently used methods for assessing feature relevance, despite their relative inflexibility. However, in the past years effective estimators of feature relevance have been derived for highly complex or non-parametric models such as support vector machines and RandomForest (RF) models. Recently, it has been observed that RF models are biased in such a way that categorical variables with a large number of categories are preferred.Results: In this work, we introduce a heuristic for normalizing feature importance measures that can correct the feature importance bias. The method is based on repeated permutations of the outcome vector for estimating the distribution of measured importance for each variable in a non-informative setting. The P-value of the observed importance provides a corrected measure of feature importance. We apply our method to simulated data and demonstrate that (i) non-informative predictors do not receive significant P-values, (ii) informative variables can successfully be recovered among non-informative variables and (iii) P-values computed with permutation importance (PIMP) are very helpful for deciding the significance of variables, and therefore improve model interpretability. Furthermore, PIMP was used to correct RF-based importance measures for two real-world case studies. We propose an improved RF model that uses the significant variables with respect to the PIMP measure and show that its prediction accuracy is superior to that of other existing models.Availability: R code for the method presented in this article is available at http://www.mpi-inf.mpg.de/∼altmann/download/PIMP.RContact:  altmann@mpi-inf.mpg.de, laura.tolosi@mpi-inf.mpg.deSupplementary information:  Supplementary data are available at Bioinformatics online.},
   issn     = {1367-4803},
   doi      = {10.1093/bioinformatics/btq134},
-  url      = {https://doi.org/10.1093/bioinformatics/btq134},
   eprint   = {https://academic.oup.com/bioinformatics/article-pdf/26/10/1340/48851160/bioinformatics_26_10_1340.pdf}
 }
 
@@ -1130,7 +1129,6 @@ ss
               structure on a given QSAR model, given the training set from which the model was derived. },
   issn     = {0095-2338},
   doi      = {10.1021/ci049782w},
-  url      = {https://doi.org/10.1021/ci049782w},
   eprint   = {https://pubs.acs.org/jcisd8/article-pdf/44/6/1912/38796364/ci049782w.pdf}
 }
 
@@ -1143,7 +1141,6 @@ ss
   pages    = {476-488},
   keywords = {QSAR modeling, Model validation, Virtual screening, Drug discovery},
   doi      = {https://doi.org/10.1002/minf.201000061},
-  url      = {https://onlinelibrary.wiley.com/doi/abs/10.1002/minf.201000061},
   eprint   = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/minf.201000061},
   abstract = {Abstract After nearly five decades “in the making”, QSAR modeling has established itself as one of the major computational molecular modeling methodologies. As any mature research discipline, QSAR modeling can be characterized by a collection of well defined protocols and procedures that enable the expert application of the method for exploring and exploiting ever growing collections of biologically active chemical compounds. This review examines most critical QSAR modeling routines that we regard as best practices in the field. We discuss these procedures in the context of integrative predictive QSAR modeling workflow that is focused on achieving models of the highest statistical rigor and external predictive power. Specific elements of the workflow consist of data preparation including chemical structure (and when possible, associated biological data) curation, outlier detection, dataset balancing, and model validation. We especially emphasize procedures used to validate models, both internally and externally, as well as the need to define model applicability domains that should be used when models are employed for the prediction of external compounds or compound libraries. Finally, we present several examples of successful applications of QSAR models for virtual screening to identify experimentally confirmed hits.},
   year     = {2010}
@@ -1157,7 +1154,6 @@ ss
   year     = {2012},
   number   = {5},
   pages    = {4791--4810},
-  url      = {https://www.mdpi.com/1420-3049/17/5/4791},
   pubmedid = {22534664},
   issn     = {1420-3049},
   abstract = {One of the OECD principles for model validation requires defining the Applicability Domain (AD) for the QSAR models. This is important since the reliable predictions are generally limited to query chemicals structurally similar to the training compounds used to build the model. Therefore, characterization of interpolation space is significant in defining the AD and in this study some existing descriptor-based approaches performing this task are discussed and compared by implementing them on existing validated datasets from the literature. Algorithms adopted by different approaches allow defining the interpolation space in several ways, while defined thresholds contribute significantly to the extrapolations. For each dataset and approach implemented for this study, the comparison analysis was carried out by considering the model statistics and relative position of test set with respect to the training space.},
@@ -1431,32 +1427,32 @@ ss
 
 
 @article{burns2025,
-  author   = {Burns, Jackson W. and Zalte, Akshat Shirish and Abreu, Charlles R. A. and Sieg, Jochen and Feldmann, Christian and Mathea, Miriam and Green, William H.},
-  title    = {Deep Learning Foundation Models from Classical Molecular Descriptors},
-  journal  = {arXiv preprint arXiv:2506.15792},
-  year     = {2025},
-  doi      = {10.48550/arXiv.2506.15792},
+  author  = {Burns, Jackson W. and Zalte, Akshat Shirish and Abreu, Charlles R. A. and Sieg, Jochen and Feldmann, Christian and Mathea, Miriam and Green, William H.},
+  title   = {Deep Learning Foundation Models from Classical Molecular Descriptors},
+  journal = {arXiv preprint arXiv:2506.15792},
+  year    = {2025},
+  doi     = {10.48550/arXiv.2506.15792}
 }
 
 @article{heberger2023,
-  author   = {H{\'e}berger, K{\'a}roly},
-  title    = {Selection of optimal validation methods for quantitative structure-activity relationships and applicability domain},
-  journal  = {SAR and QSAR in Environmental Research},
-  volume   = {34},
-  number   = {5},
-  pages    = {415--434},
-  year     = {2023},
-  doi      = {10.1080/1062936X.2023.2214871},
+  author  = {H{\'e}berger, K{\'a}roly},
+  title   = {Selection of optimal validation methods for quantitative structure-activity relationships and applicability domain},
+  journal = {SAR and QSAR in Environmental Research},
+  volume  = {34},
+  number  = {5},
+  pages   = {415--434},
+  year    = {2023},
+  doi     = {10.1080/1062936X.2023.2214871}
 }
 
 @article{cheng1973,
-  title    = {Relationship between the inhibition constant ($K_1$) and the concentration of inhibitor which causes 50 per cent inhibition ($I_{50}$) of an enzymatic reaction},
-  journal  = {Biochemical Pharmacology},
-  volume   = {22},
-  number   = {23},
-  pages    = {3099-3108},
-  year     = {1973},
-  issn     = {0006-2952},
-  doi      = {10.1016/0006-2952(73)90196-2},
-  author   = {Yung-Chi Cheng and William H. Prusoff}
+  title   = {Relationship between the inhibition constant ($K_1$) and the concentration of inhibitor which causes 50 per cent inhibition ($I_{50}$) of an enzymatic reaction},
+  journal = {Biochemical Pharmacology},
+  volume  = {22},
+  number  = {23},
+  pages   = {3099-3108},
+  year    = {1973},
+  issn    = {0006-2952},
+  doi     = {10.1016/0006-2952(73)90196-2},
+  author  = {Yung-Chi Cheng and William H. Prusoff}
 }

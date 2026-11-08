@@ -1,24 +1,24 @@
-% The abstract text only. Each template wraps it: an environment for the article and Elsevier layouts, the
-% \abstract command for Springer, whose class typesets the environment immediately and so before the title.
-Small bioactivity data sets make it easy to overstate the benefit of complex models, through data leakage and
-	through model selection that is rarely evaluated on unseen data. We re-examined both for inhibitors of
-	\textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR, $N = \NCompounds$ curated compounds). Removing the
-	information leaks of the original study's code one at a time lowered its $R^2$ from
-	\KarLadderRungZeroRTwoMean\ to \KarLadderRungFourRTwoMean, the level of a model with no feature selection; the
-	largest contribution was a feature importance computed on the test molecules. The same leak on a classical
-	learner reproduced the reported gain (\ExpBleakyRTwoMean\ against \ExpBRTwoMean\ when kept clean).
+% The abstract text only, with no environment of its own. Some classes want it wrapped in an environment and
+% others in a command, and a class that typesets the environment where it stands would put the abstract before
+% the title, so the choice belongs to the template.
+Small bioactivity data sets invite optimistic results: test molecules leak into training, and the model that
+	reports the score is the one chosen on it. We re-examined both on \NCompounds\ curated inhibitors of
+	\textit{Toxoplasma gondii} dihydrofolate reductase (TgDHFR). Removing the leaks from the original study's code
+	one at a time lowered its $R^2$ from \KarLadderRungZeroRTwoMean\ to \KarLadderRungFourRTwoMean, the level of a
+	model with no feature selection; the largest was a feature importance computed on the test molecules. The same
+	leak applied to a classical learner reproduced the reported gain, so the gain came from the protocol and not
+	from the method.
 
-	Leakage-free, four classical representations and seven neural models were scored on the same
+	Free of leakage, four classical representations and seven neural models were scored on the same
 	\TotalOuterFolds\ outer folds of a repeated nested cross-validation. Morgan-fingerprint ensembles reached $R^2 =
 	\MorganRTwoMean \pm \MorganRTwoStd$, and ten 3D shape descriptors added to the best descriptor set changed
-	nothing ($\Delta R^2 = \NBdiffRTwoTwoDFpVsTwoDThreeDFp$). A Directed Message Passing Neural Network reached
-	\ChemPropDMPNNFoldRTwoMean\ by default and \GnnTunedRTwoMean\ after a nested search, below the fingerprint
-	ensembles by a margin that cleared multiple-comparison correction only narrowly (smallest adjusted $p =
-	\GnnTunedVsMinPRTwo$). Only a network initialized from a pretrained foundation model matched them
-	(\ChemeleonRTwoMean, equivalent in both metrics), at eight times the cost; none exceeded them. Scaffold-grouped
-	splits cost every model between \ScaffoldDropMin\ and \ScaffoldDropMax\ units of $R^2$.
+	nothing. A Directed Message Passing Neural Network reached \ChemPropDMPNNFoldRTwoMean\ by default and
+	\GnnTunedRTwoMean\ after a nested search, below the fingerprint ensembles, though only narrowly after
+	multiple-comparison correction. Only a network initialized from a pretrained foundation model caught up
+	(\ChemeleonRTwoMean, equivalent in $R^2$ and MAE), at eight times the cost; none exceeded it. Holding whole
+	scaffolds out cost every model between \ScaffoldDropMin\ and \ScaffoldDropMax\ units of $R^2$.
 
-	On an FDA-approved library the deployed model placed only \ScreenNDomain\ of \ScreenNStructural\ scored compounds
-	inside its applicability domain (median similarity \ScreenADFdaMedian\ against \ScreenADTrainMedian\ internally),
-	so the compounds it ranks highest are hypotheses rather than leads. For this target a fixed-fingerprint ensemble was sufficient; we make no claim
-	beyond it.
+	On an FDA-approved library the deployed model placed only \ScreenNDomain\ of \ScreenNStructural\ scored
+	compounds inside its applicability domain, so its top-ranked compounds are hypotheses, not leads. On this
+	target, keeping the evaluation clean mattered more than making the model complex, and a fixed fingerprint
+	ensemble was enough. We claim no more than that: one target, one protocol.

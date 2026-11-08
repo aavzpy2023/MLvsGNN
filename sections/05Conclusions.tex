@@ -9,11 +9,3 @@ Second, nested cross-validation and a careful curation of the data (removal of d
 Third, combining ML prediction with docking produced a short, reproducible list of hypotheses and not validated leads. Only \ScreenNDomain{} of the \ScreenNStructural{} scored compounds fell inside the model's applicability domain, the agreement between predicted potency and docking energy was weak ($\rho = \DockSpearmanRho$, $p = \DockSpearmanP$), and the compounds leading the ranking by potency are antifolates that also inhibit the human enzyme, whose selectivity was not assessed.
 
 Future work should therefore (i) dock the consensus hits against human DHFR and test them in enzymatic assays against TgDHFR, (ii) evaluate temporal splits, (iii) compare against larger searches and pretrained graph models, and (iv) apply the pipeline to other targets before claiming that it generalizes.
-
-\section*{Data and Code Availability}
-
-All source code, Python scripts for dataset processing, nested cross-validation, model training, and docking validation protocols, as well as the benchmark datasets, are publicly available in the GitHub repository at the following \href{https://github.com/aavzpy2023/MLvsGNN}{\underline{link}}
-
-\section*{Declaration of Generative AI's use}
-
-During the preparation of this work, the author(s) utilized generative artificial intelligence technologies (Large Language Models) solely to assist with language polishing, structural formatting, and improving the overall readability of the manuscript. After using these tools, the author(s) thoroughly reviewed, edited, and validated all generated text. The author(s) take full and sole responsibility for the final content, scientific integrity, and accuracy of this publication. No AI technologies were used to generate data, perform statistical analyses, or draw scientific conclusions.
