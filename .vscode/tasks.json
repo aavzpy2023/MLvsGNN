@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            // The only way the documents are built: it drives latexmk so .latexmkrc applies, keeps the auxiliary
+            // files in build/, and reports the error and unresolved-reference counts per document.
+            "label": "build the manuscript",
+            "type": "shell",
+            "command": "bash ./build.sh",
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": []
+        },
+        {
+            "label": "check the manuscript against the pipeline",
+            "type": "shell",
+            "command": "python scripts/11_check_manuscript.py",
+            "problemMatcher": []
+        }
+    ]
+}

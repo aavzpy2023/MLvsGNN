@@ -73,7 +73,9 @@ pip-delete-this-directory.txt
 # ==========================================
 # IDEs & OS files
 # ==========================================
-.vscode/
+# Its contents, not the directory: git does not descend into an excluded directory, so the exceptions below only
+# work against '.vscode/*'.
+.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -126,3 +128,7 @@ results copy/
 quick_run/
 generalization/
 data/moleculeace/_source/
+
+# Per-document latexmk transcripts. build.sh writes these to build/; any left in logs/ are residue of an
+# older version of the script that wrote them there.
+logs/*_build.log

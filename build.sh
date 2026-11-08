@@ -2,23 +2,35 @@
 # Build one of the manuscript layouts, or all of them. They share sections/ and latex/ and differ only in the class,
 # the author block and the bibliography style, so adding a journal means adding one root .tex and nothing else.
 #
-#   logs/build.sh                 every document
-#   logs/build.sh paper_reading   just that one
+#   ./build.sh                    every document
+#   ./build.sh paper_reading      just that one
 #
 # Everything is driven through latexmk so that .latexmkrc applies: the auxiliary files stay in build/ and only the
 # PDF is copied back to the root, where it is versioned. Calling pdflatex directly bypasses that and litters the root.
 #
-# Documents:
+# With no argument the documents are discovered the same way scripts/11_check_manuscript.py discovers them: every
+# *.tex in the root that declares a \documentclass. A layout added for the next journal is therefore built as soon
+# as it exists, with nothing to register here.
+#
+# The documents at the time of writing:
 #   paper_reading   plain article, figures and tables next to the text they belong to. For reading and review.
 #   paper_ML_GNN    Elsevier cas-sc. Its class collects the figures at the end, which is the submission layout.
 #   paper_springer  Springer Nature sn-jnl, for Journal of Cheminformatics.
 #   supplementary_ML_GNN
-cd "$(dirname "$0")/.." || exit 1
+cd "$(dirname "$0")" || exit 1
 # The search paths for the Springer class and its styles are set in .latexmkrc, so the editor finds them too.
 
-DOCS=${*:-"paper_reading paper_ML_GNN paper_springer supplementary_ML_GNN"}
+if [ "$#" -gt 0 ]; then
+  DOCS=$*
+else
+  DOCS=$(grep -l '^[^%]*\\documentclass' ./*.tex | sed 's|^\./||; s|\.tex$||' | sort)
+fi
+[ -n "$DOCS" ] || { echo "No root .tex (one with \\documentclass) found"; exit 1; }
 STATUS=0
 for doc in $DOCS; do
+  # Inside the loop, not once before it: another process (an editor's build, a parallel run of this script) can
+  # remove build/ between the start and this document's turn, and the redirection below would then fail.
+  mkdir -p build
   if ! latexmk -pdf -interaction=nonstopmode "$doc.tex" > "build/${doc}_build.log" 2>&1; then
     printf "  %-22s LATEXMK FAILED, see build/%s_build.log\n" "$doc" "$doc"
     tail -5 "build/${doc}_build.log" | sed 's/^/      /'

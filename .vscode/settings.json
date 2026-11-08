@@ -1,0 +1,8 @@
+{
+    // LaTeX Workshop's own build races ./build.sh. Two pdflatex processes write the same build/ directory; one
+    // leaves a corrupt PDF behind, latexmk then considers the document up to date and skips the final pass, and the
+    // unresolved-reference count reported by the build script freezes with the intermediate state. So the editor
+    // never builds on its own: build with the task below (Ctrl+Shift+B), which runs ./build.sh.
+    "latex-workshop.latex.autoBuild.run": "never",
+    "latex-workshop.latex.outDir": "./build"
+}
