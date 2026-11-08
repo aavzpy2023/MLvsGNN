@@ -249,7 +249,14 @@ in this study.
 The feature-selected Morgan-fingerprint stacking ensemble of the ablation above (Random Forest, XGBoost and SVR
 combined by a ridge meta-learner, trained without augmentation on the \ExpNDev-compound development partition of the
 15\% hold-out split; hold-out $R^2 = \ExpBRTwoMean$) was applied to a library of FDA-approved compounds
-($N = \ScreenNLibrary$). Structural pre-filtering kept only compounds containing H, C, N, O, F, P, S, Cl, Br and I, a
+($N = \ScreenNLibrary$). Two properties of this deployment are worth stating, since neither is visible from the result.
+The architecture was not chosen on the hold-out: \MorganBestArchitecture\ is the combination that the nested selection
+of Section~\ref{sec:materials_ncv} retained in \MorganStability\% of the \TotalOuterFolds\ outer folds of the Morgan
+space, and the hold-out only estimates the model that this architecture yields, on molecules that took no part in
+building it. The ensemble was also not refitted on the complete \NCompounds-compound set, although the \ExpNTest\
+additional compounds would be expected to help: a refitted model would have no estimate of its accuracy on data it had
+never seen, so the model applied here is the one whose hold-out $R^2$ is reported, and is if anything conservative with
+respect to what all the data would give. Structural pre-filtering kept only compounds containing H, C, N, O, F, P, S, Cl, Br and I, a
 set that covers all but \ScreenTrainNOutsideElements\ of the training compounds, and a size ceiling (molecular weight
 $\le \ScreenMaxMW$ Da; the largest training compound weighs \ScreenTrainMaxMW\ Da) removed molecules whose potency the
 model could not meaningfully extrapolate.
@@ -258,8 +265,12 @@ Prediction on a library of this kind is only meaningful where the model has supp
 et al.\ that prediction error grows as a molecule becomes less similar to the training set \citep{sheridan2004}, every
 FDA compound was given its mean Tanimoto similarity (2048-bit Morgan fingerprints) to its \ScreenADNeighbors\ most
 similar training compounds, and was flagged as inside the applicability domain when this value was at least
-\ScreenADMinSimilarity, the threshold obtained for the training compounds themselves as the mean plus \ScreenADZ\
-standard deviations of their distances \citep{sahigara2012}. The multiplier is an arbitrary choice: the literature
+\ScreenADMinSimilarity. The criterion of \citet{sahigara2012} is a limit on distance, and the training compounds define
+it among themselves: the mean of their distances to their \ScreenADNeighbors\ nearest neighbours, taken as $1 -$
+Tanimoto similarity, plus \ScreenADZ\ standard deviations. The threshold reported here is one minus that limit, so that
+it reads on the same similarity scale as the values it is compared with. Its reference set is the complete
+\NCompounds-compound training file, which is wider than the \ExpNDev\ compounds the deployed ensemble was fitted on.
+The multiplier is an arbitrary choice: the literature
 offers no universal rule, and a comparison of applicability-domain methods concludes that the appropriate one has to be
 determined for the data set at hand \citep{heberger2023}. For that reason no compound was excluded on this flag, which
 is reported with every candidate.
