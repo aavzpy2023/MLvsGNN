@@ -1,0 +1,44 @@
+% The front matter as data: title, authors, their e-mail, ORCID and contributions, and the one affiliation.
+% No journal's syntax appears here, because every class asks for the same facts in a different shape: one wants
+% a single name per author with the address as key=value pairs, another wants the given and family names split
+% into separate commands and the address broken into fields of its own, and the reading copy wants one
+% \and-separated line. So this file states each fact once and a template renders it, exactly as the abstract and
+% the keywords already work. Supporting one more journal means writing the renderers below in the new
+% template, and changing nothing here.
+%
+% A template must define, before it uses \projauthorlist:
+%   \projauthor{initials}{given}{family}{email}{orcid}{CRediT roles}      one non-corresponding author
+%   \projauthorcorr{...}                                                 same six, for the corresponding author
+% ORCID may be empty, so a renderer that prints it guards the field with \projifhasorcid.
+
+\newcommand{\projtitle}{Leakage-Free Benchmarking of Classical Machine Learning and Graph Neural Networks for Low-Data TgDHFR Bioactivity Prediction}
+\newcommand{\projshorttitle}{Leakage-Free Benchmarking of Classical ML and Graph Neural Networks}
+\newcommand{\projrunningauthors}{Vinajera-Zamora et al., 2026}
+
+\newcommand{\projaffildiv}{Instituto Universitario de Investigaci\'on y Desarrollo Tecnol\'ogico}
+\newcommand{\projaffilorg}{Universidad Tecnol\'ogica Metropolitana}
+\newcommand{\projaffilstreet}{Ignacio Valdivieso 2409}
+\newcommand{\projaffilcity}{Santiago}
+\newcommand{\projaffilstate}{Regi\'on Metropolitana}
+\newcommand{\projaffilpostcode}{97279}
+\newcommand{\projaffilcountry}{Chile}
+
+% Not every author has an ORCID on file, and a renderer that prints the field unconditionally would emit an empty
+% link for the ones who do not. This runs its second argument only when the first is a non-empty ORCID.
+\newcommand{\projifhasorcid}[2]{\def\projorcidarg{#1}\ifx\projorcidarg\empty\else#2\fi}
+
+% The authors in the order they appear on the paper. The corresponding author is marked by which macro the line
+% calls, not by a flag, so no layout has to decide what "corresponding" looks like in its own notation.
+% The roles are the CRediT taxonomy's own terms: they go into the author block of a class that has one, and into
+% the contributions declaration, which is rendered from this same list.
+\newcommand{\projauthorlist}{%
+	\projauthorcorr{A.V.-Z.}{Andrey}{Vinajera-Zamora}{avinajera@utem.cl}{0000-0002-4922-457X}%
+		{Conceptualization, Methodology, Formal analysis, Software, Validation, Investigation,
+		 Writing -- original draft, Visualization}%
+	\projauthor{J.C.-G.}{Juan}{Castillo-Garit}{j.castillo@utem.cl}{0000-0003-0896-9484}%
+		{Methodology, Validation, Writing -- review \& editing, Supervision}%
+	\projauthor{S.M.-S.}{Samuel}{Montejo-S\'anchez}{smontejo@utem.cl}{0000-0003-1622-3180}%
+		{Validation, Writing -- review \& editing, Supervision}%
+	\projauthor{R.A.-C.}{Raul}{Arias-Carrasco}{raul.arias@utem.cl}{0000-0003-1698-9282}%
+		{Validation, Supervision, Writing -- review \& editing, Visualization}%
+}

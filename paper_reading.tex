@@ -12,6 +12,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{array}
+\usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{multirow}
@@ -36,21 +37,33 @@
 \captionsetup{font=small, labelfont=bf}
 \setlength{\parskip}{0.3em}
 
-\title{\textbf{When Simple Is Enough: Leakage-Free Benchmarking of Classical Machine Learning
-		vs.\ Graph Neural Networks in Low-Data Bioactivity Prediction}}
-\author{Andrey Vinajera-Zamora \and Juan Castillo-Garit \and Samuel Montejo-S\'anchez
-	\and Raul Arias-Carrasco}
-\date{Instituto Universitario de Investigaci\'on y Desarrollo Tecnol\'ogico,\\
-	Universidad Tecnol\'ogica Metropolitana, Santiago, Chile\\[0.6em]
+\input{sections/manuscript_metadata.tex}
+
+% The front matter, from sections/manuscript_metadata.tex. The reading copy prints the names on one line, so
+% its renderer emits only those and separates them with \and from the second author on; the e-mail, the ORCID
+% and the CRediT roles belong to the submission layouts and to the contributions declaration.
+\newcommand{\projsep}{}
+\newcommand{\projauthor}[6]{\projsep #2 #3\renewcommand{\projsep}{\and}}
+\newcommand{\projauthorcorr}[6]{\projauthor{#1}{#2}{#3}{#4}{#5}{#6}}
+
+\title{\textbf{\projtitle}}
+\author{\projauthorlist}
+\date{\projaffildiv,\\
+	\projaffilorg, \projaffilcity, \projaffilcountry\\[0.6em]
 	\textit{Reading copy, figures in place. Not the submission layout.}\\
 	\today}
 
-% A wide generated table, scaled to the text width. Defined per template because not every journal class
-% tolerates the same construction: sn-jnl breaks on any box around a tabular, so its own definition only shrinks
-% the type. The sections call \projtable and never a particular boxing command.
-\newcommand{\projtable}[1]{\resizebox{\textwidth}{!}{\input{#1}}}
+% A generated table, typeset at the full text width. Every table in latex/ is a tabularx or a tabular* that
+% already fills \textwidth, so no template has to box or scale one; this hook stays so that a journal needing
+% something of its own can redefine it in one place.
+\newcommand{\projtable}[1]{\input{#1}}
 
-\input{latex/manuscript_variables.tex}
+% One declaration: the statement is shared, the heading belongs to the layout. The declarations are
+% listed in sections/manuscript_declarations.tex and this is the only place a layout decides how they
+% are presented.
+\newcommand{\projdeclaration}[2]{\section*{#1}\input{#2}}
+
+\input{sections/manuscript_variables.tex}
 
 \begin{document}
 \maketitle
@@ -61,7 +74,9 @@
 \medskip\noindent\textbf{Keywords:} \input{sections/00keywords.tex}
 \end{abstract}
 
-\input{latex/manuscript_body.tex}
+\input{sections/manuscript_body.tex}
+
+\input{sections/manuscript_declarations.tex}
 
 \bibliographystyle{plainnat}
 \bibliography{references_nourl.bib}

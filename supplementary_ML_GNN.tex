@@ -10,33 +10,21 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
 \usepackage{float}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage[hidelinks]{hyperref}
 \usepackage[authoryear]{natbib}
 
-\input{latex/paper_variables.tex}
-\input{latex/augment_variables.tex}
-\input{latex/docking_variables.tex}
-\input{latex/screening_variables.tex}
-\input{latex/data_variables.tex}
-\input{latex/admet_variables.tex}
-\input{latex/timing_variables.tex}
-\input{latex/gnn_variables.tex}
-\input{latex/redocking_variables.tex}
-\input{latex/nadeau_bengio_variables.tex}
-\input{latex/scaffold_variables.tex}
-\input{latex/gnn_tuned_variables.tex}
-\input{latex/yrandom_variables.tex}
-\input{latex/outlier_variables.tex}
-\input{latex/gnn_strong_variables.tex}
-\input{latex/karimova_audit_variables.tex}
+\input{sections/manuscript_metadata.tex}
+\input{sections/manuscript_variables.tex}
 
 \renewcommand{\thefigure}{S\arabic{figure}}
 \renewcommand{\thetable}{S\arabic{table}}
 
 \title{Supplementary Material\\[0.4em]
-\large When Simple Is Enough: Leakage-Free Benchmarking of Classical Machine Learning vs.\ Graph Neural Networks in Low-Data Bioactivity Prediction}
+\large \projtitle}
 \date{}
 
 \begin{document}
@@ -71,7 +59,7 @@ analysis pipeline and read from the same files as the manuscript.
 		resamples. The two leaky variants differ from their clean counterparts only in that the permutation
 		importance is computed on the complete data set, as the original study does.}
 	\label{tab:ablation}
-	\resizebox{\textwidth}{!}{\input{latex/ablation_table.tex}}
+	\input{latex/ablation_table.tex}
 \end{table}
 
 \begin{figure}[htbp]
@@ -86,7 +74,7 @@ analysis pipeline and read from the same files as the manuscript.
 	\centering
 	\caption{Every pairwise comparison between the four molecular representations over the \TotalOuterFolds\ shared outer folds, in both metrics. Differences are A minus B, the interval is the 90\% confidence interval used by the equivalence test, $p$ is the Nadeau--Bengio corrected paired $t$-test, $p_{\mathrm{Holm}}$ its step-down adjustment within the six comparisons of each metric, and $p_{\mathrm{equiv}}$ the two one-sided tests against the $\pm \EquivMarginRTwo$ margin.}
 	\label{tab:pairwise}
-	\resizebox{\textwidth}{!}{\input{latex/pairwise_nb_table.tex}}
+	\input{latex/pairwise_nb_table.tex}
 \end{table}
 
 \begin{table}[htbp]
@@ -107,7 +95,7 @@ analysis pipeline and read from the same files as the manuscript.
 	\centering
 	\caption{Composition of the stacking ensembles chosen by the inner loop, per representation. Each percentage is the share of the \TotalOuterFolds\ outer folds in which that base learner entered the selected ensemble; stability is the share taken by the single most frequent exact combination. RF, random forest; ET, extra trees; LGBM, LightGBM; XGB, XGBoost; SVM, support vector regression; kNN, $k$-nearest neighbors.}
 	\label{tab:selection}
-	\scalebox{0.9}{\input{latex/selection_table.tex}}
+	\input{latex/selection_table.tex}
 \end{table}
 
 \begin{table}[htbp]
@@ -128,21 +116,21 @@ analysis pipeline and read from the same files as the manuscript.
 		and $p_{\mathrm{equiv}}$ is the two one-sided test against the $\pm 0.05$ margin. The figures quoted in the
 		manuscript are rows of this table.}
 	\label{tab:gnn_pairwise}
-	\resizebox{\textwidth}{!}{\input{latex/gnn_pairwise_table.tex}}
+	\input{latex/gnn_pairwise_table.tex}
 \end{table}
 
 \begin{table}[htbp]
 	\centering
 	\caption{Each additional neural model against each classical representation over the \TotalOuterFolds\ shared outer folds. Differences are the neural model minus the representation, so a negative value in $R^2$ means the neural model scored lower. $p_{\mathrm{Holm}}$ is adjusted within the four representations of each model and metric.}
 	\label{tab:strong_pairwise}
-	\resizebox{\textwidth}{!}{\input{latex/strong_pairwise_table.tex}}
+	\input{latex/strong_pairwise_table.tex}
 \end{table}
 
 \begin{table}[htbp]
 	\centering
 	\caption{Comparisons under scaffold-grouped folds: every neural model against every classical representation, and the classical representations against each other. The unadjusted $p$ is given beside the adjusted one because the 90\% intervals quoted in the manuscript are not corrected for multiplicity, which is why an interval can exclude zero while the adjusted $p$ is far from significance.}
 	\label{tab:scaffold_pairwise}
-	\resizebox{\textwidth}{!}{\input{latex/scaffold_pairwise_table.tex}}
+	\input{latex/scaffold_pairwise_table.tex}
 \end{table}
 
 

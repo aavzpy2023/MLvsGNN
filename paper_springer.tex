@@ -2,7 +2,7 @@
 % content: the sections live in sections/, the numbers in latex/, and this file only supplies the class, the author
 % block and the bibliography style. Switching journal means writing one of these and nothing else.
 %
-% The class and its styles are in templates/springer/; TEXINPUTS must include that directory, which logs/build.sh
+% The class and its styles are in templates/springer/; TEXINPUTS must include that directory, which ./build.sh
 % does. The bibliography style of Journal of Cheminformatics is numbered (Vancouver); change the class option to
 % sn-basic or sn-vancouver-ay if the journal asks for something else.
 %
@@ -15,6 +15,7 @@
 \usepackage{multirow}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{array}
+\usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{xcolor}
@@ -23,26 +24,37 @@
 
 \raggedbottom
 
+% Read in the preamble, not next to the generated macros below: the class expands the running
+% title straight away, so these definitions have to exist before \title.
+\input{sections/manuscript_metadata.tex}
+
 \begin{document}
 
-\title[Leakage-Free Benchmarking of Classical ML vs.\ Graph Neural Networks]{When Simple Is Enough:
-	Leakage-Free Benchmarking of Classical Machine Learning vs.\ Graph Neural Networks in Low-Data
-	Bioactivity Prediction}
+\title[\projshorttitle]{\projtitle}
 
-\author[1]{\fnm{Andrey} \sur{Vinajera-Zamora}}\email{avinajera@utem.cl}
-\author[1]{\fnm{Juan} \sur{Castillo-Garit}}\email{j.castillo@utem.cl}
-\author*[1]{\fnm{Samuel} \sur{Montejo-S\'anchez}}\email{smontejo@utem.cl}
-\author[1]{\fnm{Raul} \sur{Arias-Carrasco}}\email{raul.arias@utem.cl}
+% The front matter in sn-jnl notation: the given and family names split, the corresponding author marked by
+% \author*, and the address decomposed into the class's own fields. The facts are in
+% sections/manuscript_metadata.tex and appear nowhere else.
+\newcommand{\projauthor}[6]{\author[1]{\fnm{#2} \sur{#3}}\email{#4}}
+\newcommand{\projauthorcorr}[6]{\author*[1]{\fnm{#2} \sur{#3}}\email{#4}}
+\projauthorlist
 
-\affil[1]{\orgdiv{Instituto Universitario de Investigaci\'on y Desarrollo Tecnol\'ogico},
-	\orgname{Universidad Tecnol\'ogica Metropolitana},
-	\orgaddress{\street{Ignacio Valdivieso 2409}, \city{Santiago}, \postcode{97279},
-		\state{Regi\'on Metropolitana}, \country{Chile}}}
+\affil[1]{\orgdiv{\projaffildiv},
+	\orgname{\projaffilorg},
+	\orgaddress{\street{\projaffilstreet}, \city{\projaffilcity}, \postcode{\projaffilpostcode},
+		\state{\projaffilstate}, \country{\projaffilcountry}}}
 
-% sn-jnl cannot put a tabular inside \resizebox or \adjustbox, so a wide table is shrunk by its type size.
-\newcommand{\projtable}[1]{{\footnotesize\input{#1}}}
+% A generated table, typeset at the full text width. Every table in latex/ is a tabularx or a tabular* that
+% already fills \textwidth, so no template has to box or scale one; this hook stays so that a journal needing
+% something of its own can redefine it in one place.
+\newcommand{\projtable}[1]{\input{#1}}
 
-\input{latex/manuscript_variables.tex}
+% One declaration: the statement is shared, the heading belongs to the layout. The declarations are
+% listed in sections/manuscript_declarations.tex and this is the only place a layout decides how they
+% are presented.
+\newcommand{\projdeclaration}[2]{\subsection*{#1}\input{#2}}
+
+\input{sections/manuscript_variables.tex}
 
 % sn-jnl stores the abstract and the keywords and typesets them with \maketitle, so both must be set before it.
 \abstract{\input{sections/00abstract.tex}}
@@ -50,7 +62,11 @@
 
 \maketitle
 
-\input{latex/manuscript_body.tex}
+\input{sections/manuscript_body.tex}
+
+\backmatter
+\section*{Declarations}
+\input{sections/manuscript_declarations.tex}
 
 \bibliography{references_nourl.bib}
 

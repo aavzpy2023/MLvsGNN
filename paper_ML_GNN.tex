@@ -36,6 +36,8 @@
 \usepackage{amssymb}
 \graphicspath{ {./images/} }
 \usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
 \usepackage{aligned-overset}
 \usepackage{bm}
 \usepackage{float}
@@ -56,27 +58,18 @@
 \setlength{\floatsep}{12pt plus 2pt minus 2pt}
 \setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
 
-% A wide generated table, scaled to the text width. Defined per template because not every journal class
-% tolerates the same construction: sn-jnl breaks on any box around a tabular, so its own definition only shrinks
-% the type. The sections call \projtable and never a particular boxing command.
-\newcommand{\projtable}[1]{\resizebox{\textwidth}{!}{\input{#1}}}
+% A generated table, typeset at the full text width. Every table in latex/ is a tabularx or a tabular* that
+% already fills \textwidth, so no template has to box or scale one; this hook stays so that a journal needing
+% something of its own can redefine it in one place.
+\newcommand{\projtable}[1]{\input{#1}}
 
-\input{latex/paper_variables.tex}
-\input{latex/augment_variables.tex}
-\input{latex/docking_variables.tex}
-\input{latex/screening_variables.tex}
-\input{latex/data_variables.tex}
-\input{latex/admet_variables.tex}
-\input{latex/timing_variables.tex}
-\input{latex/gnn_variables.tex}
-\input{latex/redocking_variables.tex}
-\input{latex/nadeau_bengio_variables.tex}
-\input{latex/scaffold_variables.tex}
-\input{latex/gnn_tuned_variables.tex}
-\input{latex/yrandom_variables.tex}
-\input{latex/outlier_variables.tex}
-\input{latex/karimova_audit_variables.tex}
-\input{latex/gnn_strong_variables.tex}
+% One declaration: the statement is shared, the heading belongs to the layout. The declarations are
+% listed in sections/manuscript_declarations.tex and this is the only place a layout decides how they
+% are presented.
+\newcommand{\projdeclaration}[2]{\section*{#1}\input{#2}}
+
+\input{sections/manuscript_metadata.tex}
+\input{sections/manuscript_variables.tex}
 
 % Uncomment and use as if needed
 %\newtheorem{theorem}{Theorem}
@@ -97,176 +90,57 @@
 	\def\floatpagepagefraction{1}
 	\def\textpagefraction{.001}
 	
-	% Short title
-	\shorttitle{When Simple Is Enough: Leakage-Free Benchmarking Classical Machine Learning vs. Graph Neural Network}    
-	
-	% Short author
-	\shortauthors{Vinajera-Zamora et. al, 2026}  
-	
-	% Main title of the paper
-	\title [mode = title]{When Simple Is Enough: Leakage-Free Benchmarking of Classical Machine Learning vs. Graph Neural Networks in Low-Data Bioactivity Prediction}  
-	
-	% Title footnote mark
-	% eg: \tnotemark[1]
-	\tnotemark[1] 
-	
-	% Title footnote 1.
-	% eg: \tnotetext[1]{Title footnote text}
-	\tnotetext[1]{smontejo@utem.cl} 
-	
-	% First author
-	%
-	% Options: Use if required
-	% eg: \author[1,3]{Author Name}[type=editor,
-	%       style=chinese,
-	%       auid=000,
-	%       bioid=1,
-	%       prefix=Sir,
-	%       orcid=0000-0000-0000-0000,
-	%       facebook=<facebook id>,
-	%       twitter=<twitter id>,
-	%       linkedin=<linkedin id>,
-	%       gplus=<gplus id>]
-	
-	\author[1]{Andrey Vinajera-Zamora}%[<options>]
-	
-	% Corresponding author indication
-	%\cormark[1]
-	
-	% Footnote of the first author
-	%\fnmark[1]
-	
-	% Email id of the first author
-	\ead{avinajera@utem.cl}
-	
-	% URL of the first author
-	\ead[url]{https://orcid.org/0000-0002-4922-457X}
-	
-	% Credit authorship
-	% eg: \credit{Conceptualization of this study, Methodology, Software}
-	\credit{Conceptualization, Methodology, Formal analysis, Software, Validation, Investigation, Writing – original draft, Visualization}
-	
-	% Address/affiliation
-	\affiliation[1]{organization={Instituto Universitario de Investigación y Desarrollo Tecnológico, Universidad Tecnol\'ogica Metropolitana},
-		addressline={Ignacio Valdivieso 2409}, 
-		city={Regi\'on Metropolitana},
-		%          citysep={}, % Uncomment if no comma needed between city and postcode
-		postcode={97279}, 
-		state={Santiago},
-		country={Chile}}
-	
-	\author[1]{Juan Castillo-Garit} %% Author name
-	
-	% Email id of the four author
-	\ead{j.castillo@utem.cl}
-	
-	% URL of the second author
-	\ead[url]{https://orcid.org/0000-0003-0896-9484 }
-	
-	% Credit authorship
-	\credit{Methodology, Validation, Writing – review \& editing, Supervision}
+	% The front matter, from sections/manuscript_metadata.tex. cas-sc wants the title, the running heads, then one
+	% \author per author with its e-mail, URL and CRediT roles following it, and the address in key=value form.
+	% This block is the only place that knows that; the facts themselves are in the metadata file.
+	\shorttitle{\projshorttitle}
+	\shortauthors{\projrunningauthors}
+	\title [mode = title]{\projtitle}
 
-	
-	\author[1]{Samuel Montejo-Sánchez}%[]
-	
-	% Footnote of the second author
-	\cormark[1]
-	
-	% Email id of the second author
-	\ead{smontejo@utem.cl}
-	
-	% URL of the second author
-	\ead[url]{https://ieeexplore.ieee.org/author/37085682270}
-	
-	% Credit authorship
-	\credit{Validation, Writing – review \& editing, Supervision}
-	
-	
-	
-	%\author[2]{Jorge Vergara-Quezada}%[]
-	
-	% Footnote of the second author
-	%\fnmark[3]
-	
-	% Email id of the second author
-	%\ead{jorgever@utem.cl}
-	
-	% URL of the second author
-	%\ead[url]{http://orcid.org/0000-0001-6699-4181 }
-	
-	% Credit authorship
-	%\credit{Validation, Writing – review \& editing }
-	
-	
-	
-	
-	% Footnote text
-	%\fntext[1]{}
-	
-	\author[1]{Raul Arias-Carrasco} %% Author name
-	
-	% Email id of the four author
-	\ead{raul.arias@utem.cl}
-	
-	% URL of the second author
-	\ead[url]{https://orcid.org/0000-0003-1698-9282 }
-	
-	% Credit authorship
-	\credit{Validation, Supervision, Writing – review \& editing , Visualization}
-	
-	
-	
-	
-	
-	
-	
+	\newcommand{\projauthorbody}[6]{%
+		\ead{#4}\projifhasorcid{#5}{\ead[url]{https://orcid.org/#5}}\credit{#6}}
+	\newcommand{\projauthor}[6]{\author[1]{#2 #3}\projauthorbody{#1}{#2}{#3}{#4}{#5}{#6}}
+	\newcommand{\projauthorcorr}[6]{\author[1]{#2 #3}\cormark[1]\projauthorbody{#1}{#2}{#3}{#4}{#5}{#6}}
+	\projauthorlist
+	\cortext[1]{Corresponding author}
+
+	\affiliation[1]{organization={\projaffildiv, \projaffilorg},
+		addressline={\projaffilstreet},
+		city={\projaffilcity},
+		postcode={\projaffilpostcode},
+		state={\projaffilstate},
+		country={\projaffilcountry}}
+
 	% For a title note without a number/mark
 	%\nonumnote{}
 	
-	% Here goes the abstract
-%	\begin{abstract}
-	%	This research addresses the prediction of the incidence of dengue in a municipality in Cuba. The Random Forest algorithm was used as the base model, combined with the \textit{bagging and pasting} voting techniques and the \textit{adaptive boosting} technique to enhance the predictive power. A stacking algorithm combined previous models to get an ensemble model. The eight predictor variables used were created with feature engineering from entomological and geographic data. K-means clustering was used to detect potential outliers, and then the data was appropriately re-labeled to remove any negative instances. The hyperparameters of the base model were tuned with a grid search to identify the best possible combination. The model was then trained using the original dataset and the dataset with outliers removed. The best results correspond to the model formed from the combination of the \textit{bagging}, \textit{pasting}, and \textit{adaptive boosting} classifiers, which scored a 0.9151 f1 score. In prediction, this model achieved a precision and recall score of over 83\%.
-%	\end{abstract}
-	
-	% Use if graphical abstract is present
-	%\begin{graphicalabstract}
-	%\includegraphics{}
-	%\end{graphicalabstract}
-	
-	% % Research highlights
-	% \begin{highlights}
-		% \item Introduces Transmitting Source of Dengue (TSD) for localized prediction.
-		% \item Combines geographic and entomological data to detect dengue sources.
-		% \item Stacked RF-bagging-pasting-AdaBoost ensemble achieves F1 score of 0.9151.
-		% \item K-means relabeling improved precision, recall, and F1 by \textasciitilde25\%.
-		% \item Model predicted monthly TSD risk blocks with 84.35\% precision, 83.24\% recall.
-		% \end{highlights}
-	
-	
-	% Keywords
-	% Each keyword is seperated by \sep
-%	\begin{keywords}
-%		machine learning \sep random forest \sep dengue incidence prediction \sep artificial intelligence \sep transmitting source of dengue
-%	\end{keywords}
-	
-	\maketitle
-	
-	% Main text
-	\begin{abstract}
-		\input{sections/00abstract.tex}
-	\end{abstract}
+	% The abstract and the keywords, both before \maketitle, because that is where this class consumes them: the
+	% keywords go into a box that the abstract block measures and places beside itself, and the abstract is read
+	% back from \jobname.abs.
+	%
+	% The abstract is deliberately not wrapped in the class's own abstract environment. That environment captures
+	% its body VERBATIM into \jobname.abs, so an \input inside it is written out as characters instead of being
+	% expanded, and the abstract came out of the PDF as the literal path "sections/00abstract.tex". Writing that
+	% file ourselves, with one line the class expands when it reads it back, is what keeps the abstract in
+	% sections/ where every other layout takes it from.
+	\newwrite\projabsout
+	\immediate\openout\projabsout=\jobname.abs
+	\immediate\write\projabsout{\string\input{sections/00abstract.tex}}
+	\immediate\closeout\projabsout
+
 	\begin{keywords}
 		\input{sections/00keywords.tex}
 	\end{keywords}
-	\input{sections/01Introduction.tex}
-	\input{sections/02materials.tex}
-	\input{sections/03Results.tex}
-	\input{sections/04Discussion.tex}
-	\input{sections/05Conclusions.tex}
-	\input{sections/06_acknowledgments.tex}
+
+	\maketitle
+
+	\input{sections/manuscript_body.tex}
+
+	\input{sections/manuscript_declarations.tex}
 	
-	% To print the credit authorship contribution details
-	\printcredits
+	% \printcredits is left out on purpose: the contributions are declared once, in
+	% sections/06_4_Authors_Contributions.tex, so that every layout reports the same thing. The
+	% \credit entries above stay for the journal's own metadata.
 	
 	%% Loading bibliography style file
 	%\bibliographystyle{model1-num-names}

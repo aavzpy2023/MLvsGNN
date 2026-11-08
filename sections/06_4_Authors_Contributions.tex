@@ -1,0 +1,9 @@
+% Rendered from the author list in sections/manuscript_metadata.tex, so the roles are stated once: a class with a
+% per-author contribution command prints them in its author block from that same list, and this is the declaration
+% for the layouts that have none. The renderers are redefined inside a group so the front matter's keep working.
+\begingroup
+\renewcommand{\projauthor}[6]{#1: \MakeLowercase{#6}. }%
+\let\projauthorcorr\projauthor
+\projauthorlist
+\endgroup
+All authors read and approved the final manuscript.

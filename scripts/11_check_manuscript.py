@@ -1,7 +1,7 @@
 """
 11_check_manuscript.py — Checks that the manuscript only uses artifacts that the pipeline produced.
 
-Follows every \\input from each root .tex file in the project (the manuscript and the supplementary material, each
+Follows every \\input, \\projtable and \\projdeclaration from each root .tex file in the project (the manuscript and the supplementary material, each
 with its own \\documentclass) and verifies, per document, that
   * each \\includegraphics file and each \\input file exists;
   * every project variable (a CamelCase macro such as \\MorganRTwoMean) used in the text is defined by one of the generated
@@ -17,9 +17,21 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from paths_config import ROOT, LOGS_DIR
 from logger_utils import setup_logger, explain
 
-STANDARD_CAMELCASE = {"LaTeX", "TeX", "BibTeX", "AA", "WriteBookmarks", "AtEndDocument"}
+# Kernel and class commands that happen to be camel case, which the heuristic below would otherwise read as
+# project variables that nothing defines.
+STANDARD_CAMELCASE = {"LaTeX", "TeX", "BibTeX", "AA", "WriteBookmarks", "AtEndDocument", "MakeLowercase",
+                      "MakeUppercase"}
 DEFINE = re.compile(r"\\(?:newcommand|renewcommand|providecommand|DeclareRobustCommand)\*?\s*\{?\\([A-Za-z]+)|\\def\\([A-Za-z]+)")
 USE = re.compile(r"(?<!\\)\\([A-Za-z]+)")  # a doubled backslash is a line break followed by text
+
+# \input is not the only way a file enters a document. The layouts pull in the generated tables and the shared
+# declarations through the project's own macros, and a file reached that way has to be checked like any other: each
+# pattern below captures the path argument.
+INCLUDES = (
+    re.compile(r"\\input\{([^}]+)\}"),
+    re.compile(r"\\projtable\{([^}]+)\}"),
+    re.compile(r"\\projdeclaration\{[^}]*\}\{([^}]+)\}"),
+)
 
 
 def strip_comments(text):
@@ -74,7 +86,7 @@ def check_document(main_tex):
         seen.add(path)
         text = strip_comments(open(path, encoding="utf-8").read())
         texts[path] = text
-        for rel in re.findall(r"\\input\{([^}]+)\}", text):
+        for rel in [m for pattern in INCLUDES for m in pattern.findall(text)]:
             if rel.startswith("#"):
                 continue  # \input{#1} inside a \newcommand is a parameter, not a file
 

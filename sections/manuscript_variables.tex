@@ -1,5 +1,7 @@
-% Every macro file the pipeline generates, in one place, so that a new journal template needs a single \input
-% instead of sixteen. Step 11 follows this chain, so a template that reads this file is verified like the others.
+% Every macro file the pipeline generates, in one place, so that a template or the supplement needs a single
+% \input instead of sixteen. This file is written by hand, which is why it lives here and not in latex/:
+% everything in that directory is a build product. Step 11 follows this chain, so a document that reads this
+% file is verified like the others. A new step that writes macros adds its line here and nowhere else.
 \input{latex/paper_variables.tex}
 \input{latex/augment_variables.tex}
 \input{latex/docking_variables.tex}
