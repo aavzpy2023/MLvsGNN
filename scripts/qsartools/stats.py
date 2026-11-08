@@ -121,6 +121,30 @@ def percentile_interval(distribution, level=0.95):
     return float(np.mean(distribution)), float(lo), float(hi)
 
 
+def conformal_halfwidth(residuals, alpha=0.1):
+    """Half-width of a split-conformal prediction interval (Vovk et al., 2005; Lei et al., 2018, JASA 113:1094-1111).
+
+    The interval prediction +/- halfwidth covers the target of a new molecule with probability at least 1 - alpha,
+    provided that molecule is exchangeable with the calibration set and that the model was fitted without it. The
+    guarantee is finite-sample and distribution-free, and it is marginal: it holds on average over the population the
+    calibration set is drawn from, not conditionally on a given molecule, so it says nothing about where in the
+    chemical space the interval is wider. The quantile is therefore taken at rank ceil((n + 1) (1 - alpha)) of the n
+    sorted absolute residuals rather than at the empirical (1 - alpha) quantile; when that rank exceeds n the bound is
+    infinite, which is returned as inf.
+
+    Args:
+        residuals: residuals of the calibration set, y_true - y_pred; only their absolute value is used.
+        alpha: miscoverage level in (0, 1); 0.1 gives 90% coverage.
+    """
+    if not 0.0 < alpha < 1.0:
+        raise ValueError(f"alpha must lie in (0, 1), not {alpha}")
+    absolute = np.sort(np.abs(np.asarray(residuals, dtype=float)))
+    if absolute.size == 0:
+        raise ValueError("residuals must not be empty")
+    rank = int(np.ceil((absolute.size + 1) * (1.0 - alpha)))
+    return float("inf") if rank > absolute.size else float(absolute[rank - 1])
+
+
 def bootstrap_p_value(distribution, reference):
     """Two-sided empirical p-value of `reference` against a bootstrap distribution: twice the smaller tail fraction,
     capped at 1.

@@ -3,7 +3,7 @@ import pytest
 from scipy import stats
 from sklearn.metrics import r2_score
 
-from qsartools.stats import (bootstrap_distribution, bootstrap_p_value, corrected_ttest, holm,
+from qsartools.stats import (bootstrap_distribution, bootstrap_p_value, conformal_halfwidth, corrected_ttest, holm,
                              percentile_interval, r2)
 
 RNG = np.random.default_rng(0)
@@ -87,3 +87,32 @@ class TestBootstrap:
         assert bootstrap_p_value(dist, mean) > 0.5
         assert bootstrap_p_value(dist, 2.0) == 0.0
         assert bootstrap_p_value(np.zeros(10), 0.0) == 1.0
+
+
+class TestConformal:
+    def test_rank_is_the_ceil_of_n_plus_one(self):
+        # n = 9, alpha = 0.1 -> rank ceil(10 * 0.9) = 9: the largest residual, not the empirical 90th percentile
+        residuals = np.arange(1.0, 10.0)
+        assert conformal_halfwidth(residuals, alpha=0.1) == 9.0
+        assert conformal_halfwidth(-residuals, alpha=0.1) == 9.0
+        # n = 19, alpha = 0.1 -> rank ceil(20 * 0.9) = 18
+        assert conformal_halfwidth(np.arange(1.0, 20.0), alpha=0.1) == 18.0
+
+    def test_infinite_when_the_level_exceeds_the_calibration_set(self):
+        assert conformal_halfwidth(np.arange(1.0, 9.0), alpha=0.1) == float("inf")
+        assert np.isfinite(conformal_halfwidth(np.arange(1.0, 10.0), alpha=0.1))
+
+    def test_marginal_coverage_matches_the_nominal_level(self):
+        # Exchangeable draws, so coverage is ceil((n + 1)(1 - alpha)) / (n + 1) = 90/100 exactly. The tolerance is
+        # four standard errors of the Monte Carlo estimate, not slack in the guarantee.
+        trials, rng, covered = 4000, np.random.default_rng(1), []
+        for _ in range(trials):
+            draws = rng.normal(0, 0.5, 100)
+            covered.append(abs(draws[99]) <= conformal_halfwidth(draws[:99], alpha=0.1))
+        assert np.mean(covered) == pytest.approx(0.9, abs=4 * np.sqrt(0.9 * 0.1 / trials))
+
+    def test_rejects_an_invalid_level_or_an_empty_calibration_set(self):
+        with pytest.raises(ValueError):
+            conformal_halfwidth([0.1, 0.2], alpha=0.0)
+        with pytest.raises(ValueError):
+            conformal_halfwidth([])
