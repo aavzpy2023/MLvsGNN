@@ -5,6 +5,9 @@ import seaborn as sns
 from adjustText import adjust_text
 from paths_config import FDA_ADMET_CANDIDATES_CSV, FIGURES_DIR, LATEX_ADMET_TABLE
 from logger_utils import explain
+from qsartools import latex
+
+ADMET_COLS = latex.RAGGED_X + "ccccc"
 
 PROFILE_SHORT = {"ADMET-Compliant (Oral)": "Oral", "Parenteral Candidate (Low Caco-2)": "Parenteral",
                  "Flagged: High hERG Cardiotoxicity Risk": "hERG flag"}
@@ -15,13 +18,13 @@ def write_admet_table(df):
     are listed once. Compounds that failed Lipinski are absent from the input and noted in the table footer."""
     keep = df[(df["Agreement"] == "VALIDATED (+)") | df["Name"].isin(["Pyrimethamine", "Trimethoprim"])]
     keep = keep.drop_duplicates(["ML_pIC50", "Docking_Score"]).sort_values("Docking_Score")
-    lines = [r"\begin{tabular}{lccccc}", r"\toprule",
+    lines = [latex.tabular_open(ADMET_COLS), r"\toprule",
              r"\textbf{Compound} & \textbf{Pred. pIC$_{50}$} & \textbf{$\Delta G$ (kcal/mol)} & \textbf{hERG prob.} & "
              r"\textbf{Caco-2 $\log P_{app}$} & \textbf{Profile} \\", r"\midrule"]
     for _, r in keep.iterrows():
         lines.append(f"{r['Name']} & {r['ML_pIC50']:.2f} & ${r['Docking_Score']:.2f}$ & {r['hERG_Blocker_Prob']:.2f} & "
                      f"${r['Caco2_Permeability']:.2f}$ & {PROFILE_SHORT.get(r['ADMET_Profile'], r['ADMET_Profile'])} \\\\")
-    lines += [r"\bottomrule", r"\end{tabular}"]
+    lines += [r"\bottomrule", latex.tabular_close(ADMET_COLS)]
     os.makedirs(os.path.dirname(LATEX_ADMET_TABLE), exist_ok=True)
     with open(LATEX_ADMET_TABLE, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")

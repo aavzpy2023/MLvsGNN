@@ -27,3 +27,32 @@ def format_macros(values, header=None):
     """
     lines = [f"% {header}\n"] if header else []
     return "".join(lines + [newcommand(name, value) for name, value in values.items()])
+
+
+# A table is typeset at the full text width of whatever class renders it, so that the manuscript, the two journal
+# layouts and the supplement all show it the same way. Two constructions do that without a box: tabularx, when one
+# column holds prose and can absorb the slack by wrapping, and tabular* with a stretchable intercolumn skip, when
+# every column is short. A box (\resizebox, \adjustbox) is not an option: sn-jnl wraps a table in threeparttable and
+# fails with "Missing \endgroup inserted" on any box around the tabular.
+RAGGED_X = r">{\raggedright\arraybackslash}X"
+CENTERED_X = r">{\centering\arraybackslash}X"
+
+
+def tabular_open(colspec):
+    """Opening line of a full-width table. An 'X' anywhere in colspec selects tabularx, otherwise tabular*.
+
+    Args:
+        colspec: column specification, as for tabular; an 'X' column (use RAGGED_X) absorbs the slack by wrapping.
+    """
+    if "X" in colspec:
+        return r"\begin{tabularx}{\textwidth}{" + colspec + "}"
+    return r"\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}" + colspec + "}"
+
+
+def tabular_close(colspec):
+    """Closing line matching tabular_open for the same colspec.
+
+    Args:
+        colspec: the same specification passed to tabular_open; a different one closes the wrong environment.
+    """
+    return r"\end{tabularx}" if "X" in colspec else r"\end{tabular*}"
