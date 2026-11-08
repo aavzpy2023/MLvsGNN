@@ -48,6 +48,7 @@ FDA_RAW_CANDIDATES_CSV   = os.path.join(RESULTS_DIR, "05_FDA_Candidates_For_Dock
 FDA_ADMET_CANDIDATES_CSV = os.path.join(RESULTS_DIR, "08_ADMET_CANDIDATES_For_Docking.csv")
 FDA_CANDIDATES_CSV       = os.path.join(RESULTS_DIR, "05_FDA_Candidates_For_Docking.csv")
 DOCKING_RESULTS_CSV       = os.path.join(RESULTS_DIR, "07_Final_Validation_Hybrid.csv")
+AD_SENSITIVITY_CSV       = os.path.join(RESULTS_DIR, "05_ad_sensitivity.csv")
 
 # LaTeX files
 LATEX_PAPER     = os.path.join(LATEX_DIR, "paper_variables.tex")
@@ -61,6 +62,7 @@ LATEX_ADMET      = os.path.join(LATEX_DIR, "admet_variables.tex")
 LATEX_TIMING     = os.path.join(LATEX_DIR, "timing_variables.tex")
 LATEX_COST_TABLE = os.path.join(LATEX_DIR, "cost_table.tex")
 LATEX_FDA_TABLE  = os.path.join(LATEX_DIR, "fda_candidates_table.tex")
+LATEX_AD_SENSITIVITY_TABLE = os.path.join(LATEX_DIR, "ad_sensitivity_table.tex")
 LATEX_ADMET_TABLE = os.path.join(LATEX_DIR, "admet_table.tex")
 LATEX_LADDER_TABLE = os.path.join(LATEX_DIR, "leakage_ladder_table.tex")
 LATEX_LADDER_SEEDS_TABLE = os.path.join(LATEX_DIR, "leakage_ladder_seeds_table.tex")
@@ -213,6 +215,14 @@ CSV_04_PRED_FILE = "04_augmentation_test_predictions.csv"   # test-set predictio
 AD_K = 5
 AD_Z = 0.5
 MAX_MW = 1000.0
+# Miscoverage of the split-conformal interval reported with every predicted potency, calibrated on the hold-out of
+# step 04 (qsartools.stats.conformal_halfwidth). Its coverage is marginal over that partition, not conditional on a
+# given molecule, so it does not widen outside the applicability domain.
+CONFORMAL_ALPHA = 0.10
+# Applicability-domain thresholds compared in the sensitivity table: (label, strategy, z, percentile)
+AD_SENSITIVITY_RULES = (("mean", "mean_std", 0.0, None), ("mean + 0.5 SD", "mean_std", 0.5, None),
+                        ("mean + 1 SD", "mean_std", 1.0, None), ("95th percentile", "p95", None, 95),
+                        ("twice the mean", "twice_mean", None, None))
 
 # Allowed atoms (identical to the original paper)
 ALLOWED_ATOMS = {1, 6, 7, 8, 9, 15, 16, 17, 35, 53}

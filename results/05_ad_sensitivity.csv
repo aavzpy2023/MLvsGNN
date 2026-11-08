@@ -1,0 +1,6 @@
+rule,min_similarity,n_inside,percent_inside
+mean,0.6856,13,0.43
+mean + 0.5 SD,0.6384,14,0.46
+mean + 1 SD,0.5912,18,0.59
+95th percentile,0.5209,19,0.62
+twice the mean,0.3711,32,1.05

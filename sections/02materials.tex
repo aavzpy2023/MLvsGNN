@@ -273,7 +273,18 @@ it reads on the same similarity scale as the values it is compared with. Its ref
 The multiplier is an arbitrary choice: the literature
 offers no universal rule, and a comparison of applicability-domain methods concludes that the appropriate one has to be
 determined for the data set at hand \citep{heberger2023}. For that reason no compound was excluded on this flag, which
-is reported with every candidate.
+is reported with every candidate, and the number of compounds the domain admits under every rule available for it is
+reported in the Supplementary Material (Table~S10): the rules differ by more than a factor of two in the similarity
+they demand, and they place between \ScreenADSensitivityMin\ and \ScreenADSensitivityMax\ of the \ScreenNStructural\
+screened structures inside the domain, so the conclusion drawn from this flag does not rest on the multiplier.
+
+Each predicted potency is reported with a prediction interval of $\pm\ScreenConformalHalfWidth$ $pIC_{50}$ units. The
+interval is the split-conformal half-width \citep{lei2018} obtained from the absolute residuals of this same ensemble
+on the \ScreenConformalNCal\ compounds of the hold-out partition, which took no part in fitting it or in choosing its
+architecture; it therefore covers the potency of a new compound with probability at least
+\ScreenConformalCoverage\,\%. That guarantee is marginal and not conditional: it holds on average over compounds
+exchangeable with the held-out ones, and does not widen for a compound outside the applicability domain, where it
+should be read as a lower bound on the uncertainty rather than as a measure of it.
 
 Candidates were ranked by predicted potency alone. Four ligand efficiency metrics were computed from the prediction and
 reported beside it, to show how much of a predicted potency is accounted for by molecular size \citep{hopkins2004,

@@ -174,6 +174,26 @@ Prior to screening the machine learning candidates, the docking protocol was che
 Following validation, Vina evaluated all \DockNTotal{} candidates of the screening step (the 10 top-ranked compounds plus the reference entries). For each compound the largest fragment was retained to remove counter-ions, hydrogens were added, a single 3D conformer was generated with ETKDGv3 (fixed seed) and minimized with MMFF, and a flexible-ligand PDBQT file was prepared with Meeko, keeping the protonation state of the input structure. Docking used a fixed random seed and returned the \DockNPoses\ best poses. Poses were ranked by the predicted binding free energy ($\Delta G$) in kcal/mol, where lower energies denote stronger predicted binding \citep{feng2023}; this is an empirical, rigid-receptor estimate and not a measured thermodynamic quantity. The docking ligand efficiency was computed as the best score per heavy atom. To systematically evaluate the consensus between the ligand-based and structure-based approaches, we established quantitative thresholds. Compounds were classified as validated consensus hits only if they exhibited both high ML-predicted potency ($pIC_{50} > \DockMLActiveThresh$) and strong docking affinity ($\Delta G < \DockActiveThresh\text{ kcal/mol}$). Compounds meeting the ML threshold but failing the docking criterion were flagged as potential ML false positives. Conversely, compounds with $pIC_{50} < \DockMLInactiveThresh$ were labeled validated negatives if $\Delta G > \DockInactiveThresh\text{ kcal/mol}$ and potential ML false negatives if $\Delta G < \DockActiveThresh\text{ kcal/mol}$; all remaining compounds were classed as neutral. Finally, to quantify the monotonic agreement between the two orthogonal methods without assuming linearity, a Spearman rank correlation analysis was conducted between the continuous $pIC_{50}$ predictions and the Vina docking scores (reported in the manuscript).
 
 
+\subsection*{Sensitivity of the applicability domain to its threshold}
+
+The similarity threshold that separates compounds inside the applicability domain from extrapolations has no
+universally accepted definition \citep{sahigara2012, heberger2023}, so the count reported in the manuscript is given
+here for every rule the implementation provides, computed on the same \ScreenNTrainMols\ training compounds and the
+same \ScreenNStructural\ screened structures. The rules differ by a factor of more than two in the similarity they
+demand, and the share of the library they admit ranges from \ScreenADSensitivityMin\ to \ScreenADSensitivityMax\
+compounds. The conclusion drawn in the manuscript does not depend on the choice: under the most permissive rule
+available, fewer than two per cent of the library lies inside the domain.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Compounds of the FDA library inside the applicability domain under each threshold rule. The rules are
+	those of \citet{sahigara2012} applied to the distances of the training compounds to their \ScreenADNeighbors\
+	nearest neighbours; the minimum similarity is one minus the resulting distance limit. The manuscript uses the mean
+	plus \ScreenADZ\ standard deviations.}
+	\label{tab:ad_sensitivity}
+	\input{latex/ad_sensitivity_table.tex}
+\end{table}
+
 \subsection*{Screening results}
 
 \begin{table}[htbp]

@@ -22,12 +22,71 @@ from qsartools.applicability_domain import (contains_only_elements, fit_similari
 from qsartools.featurization import morgan_fingerprints, standardize_ligand
 from qsartools.latex import format_macros
 from qsartools.ligand_efficiency import ligand_efficiency_metrics
+from qsartools.splits import holdout_split
+from qsartools.stats import conformal_halfwidth
 
 RDLogger.DisableLog('rdApp.*')
 warnings.filterwarnings("ignore")
 
 LOG_FILE = os.path.join(LOGS_DIR, "05_virtual_screening.log")
 OUTPUT_CSV = FDA_CANDIDATES_CSV
+
+
+def calibrate_conformal(model, mask, alpha=CONFORMAL_ALPHA):
+    """Half-width of the prediction interval of the deployed model, calibrated on the hold-out of step 04.
+
+    That partition is a valid calibration set: the deployed ensemble is fitted on the development part alone, and its
+    architecture was fixed by the nested selection of step 01, so no held-out compound took part in building it. The
+    residuals are recomputed here with the model that screens the library rather than read from
+    04_augmentation_test_predictions.csv, whose Exp B column averages five stochastic fits and would therefore
+    calibrate a predictor more stable than the deployed one.
+
+    Args:
+        model: the fitted estimator loaded from MODEL_FILE, predicting on the selected bits.
+        mask: boolean array over the 2048 fingerprint bits, or None to use all of them.
+        alpha: miscoverage of the interval.
+
+    Returns:
+        Dict with the half-width, the coverage, the size of the calibration set and its mean absolute residual.
+    """
+    df = pd.read_csv(TRAIN_FILE).dropna(subset=['Smiles', 'pIC50 Value']).reset_index(drop=True)
+    y = df['pIC50 Value'].to_numpy(dtype=float)
+    # Same positions as step 04: raw SMILES, no standardization, and the split taken on the row order of TRAIN_FILE
+    X = morgan_fingerprints(df['Smiles'].tolist()).astype(float)
+    _, calibration_idx = holdout_split(len(y), test_size=TEST_SIZE, seed=RANDOM_STATE)
+    X_calibration = X[calibration_idx][:, mask] if mask is not None else X[calibration_idx]
+    residuals = y[calibration_idx] - np.asarray(model.predict(X_calibration), dtype=float).ravel()
+    return {"half_width": conformal_halfwidth(residuals, alpha=alpha), "coverage": 100 * (1 - alpha),
+            "n_calibration": len(calibration_idx), "mae": float(np.abs(residuals).mean())}
+
+
+def domain_sensitivity(X_train, X_library, rules=AD_SENSITIVITY_RULES):
+    """How many library compounds each applicability-domain rule admits.
+
+    The count of compounds inside the domain depends on a threshold that the literature does not fix (Sahigara et al.,
+    2012; Heberger, 2023), so every rule the module implements is reported instead of only the one used.
+
+    Args:
+        X_train: (n, d) fingerprints of the training compounds, which define the thresholds.
+        X_library: (m, d) fingerprints of the screened compounds.
+        rules: iterable of (label, strategy, z, percentile) as in AD_SENSITIVITY_RULES; z and percentile may be None
+            for the strategies that do not take them.
+
+    Returns:
+        DataFrame with one row per rule: rule, min_similarity, n_inside and percent_inside.
+    """
+    rows = []
+    for label, strategy, z, percentile in rules:
+        kwargs = {"strategy": strategy}
+        if z is not None:
+            kwargs["z"] = z
+        if percentile is not None:
+            kwargs["percentile"] = percentile
+        fitted = fit_similarity_domain(X_train, k=AD_K, **kwargs)
+        inside = in_similarity_domain(fitted, X_library)
+        rows.append(dict(rule=label, min_similarity=round(fitted['min_similarity'], 4),
+                         n_inside=int(inside.sum()), percent_inside=round(100 * float(inside.mean()), 2)))
+    return pd.DataFrame(rows)
 
 
 def find_control(df_res, drug):
@@ -160,6 +219,14 @@ def run():
     print(f"  [+] Inside the applicability domain: {int(inside.sum())} compounds ({100 * inside.mean():.1f}%); "
           f"all are scored, none is excluded")
     print(f"  [+] Total filtering time: {time.time() - t0:.2f}s")
+
+    sensitivity = domain_sensitivity(X_train_full, X_fda_full)
+    os.makedirs(os.path.dirname(AD_SENSITIVITY_CSV), exist_ok=True)
+    sensitivity.to_csv(AD_SENSITIVITY_CSV, index=False)
+    print(f"  [+] Threshold sensitivity ({len(sensitivity)} rules) saved to {AD_SENSITIVITY_CSV}:")
+    for _, r in sensitivity.iterrows():
+        print(f"      {r['rule']:<18} similarity >= {r['min_similarity']:.3f} -> {r['n_inside']:>5} compounds "
+              f"({r['percent_inside']:.1f}%)")
     explain("Reading the filter counts", f"""
         {initial_fda_count} drugs in the library -> {len(candidates)} after size/atom filters, all scored -> {int(inside.sum())}
         of them inside the model's domain. Drugs lost at the first stage were never scored. A low share inside the domain
@@ -177,6 +244,19 @@ def run():
     print(f"  [+] Inferences completed in {time.time() - t0:.3f}s")
     print(f"  [-] Prediction Statistics -> Mean: {preds.mean():.4f} | Max: {preds.max():.4f} | Min: {preds.min():.4f}")
 
+    t0 = time.time()
+    conformal = calibrate_conformal(model, mask)
+    print(f"  [+] Conformal calibration on the {conformal['n_calibration']}-compound hold-out of step 04 in "
+          f"{time.time() - t0:.2f}s: +/-{conformal['half_width']:.2f} log units at {conformal['coverage']:.0f}% "
+          f"coverage (mean absolute residual {conformal['mae']:.2f})")
+    explain("Reading the interval", f"""
+        Every predicted potency is reported as pIC50 +/- {conformal['half_width']:.2f}. The interval comes from the absolute
+        errors this same model made on the {conformal['n_calibration']} compounds held out in step 04, and covers the true value
+        of a new compound {conformal['coverage']:.0f}% of the time provided that compound resembles the held-out ones. For a drug
+        outside the applicability domain the coverage is not guaranteed, and the interval should be read as a lower bound on the
+        uncertainty, not as its measure.
+    """)
+
     # Result dataframe construction
     rows = []
     for i, c in enumerate(final):
@@ -184,6 +264,8 @@ def run():
         rows.append({
             'CID': c['CID'], 'Name': c['Name'], 'SMILES': c['SMILES'], 'Ligand_SMILES': c['Ligand_SMILES'],
             'pIC50_pred': round(float(preds[i]), 4),
+            'pIC50_lower': round(float(preds[i]) - conformal['half_width'], 4),
+            'pIC50_upper': round(float(preds[i]) + conformal['half_width'], 4),
             **metrics,
             'AD_similarity': round(float(fda_similarity[i]), 4),
             'In_AD': bool(inside[i]),
@@ -258,6 +340,11 @@ def run():
               "ScreenNTrainMols": len(df_train), "ScreenMaskBits": int(mask.sum()) if mask is not None else 2048,
               "ScreenMaxMW": f"{MAX_MW:.0f}", "ScreenADNeighbors": AD_K, "ScreenADZ": f"{AD_Z}",
               "ScreenADMinSimilarity": f"{domain['min_similarity']:.3f}",
+              "ScreenConformalHalfWidth": f"{conformal['half_width']:.2f}",
+              "ScreenConformalCoverage": f"{conformal['coverage']:.0f}",
+              "ScreenConformalNCal": conformal['n_calibration'],
+              "ScreenADSensitivityMin": int(sensitivity['n_inside'].min()),
+              "ScreenADSensitivityMax": int(sensitivity['n_inside'].max()),
               "ScreenADTrainMedian": f"{np.median(train_similarity):.2f}",
               "ScreenADFdaMedian": f"{np.median(fda_similarity):.2f}",
               "ScreenADFdaLow": f"{np.percentile(fda_similarity, 5):.2f}",
