@@ -1,0 +1,34 @@
+=========================================================================================================
+20_moleculeace_prepare.py — MoleculeACE targets for the generalization benchmark
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Converts the MoleculeACE bioactivity sets with at most 1000 compounds into the format the
+  pipeline         reads (cid, Smiles, Standard Value, pIC50 Value), one CSV per target. Their
+  potency column is already the         negative logarithm of a molar concentration (pKi or
+  pEC50), the same scale as the pIC50 of the main benchmark,         so no transformation is
+  applied and no value is recomputed.
+  The predefined 80/20 split and the activity-cliff flag of each compound are written next to each
+  data set, so         that the benchmark can be scored both on our own nested cross-validation
+  and on the partition the original         authors published, and so that the error on cliff
+  compounds can be reported separately.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[DOWNLOAD] https://github.com/molML/MoleculeACE/archive/refs/heads/main.tar.gz
+[DOWNLOAD] 91 files extracted to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/moleculeace/_source/benchmark_data
+  CHEMBL1862_Ki      ABL1     n=794   Ki    Kinase       cliffs=32%
+  CHEMBL1871_Ki      AR       n=659   Ki    NR           cliffs=24%
+  CHEMBL2034_Ki      GR       n=750   Ki    NR           cliffs=31%
+  CHEMBL2047_EC50    FXR      n=631   EC50  NR           cliffs=39%
+  CHEMBL231_Ki       HRH1     n=973   Ki    GPCR         cliffs=23%
+  CHEMBL237_EC50     KOR      n=955   EC50  GPCR         cliffs=42%
+  CHEMBL262_Ki       GSK3     n=856   Ki    Kinase       cliffs=18%
+  CHEMBL2835_Ki      JAK1     n=615   Ki    Kinase       cliffs=7%
+  CHEMBL2971_Ki      JAK2     n=976   Ki    Kinase       cliffs=12%
+  CHEMBL4005_Ki      PIK3CA   n=960   Ki    Transferase  cliffs=37%
+  CHEMBL4203_Ki      CLK4     n=731   Ki    Kinase       cliffs=9%
+  CHEMBL4616_EC50    GHSR     n=682   EC50  GPCR         cliffs=48%
+
+[EXPORT] 12 targets (9582 compounds) written to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/moleculeace
+[EXPORT] Index saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/moleculeace/index.csv

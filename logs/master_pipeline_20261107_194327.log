@@ -1,0 +1,59 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Final consistency check of the paper against the pipeline outputs. It lists every figure and
+  every included file the         manuscript refers to and confirms they exist, and it confirms
+  that each result variable used in the text was generated.         A failure here means the text
+  refers to something the pipeline did not produce (or no longer produces).
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[DOC] paper_ML_GNN.tex
+[OK] figure figures/01_nested_cv_algorithm_selection.png
+[OK] figure figures/01_nested_cv_stability_boxplot.png
+[OK] figure figures/01_nested_cv_time_vs_performance.png
+[OK] figure figures/04_augment_r2_comparison.png
+[OK] figure figures/07_docking_scatter.png
+[OK] figure figures/09_gnn_benchmark_comparison.png
+[CHECK] 31 files followed, 6 figures, 1376 project variables used, 0 undefined
+
+[DOC] paper_reading.tex
+[OK] figure figures/01_nested_cv_algorithm_selection.png
+[OK] figure figures/01_nested_cv_stability_boxplot.png
+[OK] figure figures/01_nested_cv_time_vs_performance.png
+[OK] figure figures/04_augment_r2_comparison.png
+[OK] figure figures/07_docking_scatter.png
+[OK] figure figures/09_gnn_benchmark_comparison.png
+[CHECK] 33 files followed, 6 figures, 1374 project variables used, 0 undefined
+
+[DOC] supplementary_ML_GNN.tex
+[OK] figure figures/01_nested_cv_performance_summary.png
+[OK] figure figures/05_candidates_metrics_heatmap.png
+[OK] figure figures/05_pIC50_candidates_comparison.png
+[OK] figure figures/05_pIC50_vs_LE_scatter.png
+[OK] figure figures/S1_nested_cv_selection_full_heatmap.png
+[CHECK] 27 files followed, 5 figures, 1374 project variables used, 0 undefined
+[OK] Every figure, included file, and variable used by the 3 document(s) is produced by the pipeline.
+
+=== END LOG: 11_check_manuscript.py [EXIT CODE: 0] ===
+

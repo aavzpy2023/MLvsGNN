@@ -15,14 +15,31 @@
 [OK] figure figures/04_augment_r2_comparison.png
 [OK] figure figures/07_docking_scatter.png
 [OK] figure figures/09_gnn_benchmark_comparison.png
-[CHECK] 30 files followed, 6 figures, 1375 project variables used, 0 undefined
+[CHECK] 41 files followed, 6 figures, 1377 project variables used, 0 undefined
+
+[DOC] paper_reading.tex
+[OK] figure figures/01_nested_cv_algorithm_selection.png
+[OK] figure figures/01_nested_cv_stability_boxplot.png
+[OK] figure figures/01_nested_cv_time_vs_performance.png
+[OK] figure figures/04_augment_r2_comparison.png
+[OK] figure figures/07_docking_scatter.png
+[OK] figure figures/09_gnn_benchmark_comparison.png
+[CHECK] 41 files followed, 6 figures, 1375 project variables used, 0 undefined
+
+[DOC] paper_springer.tex
+[OK] figure figures/01_nested_cv_algorithm_selection.png
+[OK] figure figures/01_nested_cv_stability_boxplot.png
+[OK] figure figures/01_nested_cv_time_vs_performance.png
+[OK] figure figures/04_augment_r2_comparison.png
+[OK] figure figures/07_docking_scatter.png
+[OK] figure figures/09_gnn_benchmark_comparison.png
+[CHECK] 41 files followed, 6 figures, 1375 project variables used, 0 undefined
 
 [DOC] supplementary_ML_GNN.tex
 [OK] figure figures/01_nested_cv_performance_summary.png
 [OK] figure figures/05_candidates_metrics_heatmap.png
 [OK] figure figures/05_pIC50_candidates_comparison.png
 [OK] figure figures/05_pIC50_vs_LE_scatter.png
-[OK] figure figures/08_admet_quadrants.png
 [OK] figure figures/S1_nested_cv_selection_full_heatmap.png
-[CHECK] 24 files followed, 6 figures, 1372 project variables used, 0 undefined
-[OK] Every figure, included file, and variable used by the 2 document(s) is produced by the pipeline.
+[CHECK] 29 files followed, 5 figures, 1374 project variables used, 0 undefined
+[OK] Every figure, included file, and variable used by the 4 document(s) is produced by the pipeline.

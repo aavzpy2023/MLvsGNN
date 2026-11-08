@@ -1,4 +1,4 @@
-=== START LOG: 12_gnn_tuned.py [2026-11-06 12:18:02] ===
+=== START LOG: 12_gnn_tuned.py [2026-11-07 18:07:12] ===
 
 =========================================================================================================
 12_gnn_tuned.py — D-MPNN with hyperparameter search inside every outer fold (nested)

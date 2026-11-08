@@ -1,0 +1,48 @@
+Python 3.11.16 | Linux 7.0.0-38-generic | 48 CPU threads | profile=workstation
+  numpy==1.26.4
+  pandas==2.3.3
+  scipy==1.16.3
+  scikit-learn==1.6.0
+  xgboost==3.1.2
+  lightgbm==4.6.0
+  rdkit==2025.9.3
+  meeko==0.8.0
+  vina==1.2.7
+  torch==2.5.1
+  lightning==2.6.5
+  chemprop==2.2.4
+  PyTDC==0.4.1
+  seaborn==0.13.2
+  adjustText==1.4.0
+  matplotlib==3.10.8
+  joblib==1.5.2
+  setuptools==69.5.1
+
+=========================================================================================================
+19_gnn_strong_baselines.py — Stronger neural baselines on the shared outer folds
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  The graph network of steps 09 and 12 was trained from scratch, one network per fold. A fair
+  objection is that a         stronger neural model might have matched the classical ensembles.
+  This step tries four: an average of five graph         networks, a graph network that also
+  receives the RDKit descriptors, a graph network that starts from CheMeleon (a         model
+  pretrained on about a million PubChem molecules), and a plain neural network on the Morgan
+  fingerprints. All         are scored on the same 25 folds as every other model and compared with
+  the same corrected tests.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  0 variant x fold tasks to run (100 already in the checkpoint)
+  mlp_ecfp     R2 = 0.7090 ± 0.0542 | MAE = 0.4989 | vs default D-MPNN dR2 = -0.016 (p = 0.557)
+  dmpnn_ens5   R2 = 0.7409 ± 0.0405 | MAE = 0.4599 | vs default D-MPNN dR2 = +0.016 (p = 0.096)
+  dmpnn_rdkit  R2 = 0.7008 ± 0.0497 | MAE = 0.4949 | vs default D-MPNN dR2 = -0.024 (p = 0.262)
+  chemeleon    R2 = 0.7615 ± 0.0415 | MAE = 0.4416 | vs default D-MPNN dR2 = +0.037 (p = 0.102)
+[EXPORT] Strong-baseline table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/strong_baselines_table.tex
+[EXPORT] Strong pairwise table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/strong_pairwise_table.tex
+[EXPORT] D-MPNN pairwise table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_pairwise_table.tex
+[EXPORT] Tuned configuration table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_tuned_config_table.tex
+[EXPORT] 200 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_strong_variables.tex
+
+=== END LOG: 19_gnn_strong_baselines.py [EXIT CODE: 0] ===
+

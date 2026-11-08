@@ -1,4 +1,4 @@
-=== START LOG: 18_karimova_audit.py [2026-11-07 07:26:43] ===
+=== START LOG: 18_karimova_audit.py [2026-11-07 18:07:19] ===
 
 =========================================================================================================
 18_karimova_audit.py — Audit of the original deep network: reproduction, leakage ladder and shared-fold comparison
@@ -42,6 +42,7 @@ clean_baseline             common_test       0.7525  0.0084  0.4513     130  185
 clean_sel_G123             common_test       0.7253  0.0300  0.4661     130   330.0
 clean_sel_G1234            common_test       0.7135  0.0252  0.4792     130   336.0
 [EXPORT] Leakage ladder table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/leakage_ladder_table.tex
+[EXPORT] Per-seed ladder table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/leakage_ladder_seeds_table.tex
 
 Ladder differences:
                        new                        old  paired  n_seeds  delta_r2_mean  delta_r2_sd  delta_mae_mean  frac_seeds_negative  boot_ci_low  boot_ci_high

@@ -1,4 +1,4 @@
-=== START LOG: 19_gnn_strong_baselines.py [2026-11-07 07:41:17] ===
+=== START LOG: 19_gnn_strong_baselines.py [2026-11-07 18:07:24] ===
 
 =========================================================================================================
 19_gnn_strong_baselines.py — Stronger neural baselines on the shared outer folds
@@ -16,12 +16,14 @@
   the same corrected tests.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   0 variant x fold tasks to run (100 already in the checkpoint)
-  mlp_ecfp     R2 = 0.7090 ± 0.0542 | MAE = 0.4989 | vs default D-MPNN dR2 = -0.0158 (p = 0.557)
-  dmpnn_ens5   R2 = 0.7409 ± 0.0405 | MAE = 0.4599 | vs default D-MPNN dR2 = +0.0160 (p = 0.096)
-  dmpnn_rdkit  R2 = 0.7008 ± 0.0497 | MAE = 0.4949 | vs default D-MPNN dR2 = -0.0241 (p = 0.262)
-  chemeleon    R2 = 0.7615 ± 0.0415 | MAE = 0.4416 | vs default D-MPNN dR2 = +0.0366 (p = 0.102)
+  mlp_ecfp     R2 = 0.7090 ± 0.0542 | MAE = 0.4989 | vs default D-MPNN dR2 = -0.016 (p = 0.557)
+  dmpnn_ens5   R2 = 0.7409 ± 0.0405 | MAE = 0.4599 | vs default D-MPNN dR2 = +0.016 (p = 0.096)
+  dmpnn_rdkit  R2 = 0.7008 ± 0.0497 | MAE = 0.4949 | vs default D-MPNN dR2 = -0.024 (p = 0.262)
+  chemeleon    R2 = 0.7615 ± 0.0415 | MAE = 0.4416 | vs default D-MPNN dR2 = +0.037 (p = 0.102)
 [EXPORT] Strong-baseline table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/strong_baselines_table.tex
 [EXPORT] Strong pairwise table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/strong_pairwise_table.tex
+[EXPORT] D-MPNN pairwise table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_pairwise_table.tex
+[EXPORT] Tuned configuration table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_tuned_config_table.tex
 [EXPORT] 200 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_strong_variables.tex
 
 === END LOG: 19_gnn_strong_baselines.py [EXIT CODE: 0] ===
