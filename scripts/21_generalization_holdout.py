@@ -122,20 +122,36 @@ def main():
     """)
     index = pd.read_csv(INDEX_CSV)
     n_jobs = CFG['N_JOBS']
-    rows, predictions = [], []
+
+    # Each target costs about half an hour, so the two files are rewritten after every one of them and a target already
+    # present in them is skipped: the cohort can then be run in several sittings, or on more than one machine, without
+    # repeating work. Delete the two files to force a clean run.
+    rows, predictions, done = [], [], set()
+    if os.path.exists(OUT_CSV):
+        previous = pd.read_csv(OUT_CSV)
+        rows = previous.to_dict("records")
+        done = set(previous["dataset"])
+        if os.path.exists(PRED_CSV):
+            predictions = [pd.read_csv(PRED_CSV)]
+        print(f"  [RESUME] {len(done)} target(s) already scored: {', '.join(sorted(done))}")
+
     for _, entry in index.iterrows():
+        dataset = entry["dataset"]
+        if dataset in done:
+            print(f"  {dataset:<18} {entry['abbreviation']:<8} already scored, skipped", flush=True)
+            continue
         started = time.time()
-        target_rows, target_predictions, combo_id = run_target(entry["dataset"], n_jobs)
+        target_rows, target_predictions, combo_id = run_target(dataset, n_jobs)
         rows.extend(target_rows)
         predictions.append(target_predictions)
+        pd.DataFrame(rows).to_csv(OUT_CSV, index=False)
+        pd.concat(predictions, ignore_index=True).to_csv(PRED_CSV, index=False)
         overall = {r["model"]: r["r2"] for r in target_rows if r["subset"] == "all"}
         classical_r2 = next(v for k, v in overall.items() if k.startswith("Classical"))
-        print(f"  {entry['dataset']:<18} {entry['abbreviation']:<8} n={entry['n']:<5} {combo_id:<14} "
+        print(f"  {dataset:<18} {entry['abbreviation']:<8} n={entry['n']:<5} {combo_id:<14} "
               f"classical R2={classical_r2:.4f}  D-MPNN R2={overall['D-MPNN']:.4f} "
               f"({time.time() - started:.0f}s)", flush=True)
 
-    pd.DataFrame(rows).to_csv(OUT_CSV, index=False)
-    pd.concat(predictions, ignore_index=True).to_csv(PRED_CSV, index=False)
     print(f"\n[EXPORT] {OUT_CSV}")
     print(f"[EXPORT] {PRED_CSV}")
 
