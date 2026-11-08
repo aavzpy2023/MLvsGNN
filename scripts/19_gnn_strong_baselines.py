@@ -299,7 +299,10 @@ def main():
     scores = pd.read_csv(CHECKPOINT_19)
     checkpoint = pd.read_csv(CHECKPOINT_FILE)
     gnn_default = pd.read_csv(GNN_FOLD_SCORES_CSV).sort_values("Fold").reset_index(drop=True)
-    values, tables, summary = {}, [], {}
+    morgan_minutes = checkpoint[checkpoint["Mode"] == "morgan"]["Time_s"].mean() / 60
+    # Reported in minutes so that the neural and classical costs share a unit in the text
+    values = {"ClassicalMorganFoldMinutes": f"{morgan_minutes:.1f}"}
+    tables, summary = [], {}
     for variant in VARIANTS:
         s = scores[scores["variant"] == variant].sort_values("Fold").reset_index(drop=True)
         if len(s) != len(folds):
@@ -310,6 +313,8 @@ def main():
                                                              index=False)
         values[f"{label}RTwoMean"], values[f"{label}RTwoStd"] = f"{s['R2'].mean():.3f}", f"{s['R2'].std(ddof=1):.3f}"
         values[f"{label}Mae"], values[f"{label}FoldMinutes"] = f"{s['MAE'].mean():.3f}", f"{s['Time_s'].mean() / 60:.1f}"
+        cost_factor = s["Time_s"].mean() / 60 / morgan_minutes
+        values[f"{label}CostFactor"] = f"{cost_factor:.1f}" if cost_factor >= 1 else f"{cost_factor:.2f}"
         table, macros = compare_to_classical(s, checkpoint, f"{label}Vs")
         values.update(macros)
         tables.append(table.assign(model=label))

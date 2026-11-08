@@ -156,8 +156,8 @@ classical ensembles use reached \MlpEcfpRTwoMean.
 \end{table}
 
 Parity therefore costs something. The pretrained network needed \ChemeleonFoldMinutes\ minutes per outer fold against
-the \ClassicalMorganFoldSec\ s of a complete classical fold with its architecture search, roughly eight times as much
-computation, and it reaches the accuracy of the fingerprint ensemble without exceeding it. The seed ensemble is the
+the \ClassicalMorganFoldMinutes\ minutes of a complete classical fold with its architecture search, a factor of
+\ChemeleonCostFactor, and it reaches the accuracy of the fingerprint ensemble without exceeding it. The seed ensemble is the
 more economical of the two routes, at \DmpnnEnsFoldMinutes\ minutes per fold. Read together with the default and tuned
 variants, these results place the ceiling of representation learning on this data set at the level of a fixed
 fingerprint, reached only with pretraining on an external corpus.
