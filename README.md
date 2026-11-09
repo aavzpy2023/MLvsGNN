@@ -182,10 +182,44 @@ Docking targets the DHFR active site of PDB 6AOG. The screening box is centered 
 
 ---
 
-## 9. Citation
+## 9. Which values the manuscript can cite
+
+Every number in the paper is a `\newcommand` that the pipeline writes, never a literal, so re-running a step updates
+the text and rewording a sentence cannot change a value. The pipeline exports far more of them than the manuscript
+cites, on purpose: an objection is answered by looking a value up instead of recomputing it.
+
+**[`MACROS.md`](MACROS.md) is the index.** It is generated, one table per family, and each row gives the macro, its
+current value, whether the manuscript already cites it and in which section, and the command that regenerates that
+family. Search it by topic through the macro prefixes:
+
+| Prefix | What it covers | Written by |
+| --- | --- | --- |
+| `Data*`, `Outlier*` | curation, duplicates, outlier fences and the sensitivity set | steps 00, 10 |
+| `Morgan*`, `RdkitTwoD*`, `Sel*` | the four representations and the architectures the inner loop selected | step 01 |
+| `NB*`, `Equiv*` | paired comparisons: corrected t-tests, Holm adjustment, equivalence tests | step 02 |
+| `YRandom*` | y-randomization in its four forms | step 03 |
+| `Exp*` | the augmentation and feature-selection ablation on the hold-out | step 04 |
+| `Screen*`, `Cand*` | virtual screening, applicability domain, prediction intervals, candidates | step 05 |
+| `Dock*`, `Redock*`, `Admet*` | docking, its validation and the ADMET profile | steps 06, 07, 08 |
+| `ChemProp*`, `Gnn*` | the default and tuned D-MPNN, and the reproducibility of the benchmark | steps 09, 12 |
+| `Chemeleon*`, `Dmpnn*`, `MlpEcfp*` | the stronger neural baselines | step 19 |
+| `Scaffold*`, `Random*` | the scaffold-grouped re-run and its comparison with random folds | steps SC01, SC19, 13 |
+| `Kar*`, `Ladder*`, `Dnn*` | the audit of the original pipeline and the leakage ladder | steps 15-18 |
+| `Config`-family (`NTrees`, `RandomSeed`, `Gnn*`, `Iqr*`) | the settings this run used | step 00.1 |
+
+**To propose a value for the text**, add a row to [`macro_notes.csv`](macro_notes.csv) with the macro and why it is
+worth citing. The note appears in the catalogue beside the value on the next regeneration, so a suggestion survives
+and is visible to everyone. Do not edit `MACROS.md`: it is overwritten by `python run_pipeline.py --only 11`.
+
+A test fails if the catalogue drifts from `latex/`, if a note names a macro no step exports, or if a value that has a
+macro is also written as a literal in the text.
+
+---
+
+## 10. Citation
 
 [CITATION NEEDED — add the full manuscript citation once accepted/published]
 
-## 10. License
+## 11. License
 
 MIT

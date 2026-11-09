@@ -1,0 +1,6 @@
+macro,note
+YRandomPassed,"Verdict of the y-randomization test as a single value; the text spells out the four tests but never states the verdict"
+OutlierSameRanking,"Whether keeping the two extreme potencies changes the ranking of the representations; a one-word answer to the sensitivity objection"
+DockNDiscordant,"Number of compounds where the model and the docking disagree; quantifies the discordance the Discussion describes in words"
+ChemeleonVsGnnDefaultDiffRTwo,"How much the pretrained initialization adds over the default D-MPNN; the whole gnn_strong family has these and none is cited"
+RandomChemeleonRTwoMean,"CheMeleon under random folds as reported by the scaffold step, for the random-versus-scaffold comparison of Section 3.6"
