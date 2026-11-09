@@ -1,0 +1,47 @@
+{
+  "title": "Leakage-Free Benchmarking of Classical Machine Learning and Graph Neural Networks for Low-Data TgDHFR Bioactivity Prediction: analysis pipeline",
+  "description": "<p>Reproducible pipeline that audits the data leakage of a published TgDHFR QSAR study and benchmarks classical stacking ensembles against graph neural networks under a leakage-free nested cross-validation protocol, with an applicability-domain-aware virtual screening and a generalization cohort of MoleculeACE targets.</p><p>Every number the manuscript states is exported by the pipeline as a LaTeX macro, so the text cannot drift from the results; the repository documents which script produces each family of values and checks the manuscript against them.</p><p>The code is MIT licensed. The data under <code>data/</code> are third-party and keep the terms of their sources (ChEMBL and BindingDB through the release of Karimova &amp; Senanayake, a PubChem extract, the MoleculeACE benchmarks of van Tilborg et al., and PDB entry 6AOG); they are redistributed so that the pipeline runs as published, not relicensed.</p>",
+  "upload_type": "software",
+  "license": "mit",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Vinajera-Zamora, Andrey",
+      "orcid": "0000-0002-4922-457X",
+      "affiliation": "Instituto Universitario de Investigacion y Desarrollo Tecnologico, Universidad Tecnologica Metropolitana, Santiago, Chile"
+    },
+    {
+      "name": "Castillo-Garit, Juan",
+      "orcid": "0000-0003-0896-9484",
+      "affiliation": "Instituto Universitario de Investigacion y Desarrollo Tecnologico, Universidad Tecnologica Metropolitana, Santiago, Chile"
+    },
+    {
+      "name": "Montejo-Sanchez, Samuel",
+      "orcid": "0000-0003-1622-3180",
+      "affiliation": "Instituto Universitario de Investigacion y Desarrollo Tecnologico, Universidad Tecnologica Metropolitana, Santiago, Chile"
+    },
+    {
+      "name": "Arias-Carrasco, Raul",
+      "orcid": "0000-0003-1698-9282",
+      "affiliation": "Instituto Universitario de Investigacion y Desarrollo Tecnologico, Universidad Tecnologica Metropolitana, Santiago, Chile"
+    }
+  ],
+  "keywords": [
+    "QSAR",
+    "data leakage",
+    "nested cross-validation",
+    "graph neural networks",
+    "message passing neural network",
+    "applicability domain",
+    "reproducibility",
+    "Toxoplasma gondii",
+    "dihydrofolate reductase"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/aavzpy2023/MLvsGNN",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
