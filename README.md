@@ -257,6 +257,36 @@ a reading job.
 
 ---
 
+### 9.6 Building with the right checks
+
+`./build.sh` asks what changed before compiling and runs only the checks that can catch it:
+
+```
+What changed since the last build?
+  1) prose only          - the manuscript checks, 6 s
+  2) code or settings    - the whole test suite, 40 s
+  3) I re-ran a step     - refresh the catalogue, then the whole suite
+  4) nothing, just build - no checks
+```
+
+A failing check stops the build and prints the test that failed, so a PDF is never produced from a manuscript that
+contradicts the results. The same choices are available without the question, which is what a hook or another script
+should use:
+
+| Command | What it does |
+| --- | --- |
+| `./build.sh` | asks, then compiles every document |
+| `./build.sh --prose` | the manuscript checks, then every document |
+| `./build.sh --code` | the whole test suite, then every document |
+| `./build.sh --step` | refreshes the macro catalogue, the whole suite, then every document |
+| `./build.sh --no-checks` | straight to compiling |
+| `./build.sh paper_reading` | that document alone, no checks |
+
+The question is asked only when a terminal is attached and no document and no flag were given, so every scripted use
+keeps compiling exactly as before. Committing and pushing are deliberately not part of this: the script builds.
+
+---
+
 ## 10. Citation
 
 [CITATION NEEDED — add the full manuscript citation once accepted/published]
