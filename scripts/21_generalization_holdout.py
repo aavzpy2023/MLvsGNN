@@ -31,6 +31,7 @@ from qsartools.featurization import morgan_fingerprints
 from qsartools.models import (base_regressors, clip_bounds, clip_predictions, combination_id, descriptor_pipeline,
                               model_combinations, stacking_regressor)
 from qsartools.nested_cv import inner_cv_scores
+from qsartools.parallel import SAFE_CPU_ENV, run_tasks
 
 import gnn_utils
 
@@ -106,6 +107,22 @@ def run_target(dataset, n_jobs):
     return rows, predictions, combination_id(combo)
 
 
+def run_target_task(task):
+    """One target in its own process, for qsartools.parallel.run_tasks.
+
+    The native libraries under chemprop occasionally die with an illegal instruction in the middle of a training, which
+    takes the whole process down without raising. Run in a child process, such a death costs one target instead of the
+    rest of the cohort, and the task is retried.
+
+    Args:
+        task: (dataset, n_jobs) as passed to run_target.
+    """
+    dataset, n_jobs = task
+    started = time.time()
+    rows, predictions, combo_id = run_target(dataset, n_jobs)
+    return rows, predictions, combo_id, time.time() - started
+
+
 def main():
     setup_logger(os.path.join(LOGS_DIR, "21_generalization_holdout.log"))
     print("=" * 105)
@@ -135,22 +152,32 @@ def main():
             predictions = [pd.read_csv(PRED_CSV)]
         print(f"  [RESUME] {len(done)} target(s) already scored: {', '.join(sorted(done))}")
 
+    tasks = []
     for _, entry in index.iterrows():
-        dataset = entry["dataset"]
-        if dataset in done:
-            print(f"  {dataset:<18} {entry['abbreviation']:<8} already scored, skipped", flush=True)
+        if entry["dataset"] in done:
+            print(f"  {entry['dataset']:<18} {entry['abbreviation']:<8} already scored, skipped", flush=True)
             continue
-        started = time.time()
-        target_rows, target_predictions, combo_id = run_target(dataset, n_jobs)
+        tasks.append((entry["dataset"], n_jobs))
+    described = {entry["dataset"]: entry for _, entry in index.iterrows()}
+
+    def save(task, result):
+        """Checkpoint one finished target, in the parent process, before the next one starts."""
+        entry = described[task[0]]
+        target_rows, target_predictions, combo_id, elapsed = result
         rows.extend(target_rows)
         predictions.append(target_predictions)
         pd.DataFrame(rows).to_csv(OUT_CSV, index=False)
         pd.concat(predictions, ignore_index=True).to_csv(PRED_CSV, index=False)
         overall = {r["model"]: r["r2"] for r in target_rows if r["subset"] == "all"}
         classical_r2 = next(v for k, v in overall.items() if k.startswith("Classical"))
-        print(f"  {dataset:<18} {entry['abbreviation']:<8} n={entry['n']:<5} {combo_id:<14} "
+        print(f"  {entry['dataset']:<18} {entry['abbreviation']:<8} n={entry['n']:<5} {combo_id:<14} "
               f"classical R2={classical_r2:.4f}  D-MPNN R2={overall['D-MPNN']:.4f} "
-              f"({time.time() - started:.0f}s)", flush=True)
+              f"({elapsed:.0f}s)", flush=True)
+
+    if tasks:
+        # One target at a time: each one already uses every worker it is given
+        os.environ.update(SAFE_CPU_ENV)
+        run_tasks(run_target_task, tasks, n_workers=1, on_result=save)
 
     print(f"\n[EXPORT] {OUT_CSV}")
     print(f"[EXPORT] {PRED_CSV}")
