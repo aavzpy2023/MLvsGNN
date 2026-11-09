@@ -309,6 +309,10 @@ the end of `CITATION.cff` turns the article itself into the preferred citation o
 A release is also the right home for the compiled PDFs and for a slim replication package (code, data and the outputs
 that regenerate the tables and figures, without logs): attached to the tag, they are downloadable without cloning.
 
+[`CHANGELOG.md`](CHANGELOG.md) says what each archived release contains and what the version numbers mean: `v0.9.x`
+before submission, `v1.0.0` the submitted version, `v1.x` the revisions, `v2.0` the published one. A tag without a
+section there fails the test suite, so the releases stay a record of the work instead of a list of numbers.
+
 ## 11. Licensing
 
 Code under the MIT licence, in [`LICENSE`](LICENSE). Two things that licence deliberately does not cover:

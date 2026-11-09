@@ -114,3 +114,31 @@ class TestFamilies:
             if match:
                 assert checker.step_of(match.group(1)) == row["step"].strip(), \
                     f"{row['file']} is written by {match.group(1)} but the CSV says step {row['step']}"
+
+
+class TestChangelog:
+    """Releases are only evidence of incremental work if each one says what it contains."""
+    CHANGELOG = os.path.join(ROOT, "CHANGELOG.md")
+
+    def text(self):
+        with open(self.CHANGELOG, encoding="utf-8") as fh:
+            return fh.read()
+
+    def test_every_tag_has_a_section(self):
+        import subprocess
+        tags = subprocess.run(["git", "tag", "-l"], cwd=ROOT, capture_output=True, text=True).stdout.split()
+        if not tags:
+            pytest.skip("no release has been tagged yet")
+        documented = set(re.findall(r"^## (v[\d.]+)", self.text(), re.M))
+        missing = sorted(t for t in tags if t not in documented)
+        assert not missing, f"{missing} are tagged but have no section in CHANGELOG.md"
+
+    def test_the_unreleased_section_exists(self):
+        """Its absence means the next release has nothing written down yet, which is when notes get invented."""
+        assert re.search(r"^## Unreleased", self.text(), re.M), "CHANGELOG.md has no Unreleased section"
+
+    def test_the_concept_doi_is_the_one_the_citation_file_carries(self):
+        import yaml
+        with open(os.path.join(ROOT, "CITATION.cff"), encoding="utf-8") as fh:
+            doi = yaml.safe_load(fh)["doi"]
+        assert doi in self.text(), f"CHANGELOG.md does not mention the concept DOI {doi} that CITATION.cff carries"
