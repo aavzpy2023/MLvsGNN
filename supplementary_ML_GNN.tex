@@ -150,9 +150,13 @@ importances and the nested cross-validation are identical when the number of wor
 The graph-model benchmark is the exception, and it cannot be fixed the same way: a network trained on several CPU
 threads sums its gradients in a thread-dependent order inside each step, which no seed controls. The magnitude of the
 resulting variation is quoted in Section 2.8 of the manuscript and was measured by
-executing the whole \TotalOuterFolds-fold benchmark three times, with the same code, the same seed and the same outer
-folds. Every classical result reproduces exactly, because the outer folds come from the fixed seed and both the
-preprocessing and the architecture search are confined to each training fold.
+executing the whole \TotalOuterFolds-fold benchmark \GnnRepeatNRuns\ times with the same code, the same seed and the
+same outer folds; every execution is recorded, with its provenance, in \texttt{results/09\_gnn\_reproducibility.csv} of
+the repository. The mean fold $R^2$ ranged from \GnnRepeatRTwoMin\ to \GnnRepeatRTwoMax. Their standard deviation over
+the folds is the less stable quantity, ranging from \GnnRepeatStdMin\ to \GnnRepeatStdMax\ across the same executions,
+so the dispersion quoted beside a neural mean should be read as an estimate of that order and not to its last digit.
+Every classical result reproduces exactly, because the outer folds come from the fixed seed and both the preprocessing
+and the architecture search are confined to each training fold.
 
 \clearpage
 \section*{Virtual screening and molecular docking}
