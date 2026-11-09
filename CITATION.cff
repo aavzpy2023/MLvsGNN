@@ -44,6 +44,9 @@ authors:
       Santiago, Chile
 repository-code: https://github.com/aavzpy2023/MLvsGNN
 license: MIT
+# The concept DOI, which Zenodo keeps pointing at the latest archived release. It is stable, so it belongs here
+# even before the submission release exists; the DOI of the exact version is added below with the tag.
+doi: 10.5281/zenodo.24083750
 keywords:
   - QSAR
   - data leakage
@@ -54,10 +57,14 @@ keywords:
   - reproducibility
   - Toxoplasma gondii
   - dihydrofolate reductase
-# Filled in when the first tag is archived on Zenodo, which is also the DOI the manuscript cites:
+# Filled in by the submission release, whose version DOI is the one the manuscript cites (v0.9.0 was a test of
+# the archiving circuit and is DOI 10.5281/zenodo.24083751):
 # version: 1.0.0
 # date-released: YYYY-MM-DD
-# doi: 10.5281/zenodo.XXXXXXX
+# identifiers:
+#   - type: doi
+#     value: 10.5281/zenodo.XXXXXXX
+#     description: this exact version
 #
 # And when the article appears:
 # preferred-citation:

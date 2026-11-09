@@ -296,7 +296,9 @@ the supplement, and checks that each manuscript loads the package; if the `.aux`
 ## 10. Citation and archiving
 
 [`CITATION.cff`](CITATION.cff) holds the citation; GitHub renders it as a *Cite this repository* button and citation
-managers read it directly. The article is not published yet, so the citable object is the software.
+managers read it directly. The article is not published yet, so the citable object is the software, archived on
+Zenodo under the concept DOI [10.5281/zenodo.24083750](https://doi.org/10.5281/zenodo.24083750), which always
+resolves to the latest archived release.
 
 **Cite a tagged release, not a branch.** A link to `main` can move, be rewritten or disappear; a Zenodo DOI cannot.
 The sequence is: enable the Zenodo-GitHub integration for this repository, push a tag (`git tag -a v1.0.0 -m "..."`,
