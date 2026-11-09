@@ -153,6 +153,21 @@ def compare_with_classical(res):
     return macros
 
 
+def record_execution(res):
+    """Append this execution's benchmark score to GNN_REPRODUCIBILITY_CSV.
+
+    Training the network on several CPU threads sums floating-point terms in a thread-dependent order, so the benchmark
+    is not bitwise reproducible and the spread over executions has to be measured rather than argued. Every execution
+    records itself here, and 09.1 turns the accumulated rows into the figure quoted in the manuscript.
+    """
+    row = pd.DataFrame([dict(recorded_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                             provenance="step 09 execution", r2_mean=res['r2'], r2_std=res['std'], mae=res['mae'],
+                             n_folds=res['n_folds'])])
+    os.makedirs(os.path.dirname(GNN_REPRODUCIBILITY_CSV), exist_ok=True)
+    row.to_csv(GNN_REPRODUCIBILITY_CSV, mode='a', header=not os.path.exists(GNN_REPRODUCIBILITY_CSV), index=False)
+    print(f"[EXPORT] Execution recorded in {GNN_REPRODUCIBILITY_CSV}", flush=True)
+
+
 def export_timing(res):
     """Wall-clock cost of one D-MPNN training versus one classical outer fold (inner search included), plus the cost an
     equivalent inner search would add to the D-MPNN. Classical times come from the step 01 checkpoint."""
@@ -258,6 +273,10 @@ def main():
         print(f"[WARNING] Paired comparison with the classical models failed: {e}\n{traceback.format_exc()}", flush=True)
         test_macros = {}
     export_latex(results, extra=test_macros)
+    try:
+        record_execution(res_chemprop)
+    except Exception as e:
+        print(f"[WARNING] The execution was not recorded: {e}", flush=True)
     try:
         export_timing(res_chemprop)
     except Exception as e:

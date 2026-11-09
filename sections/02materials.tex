@@ -314,4 +314,14 @@ To support algorithmic transparency and computational reproducibility \citep{roj
 	\item \textbf{Hardware Specifications:} All model training, architecture selection, and evaluation protocols ran on an Ubuntu 26.04 LTS workstation with two Intel(R) Xeon(R) E5-2695 v2 processors (24 physical cores, 48 threads, 2.4 GHz) and 247 GB of RAM, using CPU only; no GPU was involved.
 \end{itemize}
 
-All random number generators were seeded (seed 42). The models of the augmentation study were fitted single-threaded, because a multi-threaded random forest sums its trees in a thread-dependent order and changes the last bits of its predictions; parallelism was applied across independent tasks (features in the permutation importance, runs in the ensemble) so that the results do not depend on the number of workers. Together with the numerical tolerance of the selection rule (Section~\ref{sec:materials_curation}), this made the feature selection reproducible: permutation importances computed with 46 and with 8 workers were bitwise identical. The graph-model benchmark, in contrast, is not bit-reproducible: training the network on several CPU threads sums floating-point terms in a thread-dependent order, which a fixed seed does not control. Three executions of the same code on the same outer folds differed by 0.004 in mean fold $R^2$, well inside the confidence interval of the estimate itself ([\ChemPropDMPNNFoldCILow, \ChemPropDMPNNFoldCIHigh]), so the variation affects the third decimal of the neural results and none of the comparisons reported here. Every classical result, by contrast, reproduces exactly, because the outer folds come from the fixed seed and both the preprocessing and the architecture search are confined to each training fold. The wall-clock time of every step was recorded on this machine, without normalizing by thread count, and is reported in Section~\ref{sec:cost_results}.
+All random number generators were seeded (seed 42), and the classical results are bitwise reproducible: the models that
+enter them are fitted single-threaded and parallelism is applied across independent tasks, so no result depends on how
+the work was distributed over workers. The graph-model benchmark is the one exception, and it is not a matter of
+seeding: a network trained on several CPU threads sums floating-point terms in a thread-dependent order, which a fixed
+seed does not control. The benchmark was executed \GnnRepeatNRuns\ times with the same code on the same outer
+folds, and the mean fold $R^2$ varied by \GnnRepeatRTwoRange, a spread an order of magnitude narrower than the
+confidence interval of the estimate itself
+([\ChemPropDMPNNFoldCILow, \ChemPropDMPNNFoldCIHigh]), so it affects the third decimal of the neural results and none
+of the comparisons reported here. The Supplementary Material gives the mechanism and the measurement. The wall-clock
+time of every step was recorded on this machine, without normalizing by thread count, and is reported in
+Section~\ref{sec:cost_results}.

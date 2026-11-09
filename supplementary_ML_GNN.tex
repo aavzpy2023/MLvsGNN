@@ -135,6 +135,25 @@ analysis pipeline and read from the same files as the manuscript.
 
 
 
+\subsection*{Numerical reproducibility}
+
+Every random number generator was seeded (seed 42), but a fixed seed does not by itself make a result bitwise
+reproducible, because the order in which floating-point terms are summed depends on how the work was distributed over
+threads and that order changes the last bits of the sum. Two decisions keep this out of the classical results. The
+models of the augmentation study were fitted single-threaded, since a multi-threaded random forest adds its trees in a
+thread-dependent order; parallelism was applied across independent tasks instead, over the features of the permutation
+importance and over the runs of the ensemble, so that a task's result never depends on how many workers are running.
+Together with the numerical tolerance of the selection rule (Section 2.1 of the manuscript),
+this makes the feature selection reproducible: the test suite of the repository checks that the out-of-fold permutation
+importances and the nested cross-validation are identical when the number of workers changes.
+
+The graph-model benchmark is the exception, and it cannot be fixed the same way: a network trained on several CPU
+threads sums its gradients in a thread-dependent order inside each step, which no seed controls. The magnitude of the
+resulting variation is quoted in Section 2.8 of the manuscript and was measured by
+executing the whole \TotalOuterFolds-fold benchmark three times, with the same code, the same seed and the same outer
+folds. Every classical result reproduces exactly, because the outer folds come from the fixed seed and both the
+preprocessing and the architecture search are confined to each training fold.
+
 \clearpage
 \section*{Virtual screening and molecular docking}
 

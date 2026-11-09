@@ -49,6 +49,9 @@ FDA_ADMET_CANDIDATES_CSV = os.path.join(RESULTS_DIR, "08_ADMET_CANDIDATES_For_Do
 FDA_CANDIDATES_CSV       = os.path.join(RESULTS_DIR, "05_FDA_Candidates_For_Docking.csv")
 DOCKING_RESULTS_CSV       = os.path.join(RESULTS_DIR, "07_Final_Validation_Hybrid.csv")
 AD_SENSITIVITY_CSV       = os.path.join(RESULTS_DIR, "05_ad_sensitivity.csv")
+# One row per recorded execution of the D-MPNN benchmark. The graph models are not bitwise reproducible (thread-order
+# summation), so the spread over executions is measured instead of assumed; step 09 appends to it on every run.
+GNN_REPRODUCIBILITY_CSV  = os.path.join(RESULTS_DIR, "09_gnn_reproducibility.csv")
 
 # LaTeX files
 LATEX_PAPER     = os.path.join(LATEX_DIR, "paper_variables.tex")
@@ -63,6 +66,7 @@ LATEX_TIMING     = os.path.join(LATEX_DIR, "timing_variables.tex")
 LATEX_COST_TABLE = os.path.join(LATEX_DIR, "cost_table.tex")
 LATEX_FDA_TABLE  = os.path.join(LATEX_DIR, "fda_candidates_table.tex")
 LATEX_AD_SENSITIVITY_TABLE = os.path.join(LATEX_DIR, "ad_sensitivity_table.tex")
+LATEX_GNN_REPRO  = os.path.join(LATEX_DIR, "gnn_reproducibility_variables.tex")
 LATEX_ADMET_TABLE = os.path.join(LATEX_DIR, "admet_table.tex")
 LATEX_LADDER_TABLE = os.path.join(LATEX_DIR, "leakage_ladder_table.tex")
 LATEX_LADDER_SEEDS_TABLE = os.path.join(LATEX_DIR, "leakage_ladder_seeds_table.tex")
