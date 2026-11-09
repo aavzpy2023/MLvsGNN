@@ -182,37 +182,78 @@ Docking targets the DHFR active site of PDB 6AOG. The screening box is centered 
 
 ---
 
-## 9. Which values the manuscript can cite
+## 9. Numbers in the manuscript: where they come from and how to use them
 
-Every number in the paper is a `\newcommand` that the pipeline writes, never a literal, so re-running a step updates
-the text and rewording a sentence cannot change a value. The pipeline exports far more of them than the manuscript
-cites, on purpose: an objection is answered by looking a value up instead of recomputing it.
+Every number the paper states is a `\newcommand` that the pipeline writes, never a literal. Two things follow, and
+they are the point of the whole arrangement:
 
-**[`MACROS.md`](MACROS.md) is the index.** It is generated, one table per family, and each row gives the macro, its
-current value, whether the manuscript already cites it and in which section, and the command that regenerates that
-family. Search it by topic through the macro prefixes:
+- **Re-running a step updates the text.** No sentence has to be edited after a run, and none can be forgotten.
+- **Rewording a sentence cannot change a value.** The prose is yours to rewrite freely: change a term, reorder a
+  paragraph, rephrase a claim. The macro travels with the sentence and no test will stop you.
 
-| Prefix | What it covers | Written by |
-| --- | --- | --- |
-| `Data*`, `Outlier*` | curation, duplicates, outlier fences and the sensitivity set | steps 00, 10 |
-| `Morgan*`, `RdkitTwoD*`, `Sel*` | the four representations and the architectures the inner loop selected | step 01 |
-| `NB*`, `Equiv*` | paired comparisons: corrected t-tests, Holm adjustment, equivalence tests | step 02 |
-| `YRandom*` | y-randomization in its four forms | step 03 |
-| `Exp*` | the augmentation and feature-selection ablation on the hold-out | step 04 |
-| `Screen*`, `Cand*` | virtual screening, applicability domain, prediction intervals, candidates | step 05 |
-| `Dock*`, `Redock*`, `Admet*` | docking, its validation and the ADMET profile | steps 06, 07, 08 |
-| `ChemProp*`, `Gnn*` | the default and tuned D-MPNN, and the reproducibility of the benchmark | steps 09, 12 |
-| `Chemeleon*`, `Dmpnn*`, `MlpEcfp*` | the stronger neural baselines | step 19 |
-| `Scaffold*`, `Random*` | the scaffold-grouped re-run and its comparison with random folds | steps SC01, SC19, 13 |
-| `Kar*`, `Ladder*`, `Dnn*` | the audit of the original pipeline and the leakage ladder | steps 15-18 |
-| `Config`-family (`NTrees`, `RandomSeed`, `Gnn*`, `Iqr*`) | the settings this run used | step 00.1 |
+### 9.1 Where to look: `MACROS.md`
 
-**To propose a value for the text**, add a row to [`macro_notes.csv`](macro_notes.csv) with the macro and why it is
-worth citing. The note appears in the catalogue beside the value on the next regeneration, so a suggestion survives
-and is visible to everyone. Do not edit `MACROS.md`: it is overwritten by `python run_pipeline.py --only 11`.
+[`MACROS.md`](MACROS.md) is the generated index of every exported value. It opens with a table of the 18 families, each
+with its macro prefixes, how many values it holds, how many the manuscript already cites, and its step. Then one
+section per family, listing every macro with:
 
-A test fails if the catalogue drifts from `latex/`, if a note names a macro no step exports, or if a value that has a
-macro is also written as a literal in the text.
+| Column | What it tells you |
+| --- | --- |
+| Macro | the name to write in the `.tex` |
+| Current value | what it holds after the last run of its step |
+| Cited in | the section files that already use it, or `—` when nothing does |
+| Note | why it might be worth citing, taken from `macro_notes.csv` |
+
+The pipeline exports about 1430 values and the manuscript cites about 390. **The rest are not a backlog.** They are
+there so that a referee's objection can be answered by looking a number up instead of recomputing it. Search the file
+by topic through the prefixes (`Screen*` for the screening, `NB*` for the paired comparisons, `Scaffold*` for the
+scaffold-grouped re-run, and so on), or by the family titles in the index.
+
+### 9.2 How to propose a value for the text
+
+Add a row to [`macro_notes.csv`](macro_notes.csv) with the macro and one sentence on why it belongs in the paper:
+
+```csv
+macro,note
+YRandomPassed,"Verdict of the y-randomization test as a single value; the text never states it"
+```
+
+The note appears in the catalogue beside the value the next time step 11 runs, so a suggestion is visible to everyone
+and survives regeneration. **Never edit `MACROS.md`**: it is overwritten.
+
+### 9.3 How to write a value into a section
+
+Write the macro, not the number: `the ensemble reached $R^2 = \MorganRTwoMean$`, not `0.807`. Then run
+`python run_pipeline.py --only 11`, which fails if the macro does not exist. If the value you need has no macro, it
+has to be exported by the step that measures it rather than typed into the text; a setting rather than a measurement
+belongs in step 00.1 (`scripts/00.1_export_config.py`).
+
+### 9.4 How to regenerate a family, and what else to refresh
+
+Each family's section in `MACROS.md` carries its own command, and the dependencies between steps, which the catalogue
+derives from the code:
+
+```
+`paper_variables.tex`, written by `01_nested_cv_stacking.py`. Regenerate with `--only 01`.
+Step(s) 01.1, 02, 09, 09.1, 12, 13, 18, 19 read what it writes, so refresh those after it.
+```
+
+So a partial re-run is never guessed at: the family tells you which steps consume its output and which it consumes.
+Step 11 is always last, because it rewrites the catalogue and checks the manuscript. The dependency lines see only
+direct uses of a path constant, so they can understate a dependency but never invent one.
+
+### 9.5 What the tests enforce
+
+`pytest tests/` fails when:
+
+- a macro disagrees with the code behind it (`tests/test_manuscript_constants.py`), for every setting the text states;
+- a value that has a macro is also written as a literal in a section, which is how a hand-written number used to get in;
+- `MACROS.md` drifts from `latex/`, which also catches a macro file regenerated on its own while the rest stayed behind;
+- a row of `macro_notes.csv` names a macro no step exports, or carries no note;
+- a macro file has no title in [`macro_families.csv`](macro_families.csv), or names a step that is not in the pipeline.
+
+The one thing no test can judge is whether the prose around a correct number still says the right thing. That remains
+a reading job.
 
 ---
 

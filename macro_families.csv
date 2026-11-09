@@ -1,0 +1,19 @@
+file,title,step,prefixes,description
+config_variables.tex,Settings this run used,00.1,"RandomSeed, NTrees, Iqr*, Noise*, Holdout*, Clip*, Morgan*, Gnn*","Values the steps read rather than measure: the seed, the tree count, the schedule and grid of the networks, the outlier fence and the partition fractions."
+data_variables.tex,Curation of the benchmark data,00,Data*,"Record counts through the curation: the raw table, the duplicates, the two benchmarks and the sensitivity set."
+paper_variables.tex,Nested cross-validation of the four representations,01,"Morgan*, RdkitTwoD*, Sel*, N*, Outer*, Inner*","The main benchmark: accuracy of each representation over the outer folds, and how often the inner loop selected each architecture."
+nadeau_bengio_variables.tex,Paired comparisons between representations,02,"NB*, Equiv*, Corrected*","Corrected paired t-tests between every pair of representations, their Holm adjustment, and the equivalence tests with their margins."
+yrandom_variables.tex,y-randomization,03,YRandom*,"The four forms of the chance-correlation test: permuted response and pseudo-descriptors, on the architecture alone and on the whole procedure."
+augment_variables.tex,Augmentation and selection ablation,04,Exp*,"The hold-out experiments that reproduce the interventions of the original study on a classical learner, including the two leaky diagnostics."
+screening_variables.tex,Virtual screening and applicability domain,05,"Screen*, Cand*, Control*","The FDA library funnel, the similarity domain with its threshold sensitivity, the conformal interval, and the candidates with their efficiency metrics."
+redocking_variables.tex,Re-docking validation,06,Redock*,Geometry of the re-docked crystallographic ligand that validates the docking protocol.
+docking_variables.tex,Docking and the consensus,07,Dock*,"Binding energies of the candidates, and the agreement between the model's ranking and the docking scores."
+admet_variables.tex,ADMET profile of the candidates,08,Admet*,"Predicted absorption and safety properties of the candidates, with the thresholds used to read them."
+gnn_variables.tex,Default D-MPNN benchmark,09,"ChemProp*, GnnVs*, GnnSearch*","The graph network with Chemprop's default hyperparameters on the shared outer folds, and its comparison with every classical representation."
+gnn_tuned_variables.tex,Tuned D-MPNN,12,GnnTuned*,The variant whose hyperparameters are chosen by a hold-out search inside each outer training partition.
+gnn_strong_variables.tex,Stronger neural baselines,19,"Chemeleon*, Dmpnn*, MlpEcfp*, ClassicalMorganFold*","The pretrained CheMeleon model, the five-seed ensemble, the descriptor-augmented network, and the plain network on fingerprints."
+gnn_reproducibility_variables.tex,Reproducibility of the neural benchmark,09.1,GnnRepeat*,"Spread of the benchmark score over repeated executions of the same code, which the graph models do not reproduce bitwise."
+scaffold_variables.tex,Scaffold-grouped re-run,13,"Scaffold*, Random*","The whole benchmark repeated on scaffold-grouped outer folds, and the drop from random folds for every model."
+outlier_variables.tex,Outlier sensitivity,10,Outlier*,"What changes when the two extreme potencies are kept: accuracy of every representation, and whether the ranking holds."
+karimova_audit_variables.tex,Audit of the original pipeline,18,"Kar*, Ladder*, Dnn*","The published pipeline reproduced and then repaired one leak at a time, with the score of every rung of the ladder."
+timing_variables.tex,Measured cost per step,09,"GnnFoldSec*, GnnTotal*, Classical*Fold*, GnnSearch*","Wall-clock cost of one training and of one complete outer fold, measured on the workstation without normalizing by thread count."

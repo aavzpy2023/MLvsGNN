@@ -70,3 +70,47 @@ def test_every_note_names_a_macro_that_exists():
     assert not unknown, f"{unknown} are proposed in macro_notes.csv but no step exports them"
     empty = [row["macro"] for row in rows if not row.get("note", "").strip()]
     assert not empty, f"{empty} have no note, which is the only thing the row is for"
+
+
+def pipeline_step_ids():
+    """Every step id run_pipeline.py knows, including the sensitivity and scaffold branches."""
+    spec = importlib.util.spec_from_file_location("runner", os.path.join(ROOT, "run_pipeline.py"))
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+    return {step for step, _, _ in runner.all_steps()}
+
+
+class TestFamilies:
+    FAMILIES = os.path.join(ROOT, "macro_families.csv")
+
+    def rows(self):
+        with open(self.FAMILIES, encoding="utf-8", newline="") as fh:
+            return [row for row in csv.DictReader(fh) if row.get("file")]
+
+    def test_every_exported_file_has_a_family_row(self):
+        exported = {f for f in os.listdir(LATEX_DIR) if f.endswith("_variables.tex")}
+        described = {row["file"].strip() for row in self.rows()}
+        assert not exported - described, \
+            f"{sorted(exported - described)} export macros but have no title in macro_families.csv"
+        assert not described - exported, \
+            f"{sorted(described - exported)} are described but no longer exist"
+
+    def test_every_row_is_complete(self):
+        for row in self.rows():
+            for field in ("title", "step", "prefixes", "description"):
+                assert (row.get(field) or "").strip(), f"{row['file']} has no {field}"
+            assert row["description"].strip().endswith("."), f"{row['file']}: the description is not a sentence"
+
+    def test_every_step_named_exists_in_the_pipeline(self):
+        known = pipeline_step_ids()
+        unknown = sorted({row["step"].strip() for row in self.rows()} - known)
+        assert not unknown, f"{unknown} are named in macro_families.csv but are not pipeline steps"
+
+    def test_a_declared_producer_agrees_with_the_step(self, checker):
+        """When a macro file names its producer in the header, it must be the script of the step in the CSV."""
+        for row in self.rows():
+            with open(os.path.join(LATEX_DIR, row["file"]), encoding="utf-8") as fh:
+                match = checker.PRODUCER.search(fh.read())
+            if match:
+                assert checker.step_of(match.group(1)) == row["step"].strip(), \
+                    f"{row['file']} is written by {match.group(1)} but the CSV says step {row['step']}"
