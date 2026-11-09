@@ -1,0 +1,32 @@
+=========================================================================================================
+21_generalization_holdout.py — published 80/20 split of the generalization cohort
+=========================================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] What this step does
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Fits a classical stacking ensemble on Morgan fingerprints and a default D-MPNN on the training
+  partition that         MoleculeACE publishes for each target, and scores both on its test
+  partition. The base-learner combination is         chosen by cross-validation inside the
+  training partition only.
+  Each model is scored three times: on the whole test partition, on the compounds its authors
+  flagged as belonging         to an activity cliff, and on the rest. The cliff subset is where a
+  fingerprint representation is expected to be         weakest, so reporting it separately shows
+  whether the overall comparison hides a difference there.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  [RESUME] 12 target(s) already scored: CHEMBL1862_Ki, CHEMBL1871_Ki, CHEMBL2034_Ki, CHEMBL2047_EC50, CHEMBL231_Ki, CHEMBL237_EC50, CHEMBL262_Ki, CHEMBL2835_Ki, CHEMBL2971_Ki, CHEMBL4005_Ki, CHEMBL4203_Ki, CHEMBL4616_EC50
+  CHEMBL2835_Ki      JAK1     already scored, skipped
+  CHEMBL2047_EC50    FXR      already scored, skipped
+  CHEMBL1871_Ki      AR       already scored, skipped
+  CHEMBL4616_EC50    GHSR     already scored, skipped
+  CHEMBL4203_Ki      CLK4     already scored, skipped
+  CHEMBL2034_Ki      GR       already scored, skipped
+  CHEMBL1862_Ki      ABL1     already scored, skipped
+  CHEMBL262_Ki       GSK3     already scored, skipped
+  CHEMBL237_EC50     KOR      already scored, skipped
+  CHEMBL4005_Ki      PIK3CA   already scored, skipped
+  CHEMBL231_Ki       HRH1     already scored, skipped
+  CHEMBL2971_Ki      JAK2     already scored, skipped
+
+[EXPORT] /home/avinajera/MLvsGNN/generalization_holdout/results/21_generalization_holdout.csv
+[EXPORT] /home/avinajera/MLvsGNN/generalization_holdout/results/21_generalization_holdout_predictions.csv
