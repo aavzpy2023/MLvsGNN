@@ -47,7 +47,7 @@
 			\node[outerstep, below=of refit] (predict)
 			{\textbf{Predict the test fold once}\\\footnotesize clipped to the training range $\pm\,3$ $pIC_{50}$};
 			\node[outerstep, below=of predict] (agg)
-			{\textbf{Aggregate the \TotalOuterFolds\ folds}\\\footnotesize $R^2$ and MAE; Nadeau--Bengio corrected $t$-test, Holm adjustment, TOST at $\pm 0.05$};
+			{\textbf{Aggregate the \TotalOuterFolds\ folds}\\\footnotesize $R^2$ and MAE; Nadeau--Bengio corrected $t$-test, Holm adjustment, TOST at $\pm\EquivMarginRTwo$};
 
 			\draw[flow] (data) -- (split);
 			\draw[flow] (split) -- (pool);
