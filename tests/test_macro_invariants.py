@@ -114,11 +114,12 @@ class TestDerivedQuantitiesMatchTheirParts:
         assert v[factor] == pytest.approx(v[minutes] / v["ClassicalMorganFoldMinutes"], abs=0.06), \
             stale(factor, minutes, "ClassicalMorganFoldMinutes")
 
-    def test_the_search_size_is_the_combinations_times_the_inner_folds(self, v):
-        assert v["GnnSearchFits"] == v["NArchitectureCombos"] * v["InnerKFolds"], \
-            stale("GnnSearchFits", "NArchitectureCombos", "InnerKFolds")
-        assert v["NInnerFitsPerOuterFold"] == v["GnnSearchFits"], \
-            stale("NInnerFitsPerOuterFold", "GnnSearchFits")
+    def test_the_search_size_is_the_combinations_times_every_inner_partition(self, v):
+        """Folds times repeats: the inner loop runs InnerRepeats partitions of InnerKFolds folds, and a count that
+        leaves the repeats out understates the search fivefold, as two steps did until their next run."""
+        expected = v["NArchitectureCombos"] * v["InnerKFolds"] * v["InnerRepeats"]
+        assert v["InnerEvaluationsPerOuterFold"] == expected, \
+            stale("InnerEvaluationsPerOuterFold", "NArchitectureCombos", "InnerKFolds", "InnerRepeats")
 
     def test_the_number_of_combinations_is_the_sum_of_the_binomials(self, v):
         expected = sum(math.comb(6, k) for k in range(1, int(v["MaxComboSize"]) + 1))

@@ -289,8 +289,11 @@ def generate_latex_file(df_all, summary, df_ttest, top2_modes, paired_stats, rep
 
         newcommand(f, "NClippedPredictions", int(df_all['N_predictions_clipped'].sum()))
         newcommand(f, "NArchitectureCombos", sum(math.comb(len(LEARNERS), k) for k in range(1, CFG['MAX_COMBO_SIZE'] + 1)))
+        # Times the repeats: the inner loop runs INNER_N_REPEATS partitions of INNER_N_SPLITS folds, so leaving
+        # them out understated the search. Step 00.1 exports the same quantity as InnerEvaluationsPerOuterFold.
         newcommand(f, "NInnerFitsPerOuterFold",
-                   sum(math.comb(len(LEARNERS), k) for k in range(1, CFG['MAX_COMBO_SIZE'] + 1)) * CFG['INNER_N_SPLITS'])
+                   sum(math.comb(len(LEARNERS), k) for k in range(1, CFG['MAX_COMBO_SIZE'] + 1))
+                   * CFG['INNER_N_SPLITS'] * INNER_N_REPEATS)
         if os.path.exists(FEATURE_QC_FILE):
             for _, qc in pd.read_csv(FEATURE_QC_FILE).iterrows():
                 qlabel = MODE_LATEX_LABEL.get(qc['Mode'], qc['Mode'].title())

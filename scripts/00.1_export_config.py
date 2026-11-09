@@ -16,8 +16,9 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paths_config import CFG, LATEX_DIR, NOISE_LEVELS, RANDOM_STATE, TEST_SIZE
+from paths_config import CFG, INNER_N_REPEATS, LATEX_DIR, NOISE_LEVELS, RANDOM_STATE, TEST_SIZE
 from qsartools.featurization import morgan_fingerprints
+from qsartools.models import base_regressors
 from qsartools.latex import format_macros
 
 LATEX_CONFIG = os.path.join(LATEX_DIR, "config_variables.tex")
@@ -51,8 +52,16 @@ def config_values():
 
     sizes, depths, dropouts = gnn_utils.HIDDEN_SIZES, gnn_utils.DEPTHS, gnn_utils.DROPOUTS
     default = gnn_utils.DEFAULT_CONFIG
+    import math
+
+    # Candidate evaluations the inner loop performs in one outer fold. Steps 01 and 09 exported this as combinations
+    # times inner splits, which left out the repeats and understated the search fivefold; it is derived here instead,
+    # from the same configuration the steps read.
+    n_learners = len(base_regressors(n_estimators=1, seed=RANDOM_STATE, n_jobs=1))
+    combos = sum(math.comb(n_learners, k) for k in range(1, CFG["MAX_COMBO_SIZE"] + 1))
     return {
         "RandomSeed": RANDOM_STATE,
+        "InnerEvaluationsPerOuterFold": combos * CFG["INNER_N_SPLITS"] * INNER_N_REPEATS,
         # Two macros rather than the list that step 04 exports, because the sentence names them one by one
         "NoiseLevelHigh": max(NOISE_LEVELS),
         "NoiseLevelLow": min(NOISE_LEVELS),

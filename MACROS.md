@@ -3,7 +3,7 @@
 
 # Macro catalogue
 
-1429 values exported by the pipeline, of which 387 are cited by the manuscript and 1042 are available and not cited. A value that is not cited is not a gap: it is there so that an objection can be answered by looking it up instead of recomputing it.
+1430 values exported by the pipeline, of which 388 are cited by the manuscript and 1042 are available and not cited. A value that is not cited is not a gap: it is there so that an objection can be answered by looking it up instead of recomputing it.
 
 Every number in the manuscript is one of these macros, never a literal, so re-running a step updates the text and rewording a sentence cannot change a value. To propose one for the text, add a row to `macro_notes.csv`; the note then appears in the Note column.
 
@@ -11,7 +11,7 @@ Every number in the manuscript is one of these macros, never a literal, so re-ru
 | --- | --- | --- | --- | --- |
 | [ADMET profile of the candidates](#admet-profile-of-the-candidates) | Admet* | 25 | 0 | 08 |
 | [Augmentation and selection ablation](#augmentation-and-selection-ablation) | Exp* | 100 | 30 | 04 |
-| [Settings this run used](#settings-this-run-used) | RandomSeed, NTrees, Iqr*, Noise*, Holdout*, Clip*, Morgan*, Gnn* | 18 | 18 | 00.1 |
+| [Settings this run used](#settings-this-run-used) | RandomSeed, NTrees, Iqr*, Noise*, Holdout*, Clip*, Morgan*, Gnn* | 19 | 19 | 00.1 |
 | [Curation of the benchmark data](#curation-of-the-benchmark-data) | Data* | 8 | 6 | 00 |
 | [Docking and the consensus](#docking-and-the-consensus) | Dock* | 39 | 27 | 07 |
 | [Reproducibility of the neural benchmark](#reproducibility-of-the-neural-benchmark) | GnnRepeat* | 6 | 6 | 09.1 |
@@ -21,11 +21,11 @@ Every number in the manuscript is one of these macros, never a literal, so re-ru
 | [Audit of the original pipeline](#audit-of-the-original-pipeline) | Kar*, Ladder*, Dnn* | 215 | 44 | 18 |
 | [Paired comparisons between representations](#paired-comparisons-between-representations) | NB*, Equiv*, Corrected* | 76 | 19 | 02 |
 | [Outlier sensitivity](#outlier-sensitivity) | Outlier* | 25 | 22 | 10 |
-| [Nested cross-validation of the four representations](#nested-cross-validation-of-the-four-representations) | Morgan*, RdkitTwoD*, Sel*, N*, Outer*, Inner* | 188 | 60 | 01 |
+| [Nested cross-validation of the four representations](#nested-cross-validation-of-the-four-representations) | Morgan*, RdkitTwoD*, Sel*, N*, Outer*, Inner* | 188 | 61 | 01 |
 | [Re-docking validation](#re-docking-validation) | Redock* | 11 | 5 | 06 |
 | [Scaffold-grouped re-run](#scaffold-grouped-re-run) | Scaffold*, Random* | 306 | 37 | 13 |
 | [Virtual screening and applicability domain](#virtual-screening-and-applicability-domain) | Screen*, Cand*, Control* | 66 | 35 | 05 |
-| [Measured cost per step](#measured-cost-per-step) | GnnFoldSec*, GnnTotal*, Classical*Fold*, GnnSearch* | 11 | 7 | 09 |
+| [Measured cost per step](#measured-cost-per-step) | GnnFoldSec*, GnnTotal*, Classical*Fold*, GnnSearch* | 11 | 6 | 09 |
 | [y-randomization](#y-randomization) | YRandom* | 29 | 11 | 03 |
 
 ## ADMET profile of the candidates
@@ -179,7 +179,7 @@ Values the steps read rather than measure: the seed, the tree count, the schedul
 
 | Macro | Current value | Cited in | Note |
 | --- | --- | --- | --- |
-| `\ClipMargin` | 3 | 02materials.tex |  |
+| `\ClipMargin` | 3 | 02materials.tex, nested_cv_figure.tex |  |
 | `\DmpnnEnsembleSeeds` | 5 | 02materials.tex |  |
 | `\GnnDepth` | 3 | 02materials.tex |  |
 | `\GnnDropoutWord` | no dropout | 02materials.tex |  |
@@ -191,6 +191,7 @@ Values the steps read rather than measure: the seed, the tree count, the schedul
 | `\GnnInnerTrainPct` | 80 | 02materials.tex |  |
 | `\GnnInnerValPct` | 20 | 02materials.tex |  |
 | `\HoldoutPct` | 15 | 02materials.tex, 03Results.tex |  |
+| `\InnerEvaluationsPerOuterFold` | 1025 | 02materials.tex |  |
 | `\IqrFactor` | 1.5 | 02materials.tex |  |
 | `\MorganRadius` | 2 | 01Introduction.tex, 02materials.tex |  |
 | `\NTrees` | 200 | 02materials.tex |  |
@@ -963,7 +964,7 @@ The main benchmark: accuracy of each representation over the outer folds, and ho
 | Macro | Current value | Cited in | Note |
 | --- | --- | --- | --- |
 | `\InnerKFolds` | 5 | 02materials.tex, nested_cv_figure.tex |  |
-| `\InnerRepeats` | 5 | — |  |
+| `\InnerRepeats` | 5 | 02materials.tex, nested_cv_figure.tex |  |
 | `\MaxComboSize` | 3 | — |  |
 | `\MorganBestArchitecture` | RF+XGB+SVM | 02materials.tex, 03Results.tex, 04Discussion.tex |  |
 | `\MorganBestArchitectureSafe` | RFXGBSVM | — |  |
@@ -1577,7 +1578,7 @@ Wall-clock cost of one training and of one complete outer fold, measured on the 
 | `\GnnFoldSecMean` | 179 | 03Results.tex |  |
 | `\GnnFoldSecMin` | 147 | — |  |
 | `\GnnSearchDaysTotal` | 11 | — |  |
-| `\GnnSearchFits` | 205 | 02materials.tex |  |
+| `\GnnSearchFits` | 205 | — |  |
 | `\GnnSearchHoursPerFold` | 10 | — |  |
 | `\GnnTotalMin` | 75 | 03Results.tex |  |
 

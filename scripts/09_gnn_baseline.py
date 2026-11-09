@@ -172,7 +172,9 @@ def export_timing(res):
     """Wall-clock cost of one D-MPNN training versus one classical outer fold (inner search included), plus the cost an
     equivalent inner search would add to the D-MPNN. Classical times come from the step 01 checkpoint."""
     times = np.array(res['fold_times'])
-    n_fits = sum(math.comb(6, k) for k in range(1, CFG['MAX_COMBO_SIZE'] + 1)) * CFG['INNER_N_SPLITS']
+    # The classical search this compares against repeats its inner partition INNER_N_REPEATS times
+    n_fits = (sum(math.comb(6, k) for k in range(1, CFG['MAX_COMBO_SIZE'] + 1))
+              * CFG['INNER_N_SPLITS'] * INNER_N_REPEATS)
     values = {"GnnFoldSecMean": f"{times.mean():.0f}", "GnnFoldSecMin": f"{times.min():.0f}",
               "GnnFoldSecMax": f"{times.max():.0f}", "GnnTotalMin": f"{times.sum() / 60:.0f}",
               "GnnSearchFits": n_fits, "GnnSearchHoursPerFold": f"{n_fits * times.mean() / 3600:.0f}",

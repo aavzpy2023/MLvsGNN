@@ -25,6 +25,18 @@
 			\node[outerstep, below=of data] (split)
 			{\textbf{Outer split}\\$\OuterKFolds$ folds $\times\ \OuterRepeats$ repeats $=\ \TotalOuterFolds$ evaluations};
 
+			% What one fold is, drawn rather than described: the data set cut into OuterKFolds parts, one of them held
+			% out. Without it a reader meets the word "fold" for the first time in a box that already uses it.
+			\path (split.west) ++(-32mm,2mm) coordinate (strip);
+			\foreach \i in {1,...,\OuterKFolds} {
+				\node[draw=gray!60!black, fill=gray!12, minimum width=4.6mm, minimum height=8mm,
+				inner sep=0pt, anchor=west] at ([xshift=\i*4.9mm]strip) {};
+			}
+			\node[draw=red!65!black, fill=red!18, minimum width=4.6mm, minimum height=8mm,
+			inner sep=0pt, anchor=west] at ([xshift=4*4.9mm]strip) {};
+			\node[below=1.5mm of strip, anchor=north west, text=gray!50!black, font=\sffamily\footnotesize,
+			align=left] {one fold held out,\\the rest train};
+
 			% ---- the two branches leave the split at the same level ----
 			% Offset from the centre of the split, not from its corners: anchoring to the corners would leave a gap
 			% as wide as the split box itself between the two tracks.
@@ -45,7 +57,7 @@
 			\node[fitstep, below=11mm of test] (refit)
 			{\textbf{Refit on the outer training pool}\\\footnotesize the preprocessing is estimated again, on this pool};
 			\node[outerstep, below=of refit] (predict)
-			{\textbf{Predict the test fold once}\\\footnotesize clipped to the training range $\pm\,3$ $pIC_{50}$};
+			{\textbf{Predict the test fold once}\\\footnotesize clipped to the training range $\pm\,\ClipMargin$ $pIC_{50}$};
 			\node[outerstep, below=of predict] (agg)
 			{\textbf{Aggregate the \TotalOuterFolds\ folds}\\\footnotesize $R^2$ and MAE; Nadeau--Bengio corrected $t$-test, Holm adjustment, TOST at $\pm\EquivMarginRTwo$};
 
@@ -61,11 +73,15 @@
 			\draw[flow] (predict) -- (agg);
 			% The architecture chosen at the bottom of the left track enters the right track at its top.
 			\draw[flow] (select.east) -- ++(7mm,0) |- (refit.west);
+			% The whole diagram is one iteration: without this arrow the figure reads as a single train/test split.
+			\draw[flow, dashed, draw=gray!55] (agg.east) -- ++(13mm,0) |- (split.east)
+			node[midway, right=1mm, text=gray!55!black, font=\sffamily\footnotesize\itshape, align=left]
+			{repeated for each\\of the \TotalOuterFolds\ folds};
 
 			\begin{scope}[on background layer]
 				\node[draw=teal!70!black, fill=teal!3, rounded corners=5pt, inner sep=8pt,
 				fit=(prep)(fit)(select),
-				label={[text=teal!60!black, font=\sffamily\bfseries\small]below:Inner loop: $\InnerKFolds$ folds, $\NArchitectureCombos$ candidate architectures}] {};
+				label={[text=teal!60!black, font=\sffamily\bfseries\small]below:Inner loop: $\InnerKFolds$ folds $\times\ \InnerRepeats$ repeats, $\NArchitectureCombos$ candidate architectures}] {};
 				\node[draw=blue!70!black, fill=blue!2, rounded corners=5pt, inner sep=8pt,
 				fit=(refit)(predict)(agg),
 				label={[text=blue!60!black, font=\sffamily\bfseries\small]below:Outer loop: performance estimation}] {};
@@ -73,7 +89,11 @@
 
 		\end{tikzpicture}%
 	}
-	\caption{\textbf{Nested cross-validation: one outer fold of the protocol.} The split sends the training pool down the left
+	\caption{\textbf{Nested cross-validation: one outer fold of the protocol.} The strip at the top left is what one
+		fold is: the data set cut into \OuterKFolds\ parts, one held out and the rest training. The diagram follows a
+		single such fold, and the dashed arrow on the right closes the loop: everything in it happens
+		\TotalOuterFolds\ times, and the reported accuracy is the aggregate of those \TotalOuterFolds\ estimates, not
+		one split. Within a fold, the split sends the training pool down the left
 		track and the test fold down the right one. The inner loop selects an architecture among the
 		\NArchitectureCombos\ candidates without ever seeing the test fold, which is held untouched; only the chosen
 		architecture crosses to the right track, where it is refit and scored once. The two orange boxes are the
