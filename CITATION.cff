@@ -1,0 +1,69 @@
+# How to cite this repository. The article is not published yet: until it is, the software below is the citable
+# object, and a Zenodo release of a tag gives it a DOI that cannot drift the way a branch can. Once the article is
+# out, add it as `preferred-citation` (the commented block at the end) so that citation managers prefer the paper and
+# still credit the code.
+cff-version: 1.2.0
+message: If you use this pipeline or its results, please cite it as below.
+title: >-
+  Leakage-Free Benchmarking of Classical Machine Learning and Graph Neural Networks for Low-Data TgDHFR
+  Bioactivity Prediction: analysis pipeline
+abstract: >-
+  Reproducible pipeline that audits the data leakage of a published TgDHFR QSAR study and benchmarks classical
+  stacking ensembles against graph neural networks under a leakage-free nested cross-validation protocol, with an
+  applicability-domain-aware virtual screening and a generalization cohort of MoleculeACE targets. Every number the
+  manuscript states is exported by the pipeline as a LaTeX macro, so the text cannot drift from the results.
+type: software
+authors:
+  - given-names: Andrey
+    family-names: Vinajera-Zamora
+    email: avinajera@utem.cl
+    orcid: https://orcid.org/0000-0002-4922-457X
+    affiliation: >-
+      Instituto Universitario de Investigacion y Desarrollo Tecnologico, Universidad Tecnologica Metropolitana,
+      Santiago, Chile
+  - given-names: Juan
+    family-names: Castillo-Garit
+    email: j.castillo@utem.cl
+    orcid: https://orcid.org/0000-0003-0896-9484
+    affiliation: >-
+      Instituto Universitario de Investigacion y Desarrollo Tecnologico, Universidad Tecnologica Metropolitana,
+      Santiago, Chile
+  - given-names: Samuel
+    family-names: Montejo-Sanchez
+    email: smontejo@utem.cl
+    orcid: https://orcid.org/0000-0003-1622-3180
+    affiliation: >-
+      Instituto Universitario de Investigacion y Desarrollo Tecnologico, Universidad Tecnologica Metropolitana,
+      Santiago, Chile
+  - given-names: Raul
+    family-names: Arias-Carrasco
+    email: raul.arias@utem.cl
+    orcid: https://orcid.org/0000-0003-1698-9282
+    affiliation: >-
+      Instituto Universitario de Investigacion y Desarrollo Tecnologico, Universidad Tecnologica Metropolitana,
+      Santiago, Chile
+repository-code: https://github.com/aavzpy2023/MLvsGNN
+license: MIT
+keywords:
+  - QSAR
+  - data leakage
+  - nested cross-validation
+  - graph neural networks
+  - message passing neural network
+  - applicability domain
+  - reproducibility
+  - Toxoplasma gondii
+  - dihydrofolate reductase
+# Filled in when the first tag is archived on Zenodo, which is also the DOI the manuscript cites:
+# version: 1.0.0
+# date-released: YYYY-MM-DD
+# doi: 10.5281/zenodo.XXXXXXX
+#
+# And when the article appears:
+# preferred-citation:
+#   type: article
+#   title: <final title>
+#   authors: <the same four, in order>
+#   journal: <journal>
+#   year: <year>
+#   doi: <article DOI>

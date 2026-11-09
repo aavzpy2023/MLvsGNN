@@ -132,3 +132,8 @@ data/moleculeace/_source/
 # Per-document latexmk transcripts. build.sh writes these to build/; any left in logs/ are residue of an
 # older version of the script that wrote them there.
 logs/*_build.log
+
+# One master transcript per pipeline invocation: it repeats every step's own log, a run of the whole pipeline writes
+# tens of MB of them, and the next run supersedes it. The per-step logs in logs/*.log stay versioned, because those
+# are the record of what actually ran.
+logs/master_pipeline_*.log

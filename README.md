@@ -293,10 +293,36 @@ the supplement, and checks that each manuscript loads the package; if the `.aux`
 
 ---
 
-## 10. Citation
+## 10. Citation and archiving
 
-[CITATION NEEDED — add the full manuscript citation once accepted/published]
+[`CITATION.cff`](CITATION.cff) holds the citation; GitHub renders it as a *Cite this repository* button and citation
+managers read it directly. The article is not published yet, so the citable object is the software.
 
-## 11. License
+**Cite a tagged release, not a branch.** A link to `main` can move, be rewritten or disappear; a Zenodo DOI cannot.
+The sequence is: enable the Zenodo-GitHub integration for this repository, push a tag (`git tag -a v1.0.0 -m "..."`,
+`git push origin v1.0.0`), let Zenodo archive it, then write the DOI into three places — `CITATION.cff` (`version`,
+`date-released`, `doi`), the data-availability statement of the manuscript, and this section. The commented block at
+the end of `CITATION.cff` turns the article itself into the preferred citation once it appears.
 
-MIT
+A release is also the right home for the compiled PDFs and for a slim replication package (code, data and the outputs
+that regenerate the tables and figures, without logs): attached to the tag, they are downloadable without cloning.
+
+## 11. Licensing
+
+Code under the MIT licence, in [`LICENSE`](LICENSE). Two things that licence deliberately does not cover:
+
+- **The manuscript and its figures.** `sections/`, the figures the pipeline draws and the compiled PDFs are the
+  authors' work; until the article is published they carry no separate licence, and afterwards the journal's terms
+  apply.
+- **The data.** Everything under `data/` is third-party and keeps its own terms: the bioactivity table derives from
+  the release of Karimova & Senanayake (itself assembled from ChEMBL and BindingDB), the screening library is a
+  PubChem extract, the MoleculeACE benchmarks are those of van Tilborg et al., and the receptor is PDB 6AOG. They are
+  redistributed here so that the pipeline runs as published, not relicensed.
+
+## 12. Why the full history is kept
+
+The repository keeps its full history on purpose. This study argues that a published pipeline hid leaks that only a
+reading of its code reveals, so the provenance of our own work is part of the evidence: the commits show the audit
+built one rung at a time and every result recomputed after each correction. A squashed repository would be exactly the
+shape that cannot be audited.
+
