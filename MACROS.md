@@ -3,7 +3,7 @@
 
 # Macro catalogue
 
-1429 values exported by the pipeline, of which 386 are cited by the manuscript and 1043 are available and not cited. A value that is not cited is not a gap: it is there so that an objection can be answered by looking it up instead of recomputing it.
+1429 values exported by the pipeline, of which 387 are cited by the manuscript and 1042 are available and not cited. A value that is not cited is not a gap: it is there so that an objection can be answered by looking it up instead of recomputing it.
 
 Every number in the manuscript is one of these macros, never a literal, so re-running a step updates the text and rewording a sentence cannot change a value. To propose one for the text, add a row to `macro_notes.csv`; the note then appears in the Note column.
 
@@ -11,7 +11,7 @@ Every number in the manuscript is one of these macros, never a literal, so re-ru
 | --- | --- | --- | --- | --- |
 | [ADMET profile of the candidates](#admet-profile-of-the-candidates) | Admet* | 25 | 0 | 08 |
 | [Augmentation and selection ablation](#augmentation-and-selection-ablation) | Exp* | 100 | 30 | 04 |
-| [Settings this run used](#settings-this-run-used) | RandomSeed, NTrees, Iqr*, Noise*, Holdout*, Clip*, Morgan*, Gnn* | 18 | 17 | 00.1 |
+| [Settings this run used](#settings-this-run-used) | RandomSeed, NTrees, Iqr*, Noise*, Holdout*, Clip*, Morgan*, Gnn* | 18 | 18 | 00.1 |
 | [Curation of the benchmark data](#curation-of-the-benchmark-data) | Data* | 8 | 6 | 00 |
 | [Docking and the consensus](#docking-and-the-consensus) | Dock* | 39 | 27 | 07 |
 | [Reproducibility of the neural benchmark](#reproducibility-of-the-neural-benchmark) | GnnRepeat* | 6 | 6 | 09.1 |
@@ -179,7 +179,7 @@ Values the steps read rather than measure: the seed, the tree count, the schedul
 
 | Macro | Current value | Cited in | Note |
 | --- | --- | --- | --- |
-| `\ClipMargin` | 3 | — |  |
+| `\ClipMargin` | 3 | 02materials.tex |  |
 | `\DmpnnEnsembleSeeds` | 5 | 02materials.tex |  |
 | `\GnnDepth` | 3 | 02materials.tex |  |
 | `\GnnDropoutWord` | no dropout | 02materials.tex |  |
@@ -192,9 +192,9 @@ Values the steps read rather than measure: the seed, the tree count, the schedul
 | `\GnnInnerValPct` | 20 | 02materials.tex |  |
 | `\HoldoutPct` | 15 | 02materials.tex, 03Results.tex |  |
 | `\IqrFactor` | 1.5 | 02materials.tex |  |
-| `\MorganRadius` | 2 | 02materials.tex |  |
+| `\MorganRadius` | 2 | 01Introduction.tex, 02materials.tex |  |
 | `\NTrees` | 200 | 02materials.tex |  |
-| `\NoiseLevelHigh` | 0.01 | 02materials.tex |  |
+| `\NoiseLevelHigh` | 0.01 | 02materials.tex, 03Results.tex |  |
 | `\NoiseLevelLow` | 0.001 | 02materials.tex |  |
 | `\RandomSeed` | 42 | 02materials.tex, 03Results.tex |  |
 
