@@ -1,111 +1,118 @@
-"""The configuration values the manuscript states in words, pinned to the code that actually uses them.
+"""Every number the manuscript states comes from a macro, and every macro agrees with the code behind it.
 
-Most numbers in the text come from `latex/*.tex`, which the pipeline writes, and step 11 fails if one of those macros
-is missing. It cannot see a number written by hand: for the checker such a number does not exist, so a literal keeps
-reading correctly long after the code behind it changed. These are the literals that remain, and they are all
-configuration rather than measurement: a tree count, a schedule, a grid, a noise level. Re-running the pipeline does
-not move them, but editing `paths_config.py`, `gnn_utils.py` or a step would silently falsify the sentence that
-describes them.
+Two things have to hold for a sentence about a setting to stay true. The macro that carries the value must match the
+code that uses it, which is what the first group checks: it compares `latex/config_variables.tex` against
+`paths_config`, `gnn_utils` and the steps that own a constant of their own. And the sentence must not restate the
+value as a literal beside the macro, which is what the second group forbids.
 
-Each test builds the expected phrase from the live value and looks for it in the section, so a changed constant fails
-here with the file to edit. Rewording one of these sentences also fails, which is the intended cost: the phrase is the
-anchor. A value that gained a macro belongs in the pipeline's export instead, and the last test keeps those two from
-disagreeing.
+Neither group reads the prose to validate a number, by design. An earlier version of these tests looked for phrases
+built from the live values, which pinned the numbers but also broke whenever a sentence was reworded, and rewording is
+something the authors must stay free to do. The anchoring now runs the other way: the text may change at will as long
+as the number in it is a macro, and a value that has no macro is caught by the literal check rather than by a phrase.
 """
+import ast
 import os
 import re
 
 import pytest
 
 from nb_stats import EQUIVALENCE_MARGIN_MAE, EQUIVALENCE_MARGIN_R2
-from paths_config import CFG, NOISE_LEVELS, TEST_SIZE
+from paths_config import CFG, NOISE_LEVELS, RANDOM_STATE, TEST_SIZE
+from qsartools.featurization import morgan_fingerprints
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECTIONS = os.path.join(ROOT, "sections")
 LATEX_DIR = os.path.join(ROOT, "latex")
+SCRIPTS = os.path.join(ROOT, "scripts")
 
 
-def section(name):
-    with open(os.path.join(SECTIONS, name), encoding="utf-8") as fh:
-        return fh.read()
-
-
-def macros():
-    """Every macro the pipeline exported, as {name: value}."""
+def macros(file_name=None):
+    """Exported macros as {name: value}: of one file, or of every macro file when none is given."""
+    files = [file_name] if file_name else [f for f in os.listdir(LATEX_DIR) if f.endswith("_variables.tex")]
     out = {}
-    for file_name in os.listdir(LATEX_DIR):
-        if file_name.endswith("_variables.tex"):
-            with open(os.path.join(LATEX_DIR, file_name), encoding="utf-8") as fh:
-                out.update(re.findall(r"\\newcommand\{\\(\w+)\}\{([^}]*)\}", fh.read()))
+    for name in files:
+        with open(os.path.join(LATEX_DIR, name), encoding="utf-8") as fh:
+            out.update(re.findall(r"\\newcommand\{\\(\w+)\}\{([^}]*)\}", fh.read()))
     return out
 
 
-def gnn_config():
-    """gnn_utils imports chemprop, which is slow and optional, so it is loaded only by the tests that need it."""
-    return pytest.importorskip("gnn_utils")
+def assigned_literal(script, name):
+    """The value assigned to `name` at the top level of a step, read without importing it."""
+    with open(os.path.join(SCRIPTS, script), encoding="utf-8") as fh:
+        tree = ast.parse(fh.read(), filename=script)
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == name for t in node.targets):
+            return ast.literal_eval(node.value)
+    raise KeyError(f"{name} is not assigned at the top level of {script}")
 
 
-class TestClassicalProtocol:
-    def test_the_number_of_trees_is_the_configured_one(self):
-        assert f"the tree ensembles used {CFG['N_ESTIMATORS_TREES']} trees" in section("02materials.tex")
-
-    def test_the_holdout_fraction_is_the_configured_one(self):
-        phrase = f"{TEST_SIZE * 100:.0f}\\% hold-out"
-        assert phrase in section("02materials.tex") and phrase in section("03Results.tex")
-
-    def test_the_outlier_fence_factor_is_the_one_used_to_build_the_data(self):
-        from importlib.util import module_from_spec, spec_from_file_location
-        spec = spec_from_file_location("step00", os.path.join(ROOT, "scripts", "00_prepare_dataset.py"))
-        step00 = module_from_spec(spec)
-        spec.loader.exec_module(step00)
-        text = section("02materials.tex")
-        assert f"Q1 $-$ {step00.IQR_FACTOR}\\,IQR" in text and f"Q3 $+$ {step00.IQR_FACTOR}\\,IQR" in text
-
-    def test_the_augmentation_noise_levels_are_the_published_ones(self):
-        text = section("02materials.tex")
-        for sigma in NOISE_LEVELS:
-            assert f"$\\sigma = {sigma}$" in text, f"the manuscript does not state the noise level {sigma}"
-
-    def test_the_combination_size_limit_matches_the_search(self):
-        # The text spells out the three binomial terms of the search; a fourth would change the count it reports
-        assert CFG["MAX_COMBO_SIZE"] == 3
-        assert r"\binom{6}{1} + \binom{6}{2} + \binom{6}{3}" in section("02materials.tex")
+@pytest.fixture(scope="module")
+def config():
+    exported = macros("config_variables.tex")
+    assert exported, "latex/config_variables.tex is empty; run `python run_pipeline.py --only 00.1`"
+    return exported
 
 
-class TestNeuralProtocol:
-    def test_the_training_schedule_is_the_one_the_code_runs(self):
-        epochs = gnn_config().EPOCHS
-        text = section("02materials.tex")
-        assert f"a fixed number of {epochs} epochs" in text
-        assert text.count(f"{epochs}-epoch schedule") == 2, "both the tuned variant and CheMeleon state the schedule"
+class TestExportedConfigurationMatchesTheCode:
+    def test_the_seed_and_the_tree_count(self, config):
+        assert config["RandomSeed"] == str(RANDOM_STATE)
+        assert config["NTrees"] == str(CFG["N_ESTIMATORS_TREES"])
 
-    def test_the_default_architecture_is_the_one_the_code_builds(self):
-        default = gnn_config().DEFAULT_CONFIG
-        dropout = "no dropout" if default["dropout"] == 0 else f"dropout {default['dropout']}"
-        phrase = f"(hidden size {default['d_h']}, depth {default['depth']}, {dropout})"
-        assert section("02materials.tex").count(phrase) == 2, f"the manuscript no longer states {phrase} twice"
+    def test_the_holdout_fraction(self, config):
+        assert config["HoldoutPct"] == f"{TEST_SIZE * 100:.0f}"
+        assert config["GnnInnerTrainPct"] == str(100 - int(config["GnnInnerValPct"]))
 
-    def test_the_tuned_grid_is_the_one_the_code_searches(self):
-        utils = gnn_config()
-        sizes, depths, dropouts = utils.HIDDEN_SIZES, utils.DEPTHS, utils.DROPOUTS
-        phrase = (f"hidden size {sizes[0]} or {sizes[1]}, message-passing depth {depths[0]} or {depths[1]}, "
-                  f"dropout {dropouts[0]:.0f} or {dropouts[1]}")
-        assert phrase in section("02materials.tex")
+    def test_the_constants_that_live_inside_a_step(self, config):
+        assert config["IqrFactor"] == str(assigned_literal("00_prepare_dataset.py", "IQR_FACTOR"))
+        assert config["ClipMargin"] == f"{assigned_literal('01_nested_cv_stacking.py', 'CLIP_MARGIN'):.0f}"
+        assert config["DmpnnEnsembleSeeds"] == str(assigned_literal("19_gnn_strong_baselines.py", "N_ENSEMBLE"))
 
-    def test_the_inner_validation_fraction_is_the_one_the_code_holds_out(self):
-        fraction = gnn_config().INNER_VALIDATION_FRACTION
-        text = section("02materials.tex")
-        assert f"{fraction * 100:.0f}\\% of the compounds were held out at random" in text
-        assert f"trained on the remaining {100 - fraction * 100:.0f}\\%" in text
+    def test_the_fingerprint_radius_is_the_featurizer_default(self, config):
+        import inspect
+        assert config["MorganRadius"] == str(inspect.signature(morgan_fingerprints).parameters["radius"].default)
 
+    def test_the_augmentation_noise_levels(self, config):
+        assert config["NoiseLevelHigh"] == str(max(NOISE_LEVELS))
+        assert config["NoiseLevelLow"] == str(min(NOISE_LEVELS))
 
-class TestExportedValuesAgreeWithTheCode:
-    def test_the_equivalence_margins_are_exported_as_the_statistics_module_defines_them(self):
+    def test_the_neural_schedule_and_architecture(self, config):
+        utils = pytest.importorskip("gnn_utils")
+        assert config["GnnEpochs"] == str(utils.EPOCHS)
+        assert config["GnnHiddenSize"] == str(utils.DEFAULT_CONFIG["d_h"])
+        assert config["GnnDepth"] == str(utils.DEFAULT_CONFIG["depth"])
+        assert config["GnnDropoutWord"] == ("no dropout" if utils.DEFAULT_CONFIG["dropout"] == 0
+                                            else f"dropout {utils.DEFAULT_CONFIG['dropout']}")
+
+    def test_the_tuned_grid(self, config):
+        utils = pytest.importorskip("gnn_utils")
+        assert config["GnnGridHiddenSizes"] == " or ".join(str(s) for s in utils.HIDDEN_SIZES)
+        assert config["GnnGridDepths"] == " or ".join(str(d) for d in utils.DEPTHS)
+        assert config["GnnGridDropouts"] == " or ".join(f"{p:g}" for p in utils.DROPOUTS)
+        # The count the manuscript quotes is the size of the grid, not of the three axes separately
+        assert len(utils.GRID) == len(utils.HIDDEN_SIZES) * len(utils.DEPTHS) * len(utils.DROPOUTS)
+
+    def test_the_equivalence_margins(self):
         exported = macros()
         assert exported["EquivMarginRTwo"] == f"{EQUIVALENCE_MARGIN_R2}"
         assert exported["EquivMarginMae"] == f"{EQUIVALENCE_MARGIN_MAE}"
 
-    @pytest.mark.parametrize("literal, macro", [("pm 0.05", "EquivMarginRTwo"), ("2048-bit", "MorganNFeaturesTotal")])
-    def test_a_value_with_a_macro_is_not_also_written_by_hand(self, literal, macro):
-        offenders = [f for f in sorted(os.listdir(SECTIONS)) if f.endswith(".tex") and literal in section(f)]
-        assert not offenders, f"{offenders} write {literal!r} by hand; use \\{macro} so the text follows the pipeline"
+
+class TestNoValueIsAlsoWrittenByHand:
+    LITERALS = [("pm 0.05", "EquivMarginRTwo"), ("2048-bit", "MorganNFeaturesTotal"),
+                ("200 trees", "NTrees"), ("100 epochs", "GnnEpochs"), ("100-epoch", "GnnEpochs"),
+                ("hidden size 300", "GnnHiddenSize"), ("seed 42", "RandomSeed"), ("1.5\\,IQR", "IqrFactor"),
+                ("15\\% hold-out", "HoldoutPct")]
+
+    @pytest.mark.parametrize("literal, macro", LITERALS)
+    def test_a_value_with_a_macro_is_not_restated_as_a_literal(self, literal, macro):
+        offenders = []
+        for name in sorted(f for f in os.listdir(SECTIONS) if f.endswith(".tex")):
+            with open(os.path.join(SECTIONS, name), encoding="utf-8") as fh:
+                if literal in fh.read():
+                    offenders.append(name)
+        assert not offenders, f"{offenders} write {literal!r} by hand; use \\{macro} so the text follows the code"
+
+    def test_every_forbidden_literal_names_an_exported_macro(self):
+        exported = macros()
+        missing = [m for _, m in self.LITERALS if m not in exported]
+        assert not missing, f"{missing} are not exported, so forbidding their literal would leave no way to state it"

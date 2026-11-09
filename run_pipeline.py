@@ -66,6 +66,8 @@ AUDIT = ["scripts/18_karimova_audit.py"]
 # result that does not exist yet) and can be launched alone with `--only figures`, without recomputing anything.
 # The last entry checks that the manuscript only references figures, inputs and variables that exist.
 FIGURES = [
+    # First: the settings this run used, which every later check reads and no step else exports
+    "scripts/00.1_export_config.py",
     "scripts/01.1_build_figures.py",
     "scripts/04.1_build_figures.py",
     "scripts/05.1_build_figures.py",
