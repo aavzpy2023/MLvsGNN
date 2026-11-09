@@ -73,7 +73,10 @@ esac
 if [ "$#" -gt 0 ]; then
   DOCS=$*
 else
-  DOCS=$(grep -l '^[^%]*\\documentclass' ./*.tex | sed 's|^\./||; s|\.tex$||' | sort)
+  # The supplement first: the manuscripts resolve Table~\ref{S-...} by reading its .aux through xr-hyper, so a run
+  # that built it last would leave those references undefined on a clean checkout.
+  DOCS=$(grep -l '^[^%]*\\documentclass' ./*.tex | sed 's|^\./||; s|\.tex$||' | sort |
+         awk '/^supplementary/ {print; next} {rest = rest $0 "\n"} END {printf "%s", rest}')
   # Only when a person is watching: a hook, a cron or another script gets the old behaviour
   if [ -z "$CHECKS" ] && [ -t 0 ]; then
     echo "What changed since the last build?"

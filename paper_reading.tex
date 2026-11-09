@@ -21,6 +21,10 @@
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds}
 \usepackage[margin=2.4cm]{geometry}
+% xr-hyper reads the supplement's .aux so that \ref resolves across the two documents; it must be loaded
+% before hyperref. The supplement is therefore compiled first (see build.sh).
+\usepackage{xr-hyper}
+\externaldocument[S-]{build/supplementary_ML_GNN}
 \usepackage[hidelinks]{hyperref}
 \usepackage[authoryear]{natbib}
 \usepackage{caption}

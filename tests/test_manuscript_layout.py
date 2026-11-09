@@ -224,3 +224,39 @@ class TestTheFrontMatterIsDataNotMarkup:
             for detail in (family, email, orcid):
                 if detail:
                     assert detail not in text, f"{name} repeats {detail!r} instead of reading the metadata"
+
+
+class TestSupplementCrossReferences:
+    """The supplement is a separate document, so its table and figure numbers used to be typed into the manuscript.
+
+    Inserting one table shifted every number after it, and the text had to be corrected by hand; nothing failed when
+    it was not. The manuscripts now read the supplement's .aux through xr-hyper and resolve \\ref{S-...}, so the
+    numbers follow the supplement. These tests keep that arrangement intact: no literal may come back, every label
+    referenced must exist, and every document that carries the sections must load the package that resolves them.
+    """
+    SUPPLEMENT = os.path.join(ROOT, "supplementary_ML_GNN.tex")
+    PROSE = [f for f in sorted(os.listdir(SECTIONS_DIR)) if f.endswith(".tex")]
+
+    def test_no_supplement_number_is_written_by_hand(self):
+        offenders = []
+        for name in self.PROSE:
+            for match in re.finditer(r"(Table|Figure)s?~?S\d+", COMMENT_RE.sub("", read(os.path.join(SECTIONS_DIR, name)))):
+                offenders.append(f"{name}: {match.group(0)}")
+        assert not offenders, ("the supplement's numbers are typed in instead of referenced: "
+                               f"{offenders}. Use \\ref{{S-<label>}} so they follow the supplement.")
+
+    def test_every_referenced_label_exists_in_the_supplement(self):
+        defined = set(re.findall(r"\\label\{([^}]*)\}", COMMENT_RE.sub("", read(self.SUPPLEMENT))))
+        missing = {}
+        for name in self.PROSE:
+            for label in re.findall(r"\\ref\{S-([^}]*)\}", COMMENT_RE.sub("", read(os.path.join(SECTIONS_DIR, name)))):
+                if label not in defined:
+                    missing.setdefault(name, []).append(label)
+        assert not missing, f"{missing} are referenced with the S- prefix but the supplement defines no such label"
+
+    @pytest.mark.parametrize("document", MANUSCRIPTS)
+    def test_every_manuscript_reads_the_supplement(self, document):
+        text = COMMENT_RE.sub("", read(os.path.join(ROOT, document)))
+        assert "xr-hyper" in text, f"{document} does not load xr-hyper, so its \\ref{{S-...}} would print as ??"
+        assert r"\externaldocument[S-]{build/supplementary_ML_GNN}" in text, \
+            f"{document} loads xr-hyper but never names the supplement"

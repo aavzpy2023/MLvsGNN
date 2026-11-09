@@ -285,6 +285,12 @@ should use:
 The question is asked only when a terminal is attached and no document and no flag were given, so every scripted use
 keeps compiling exactly as before. Committing and pushing are deliberately not part of this: the script builds.
 
+**The supplement is built first**, because the manuscripts resolve its table and figure numbers by reading its `.aux`
+through `xr-hyper`: the text writes `Table~\ref{S-tab:ad_sensitivity}`, never `Table~S10`, so inserting a table
+renumbers the references by itself. A test refuses a hand-written `Table~S<n>`, checks that every `S-` label exists in
+the supplement, and checks that each manuscript loads the package; if the `.aux` is missing the references print as
+`??` and the build reports them as undefined, so the failure is loud.
+
 ---
 
 ## 10. Citation
