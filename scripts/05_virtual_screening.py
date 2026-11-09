@@ -152,6 +152,7 @@ def run():
     # atoms that are not the ligand's (half of the FDA library is a salt or a mixture), and a salt's charged form would
     # otherwise get a different fingerprint from the free compound
     train_mols = [standardize_ligand(s) for s in df_train['Smiles']]
+    train_canonical = {Chem.MolToSmiles(m) for m in train_mols if m is not None}
     X_train_full = morgan_fingerprints(train_mols).astype(np.float32)
 
     # Similarity is computed on the full 2048-bit fingerprints (Sheridan et al.: all the descriptors)
@@ -269,6 +270,8 @@ def run():
             **metrics,
             'AD_similarity': round(float(fda_similarity[i]), 4),
             'In_AD': bool(inside[i]),
+            # Both sides are the canonical SMILES of the standardized ligand, so membership is an exact comparison
+            'In_train': c['Ligand_SMILES'] in train_canonical,
         })
     df_res = pd.DataFrame(rows).sort_values('pIC50_pred', ascending=False).reset_index(drop=True)
 
@@ -351,6 +354,8 @@ def run():
               "ScreenADFdaHigh": f"{np.percentile(fda_similarity, 95):.2f}",
               "ScreenADFdaMax": f"{fda_similarity.max():.2f}",
               "ScreenNCandidatesInDomain": int(combined['In_AD'].sum()),
+              "ScreenNCandidatesInTrain": int(combined['In_train'].sum()),
+              "ScreenNCandidatesInDomainNovel": int((combined['In_AD'] & ~combined['In_train']).sum()),
               "ScreenADCandidatesMedian": f"{combined['AD_similarity'].median():.2f}",
               "ScreenTrainMaxMW": f"{max(Descriptors.MolWt(m) for m in train_mols):.0f}",
               "ScreenTrainNOutsideElements": sum(1 for m in train_mols if not contains_only_elements(m, ALLOWED_ATOMS))}
@@ -361,6 +366,9 @@ def run():
             values[f"Cand{cand}Pred"] = f"{r0['pIC50_pred']:.2f}"
             values[f"Cand{cand}LE"] = f"{r0['LE']:.2f}"
             values[f"Cand{cand}BEI"] = f"{r0['BEI']:.1f}"
+            values[f"Cand{cand}Sim"] = f"{r0['AD_similarity']:.2f}"
+            values[f"Cand{cand}Lower"] = f"{r0['pIC50_lower']:.2f}"
+            values[f"Cand{cand}Upper"] = f"{r0['pIC50_upper']:.2f}"
     antifolate_le = [find_control(df_res, n).iloc[0]['LE'] for n in ("Methotrexate", "Trimetrexate", "Pralatrexate")
                      if not find_control(df_res, n).empty]
     values["AntifolateLEMin"], values["AntifolateLEMax"] = f"{min(antifolate_le):.2f}", f"{max(antifolate_le):.2f}"

@@ -286,7 +286,12 @@ architecture; it therefore covers the potency of a new compound with probability
 exchangeable with the held-out ones, and does not widen for a compound outside the applicability domain, where it
 should be read as a lower bound on the uncertainty rather than as a measure of it.
 
-Candidates were ranked by predicted potency alone. Four ligand efficiency metrics were computed from the prediction and
+Candidates were ranked by predicted potency alone, and no composite priority score was built: any weighting of potency
+against similarity would need coefficients that the data cannot fix, which is the same objection the threshold above
+already carries. What the ranking is read against is reported instead of folded into it. Every candidate carries its
+similarity to the training set, its domain flag, its prediction interval and whether its structure belongs to the
+training data, so that a reader can separate a fitted value from an extrapolation without recomputing anything. Four
+ligand efficiency metrics were computed from the prediction and
 reported beside it, to show how much of a predicted potency is accounted for by molecular size \citep{hopkins2004,
 hopkins2014}; none of them was used as a filter, and their definitions and the assumptions they carry are given in the
 Supplementary Material. The ranked candidates were then submitted to an orthogonal structure-based check with AutoDock
