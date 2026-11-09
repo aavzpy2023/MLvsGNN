@@ -282,7 +282,10 @@ def main():
     print(f"  {len(tasks)} variant x fold tasks to run ({len(done_keys)} already in the checkpoint)")
 
     if tasks:
-        n_workers = max(1, min(len(tasks), (os.cpu_count() or 1) // THREADS_PER_WORKER))
+        # MLGNN_K19_WORKERS caps the pool explicitly, for a driver that runs this step on several data sets at once:
+        # one data set of five folds leaves most of the machine idle, and two uncapped processes would oversubscribe it.
+        n_workers = int(os.environ.get("MLGNN_K19_WORKERS", "0")) or (os.cpu_count() or 1) // THREADS_PER_WORKER
+        n_workers = max(1, min(len(tasks), n_workers))
         print(f"  {n_workers} workers x {THREADS_PER_WORKER} threads")
         # Workers occasionally died with SIGILL on this AVX-only CPU; see qsartools.parallel for the cap and the retries
         os.environ.update(SAFE_CPU_ENV)
