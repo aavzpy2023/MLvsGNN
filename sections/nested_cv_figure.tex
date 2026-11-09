@@ -34,8 +34,9 @@
 			}
 			\node[draw=red!65!black, fill=red!18, minimum width=4.6mm, minimum height=8mm,
 			inner sep=0pt, anchor=west] at ([xshift=4*4.9mm]strip) {};
-			\node[below=1.5mm of strip, anchor=north west, text=gray!50!black, font=\sffamily\footnotesize,
-			align=left] {one fold held out,\\the rest train};
+			% Below the boxes, not below the coordinate they are centred on, which is their middle
+			\node[anchor=north west, text=gray!50!black, font=\sffamily\footnotesize, align=left]
+			at ([xshift=4.9mm, yshift=-6mm]strip) {one fold held out,\\the rest train};
 
 			% ---- the two branches leave the split at the same level ----
 			% Offset from the centre of the split, not from its corners: anchoring to the corners would leave a gap
