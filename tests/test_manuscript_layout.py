@@ -260,3 +260,45 @@ class TestSupplementCrossReferences:
         assert "xr-hyper" in text, f"{document} does not load xr-hyper, so its \\ref{{S-...}} would print as ??"
         assert r"\externaldocument[S-]{build/supplementary_ML_GNN}" in text, \
             f"{document} loads xr-hyper but never names the supplement"
+
+
+class TestTitleTravelsFromTheManuscript:
+    """The title lives in \\projtitle, and the archive metadata must repeat it rather than hold its own copy.
+
+    CITATION.cff and .zenodo.json carry the title of the citable archive, so a title changed in the manuscript and
+    not there would publish one name and cite another. This went unnoticed once already: a new title was agreed and
+    the old one was propagated into both files. Neither can be generated, because Zenodo and the citation managers
+    read them directly, so the next best thing is to require that they agree.
+    """
+    SUFFIX = ": analysis pipeline"
+
+    def manuscript_title(self):
+        match = re.search(r"\\newcommand\{\\projtitle\}\{(.+?)\}\s*$",
+                          COMMENT_RE.sub("", read(METADATA)), re.M)
+        assert match, "manuscript_metadata.tex does not define \\projtitle"
+        return match.group(1).strip()
+
+    def test_the_citation_file_repeats_the_manuscript_title(self):
+        import yaml
+        with open(os.path.join(ROOT, "CITATION.cff"), encoding="utf-8") as fh:
+            title = " ".join(yaml.safe_load(fh)["title"].split())
+        assert title == self.manuscript_title() + self.SUFFIX, \
+            (f"CITATION.cff says {title!r} and the manuscript says {self.manuscript_title()!r}. Update the citation "
+             f"file, and the Zenodo record of the release if one is already archived.")
+
+    def test_the_zenodo_metadata_repeats_the_manuscript_title(self):
+        import json
+        with open(os.path.join(ROOT, ".zenodo.json"), encoding="utf-8") as fh:
+            title = " ".join(json.load(fh)["title"].split())
+        assert title == self.manuscript_title() + self.SUFFIX, \
+            (f".zenodo.json says {title!r} and the manuscript says {self.manuscript_title()!r}. The next release "
+             f"would be archived under the wrong name.")
+
+    def test_the_short_title_is_a_prefix_of_the_long_one_in_spirit(self):
+        """A running head that shares no words with the title is a sign one of the two was changed alone."""
+        long_words = set(re.findall(r"[a-z]{5,}", self.manuscript_title().lower()))
+        match = re.search(r"\\newcommand\{\\projshorttitle\}\{(.+?)\}\s*$", COMMENT_RE.sub("", read(METADATA)), re.M)
+        assert match, "manuscript_metadata.tex does not define \\projshorttitle"
+        short_words = set(re.findall(r"[a-z]{5,}", match.group(1).lower()))
+        assert short_words & long_words, \
+            f"the running head {match.group(1)!r} shares no significant word with the title; one was changed alone"
