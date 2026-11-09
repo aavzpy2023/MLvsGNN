@@ -263,7 +263,7 @@ model could not meaningfully extrapolate.
 
 Prediction on a library of this kind is only meaningful where the model has support. Following the finding of Sheridan
 et al.\ that prediction error grows as a molecule becomes less similar to the training set \citep{sheridan2004}, every
-FDA compound was given its mean Tanimoto similarity (2048-bit Morgan fingerprints) to its \ScreenADNeighbors\ most
+FDA compound was given its mean Tanimoto similarity (\MorganNFeaturesTotal-bit Morgan fingerprints) to its \ScreenADNeighbors\ most
 similar training compounds, and was flagged as inside the applicability domain when this value was at least
 \ScreenADMinSimilarity. The criterion of \citet{sahigara2012} is a limit on distance, and the training compounds define
 it among themselves: the mean of their distances to their \ScreenADNeighbors\ nearest neighbours, taken as $1 -$
