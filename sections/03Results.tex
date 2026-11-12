@@ -224,6 +224,69 @@ this benchmark does show.
 
 The comparison between families kept its direction but not its resolution. Under scaffold splits the D-MPNN was lower than the Morgan ensemble by $\Delta R^2 = \ScaffoldGnnVsMorganDiffRTwo$ (corrected $p = \ScaffoldGnnVsMorganPRTwo$, Holm-adjusted; $\Delta$MAE $= \ScaffoldGnnVsMorganDiffMae$, $p = \ScaffoldGnnVsMorganPMae$). The 90\% confidence interval of the $R^2$ difference, $[\ScaffoldGnnVsMorganCILowRTwo, \ScaffoldGnnVsMorganCIHighRTwo]$, excludes zero only barely, and its lower limit extends far beyond the $\pm\EquivMarginRTwo$ equivalence margin; the equivalence test was accordingly not significant ($p = \ScaffoldGnnVsMorganEquivPRTwo$). The interval carries no multiplicity adjustment while the $p$ values do, which is why the two do not point the same way; Table~\ref{S-tab:scaffold_pairwise} gives both the unadjusted and the adjusted values for every comparison under this protocol. With the present data we can thus neither claim a difference nor equivalence between the two families on new scaffolds; the sample (\NCompounds\ compounds) is too small to separate them given the larger variance of this protocol.
 
+\subsection{External Replication Across Twelve Bioactivity Targets}
+\label{sec:gen_results}
+
+Every result so far concerns one target, so the comparison between model families was repeated unchanged on
+\GenNTargets\ external targets (Section~\ref{sec:materials_generalization}). What follows is a replication and not a
+discovery: the authors of that collection already reported that classical models on fixed descriptors match or
+outperform neural ones on these data \citep{vantilborg2022}. Its purpose here is the scope of the present claims. The
+audit of Section~\ref{sec:audit_results} quantified the leaks of one published pipeline on one target, and the
+benchmark that followed compared families on that same target; the cohort establishes whether that comparison is a
+peculiarity of TgDHFR. Table~\ref{tab:generalization} reports every target.
+
+\begin{table}[htbp]
+	\centering
+	\caption{The classical ensemble against the default D-MPNN on \GenNTargets\ external targets. Cliffs is the percentage of compounds the collection flags as activity cliffs. Every $\Delta R^2$ is the classical value minus the neural one, so a positive number favours the classical model. The cross-validated columns are means over \GenTotalOuterFolds\ outer folds shared by both families within each target, with the Holm-adjusted $p$ of the corrected paired $t$-test; the last two columns are differences on the partition published with the collection, scored on the whole test part and on its activity cliffs alone.}
+	\label{tab:generalization}
+	\projtable{latex/generalization_table.tex}
+\end{table}
+
+Under cross-validation the classical ensemble on Morgan fingerprints scored higher than the default D-MPNN on all
+\GenNTargets\ targets (\GenCvMorganRTwo\ against \GenCvGnnRTwo\ in mean $R^2$ over targets), by between
+\GenCvAdvMin\ and \GenCvAdvMax\ units. Taking the targets as the replicates, the mean advantage is
+\GenCvAdvMean\ $R^2$ (95\,\% CI [\GenCvAdvCILow, \GenCvAdvCIHigh], one-sample $t$ $p = \GenCvAdvPT$, exact Wilcoxon
+$p = \GenCvAdvPWilcoxon$), and MAE agrees (\GenCvMaeAdvMean\ $pIC_{50}$ units, $p = \GenCvMaeAdvPT$). Within a single
+target the evidence is far weaker, and the distinction matters: only \GenCvNHolm\ of the \GenNTargets\ targets reach
+Holm-adjusted significance on their own \GenTotalOuterFolds\ folds, while none reaches equivalence either (smallest
+$p = \GenCvPEquivMin$). A target of this size cannot separate the two families; what carries the result is that the
+direction never changes across \GenNTargets\ independent data sets. The ordering between representations also
+reproduced: the Morgan fingerprints beat the RDKit 2D descriptors on \GenNMorganOverRdkit\ of the \GenNTargets\
+targets, as they did on TgDHFR.
+
+The published partition gives the same answer with the authors' own split rather than ours. The classical ensemble is
+ahead on \GenHoldoutAdvNClassical\ of \GenNTargets\ targets (\GenHoldoutClassicalRTwo\ against
+\GenHoldoutGnnRTwo\ in mean $R^2$; mean advantage \GenHoldoutAdvMean, 95\,\% CI [\GenHoldoutAdvCILow,
+\GenHoldoutAdvCIHigh], $t$ $p = \GenHoldoutAdvPT$, Wilcoxon $p = \GenHoldoutAdvPWilcoxon$), the single exception
+being the androgen receptor (\GenArHoldoutAdv). The activity cliffs of that partition are where fixed fingerprints
+are expected to fail, since a cliff pair is similar in structure and far apart in potency, and this is the subset the
+collection was built to expose \citep{vantilborg2022}. Both families do degrade on it, and heavily: the classical
+ensemble falls from \GenNonCliffClassicalRTwo\ on the remaining compounds to \GenCliffClassicalRTwo\ on the cliffs,
+the network from \GenNonCliffGnnRTwo\ to \GenCliffGnnRTwo. The classical advantage, however, does not shrink there.
+It is \GenCliffAdvMean\ on the cliffs (95\,\% CI [\GenCliffAdvCILow, \GenCliffAdvCIHigh], Wilcoxon
+$p = \GenCliffAdvPWilcoxon$, classical ahead on \GenCliffAdvNClassical\ of \GenNTargets) against
+\GenNonCliffAdvMean\ on the rest, so the weakness that the graph architecture is expected to remedy is not remedied
+here. These subsets hold \GenCliffNTestMin\ to \GenCliffNTestMax\ compounds, which is why the interval is wide and
+why this is stated as a result about the cohort and not about any target in it.
+
+On the \GenNTuned\ targets where the default network falls furthest behind, the nested hyperparameter search of
+Section~\ref{sec:materials_gnn} reduced the classical advantage from \GenClkFourAdvRTwo\ to
+\GenClkFourTunedAdvRTwo\ on CLK4 and from \GenGhsrAdvRTwo\ to \GenGhsrTunedAdvRTwo\ on GHSR, a gain of
+\GenClkFourTuningGain\ and \GenGhsrTuningGain\ units of $R^2$. After tuning, neither difference remains
+Holm-significant (\GenTunedNHolm\ of \GenNTuned), and this is the point at which the two tests have to be read
+together: neither target shows equivalence either (\GenTunedNEquiv\ of \GenNTuned), so the lost significance
+reflects what \GenTotalOuterFolds\ folds can resolve rather than a gap that closed. Tuning the network moved the
+comparison by a fraction of the distance that separates the families.
+
+Two limits of this cohort should be read with its result. It restricts itself to targets of at most
+\GenMaxCompounds\ compounds, so it replicates the comparison in the regime of a few hundred to a thousand labeled
+molecules and says nothing about larger data sets. And the neural side is a graph network trained from scratch: the
+pretrained model that reached equivalence with the Morgan ensemble on TgDHFR (Section~\ref{sec:gnn_results}) was not
+run on these targets, because its cost per fold (Section~\ref{sec:cost_results}) makes \GenNTargets\ targets
+unaffordable. What the cohort therefore shows is that a default message-passing network does not match a classical
+ensemble in this regime, on twelve targets instead of one; the one neural model that did match it on TgDHFR needed
+external pretraining, and whether that holds across targets is open.
+
 % ==========================================
 % 3. SECTION 3.6
 % ==========================================

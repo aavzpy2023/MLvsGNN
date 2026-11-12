@@ -133,12 +133,16 @@ def target_cv_row(dataset, results_dir):
 
 
 def holdout_advantages(holdout):
-    """Classical minus D-MPNN R2 on the published test partition, one column per subset (all, cliff, noncliff)."""
+    """Classical minus D-MPNN R2 on the published test partition, one column per subset (all, cliff, noncliff).
+
+    Returns the advantages, the size of each subset, and each family's own R2, so that the text can state the level
+    the two families reach and not only the distance between them.
+    """
     family = np.where(holdout["model"].str.startswith("Classical"), "classical", "gnn")
     wide = holdout.assign(family=family).pivot_table(index=["dataset", "subset"], columns="family", values="r2")
     adv = (wide["classical"] - wide["gnn"]).unstack("subset")
     sizes = holdout[family == "classical"].pivot(index="dataset", columns="subset", values="n")
-    return adv, sizes
+    return adv, sizes, wide.unstack("subset")
 
 
 def write_table(summary):
@@ -147,8 +151,8 @@ def write_table(summary):
              latex.tabular_open(GEN_TABLE_COLS), "\\toprule",
              "& & & \\multicolumn{4}{c}{Cross-validation ($R^2$)} & \\multicolumn{2}{c}{Published split} \\\\",
              "\\cmidrule(lr){4-7}\\cmidrule(lr){8-9}",
-             "\\textbf{Target} & \\textbf{$n$} & \\textbf{Cliffs (\\%)} & Morgan & D-MPNN & Advantage & "
-             "$p_{\\mathrm{Holm}}$ & Advantage & Cliffs \\\\", "\\midrule"]
+             "\\textbf{Target} & \\textbf{$n$} & \\textbf{Cliffs} & Morgan & D-MPNN & $\\Delta R^2$ & "
+             "$p_{\\mathrm{Holm}}$ & All & Cliffs \\\\", "\\midrule"]
     for _, r in summary.iterrows():
         lines.append(f"{r['abbreviation']} ({r['endpoint']}) & {int(r['n'])} & {r['cliff_pct']:.0f} & "
                      f"{r['morgan_r2']:.3f} & {r['gnn_r2']:.3f} & ${r['adv_r2']:+.3f}$ & {r['p_holm_r2']:.3f} & "
@@ -189,7 +193,7 @@ def main():
         sys.exit(1)
 
     cv = pd.DataFrame([target_cv_row(d, os.path.join(GEN_DIR, d, "results")) for d in index["dataset"]])
-    adv, sizes = holdout_advantages(pd.read_csv(HOLDOUT_CSV))
+    adv, sizes, levels = holdout_advantages(pd.read_csv(HOLDOUT_CSV))
     summary = (index.merge(cv, on="dataset")
                .merge(adv.add_prefix("holdout_adv_"), left_on="dataset", right_index=True)
                .merge(sizes.add_prefix("holdout_n_"), left_on="dataset", right_index=True))
@@ -230,6 +234,13 @@ def main():
 
     for subset, prefix in (("all", "GenHoldoutAdv"), ("cliff", "GenCliffAdv"), ("noncliff", "GenNonCliffAdv")):
         values.update(cohort_macros(prefix, cohort_test(summary[f"holdout_adv_{subset}"])))
+    # The level each family reaches, averaged over targets: a difference of 0.14 reads differently when both models
+    # are near 0.8 than when both are near 0.3, and on the cliff subsets they are near 0.3.
+    values.update({"GenCvMorganRTwo": f"{summary['morgan_r2'].mean():.3f}",
+                   "GenCvGnnRTwo": f"{summary['gnn_r2'].mean():.3f}"})
+    for subset, prefix in (("all", "GenHoldout"), ("cliff", "GenCliff"), ("noncliff", "GenNonCliff")):
+        values.update({f"{prefix}ClassicalRTwo": f"{levels[('classical', subset)].mean():.3f}",
+                       f"{prefix}GnnRTwo": f"{levels[('gnn', subset)].mean():.3f}"})
     values.update({"GenHoldoutNTestMin": int(summary["holdout_n_all"].min()),
                    "GenHoldoutNTestMax": int(summary["holdout_n_all"].max()),
                    "GenCliffNTestMin": int(summary["holdout_n_cliff"].min()),

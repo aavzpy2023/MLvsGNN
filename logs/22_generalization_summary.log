@@ -1,4 +1,4 @@
-=== START LOG: 22_generalization_summary.py [2026-11-11 21:06:11] ===
+=== START LOG: 22_generalization_summary.py [2026-11-11 21:22:46] ===
 
 =========================================================================================================
 22_generalization_summary.py — Classical ensemble against the default D-MPNN on twelve external targets
@@ -30,7 +30,7 @@ abbreviation   n  morgan_r2  gnn_r2  adv_r2  p_holm_r2  p_equiv_r2  holdout_adv_
         JAK2 976      0.830   0.770   0.060      0.049       0.705            0.075              0.259
 
 Cross-validation: classical ahead in 12/12, mean +0.092 [+0.058, +0.127], t p=0.00011, Wilcoxon p=0.00049
-[EXPORT] 173 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/generalization_variables.tex
+[EXPORT] 181 LaTeX variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/generalization_variables.tex
 [DONE] 22_generalization_summary.py complete.
 
 === END LOG: 22_generalization_summary.py [EXIT CODE: 0] ===
