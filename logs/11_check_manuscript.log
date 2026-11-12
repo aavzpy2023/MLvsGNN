@@ -1,3 +1,5 @@
+=== START LOG: 11_check_manuscript.py [2026-11-11 20:56:07] ===
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] What this step does
@@ -7,6 +9,7 @@
   that each result variable used in the text was generated.         A failure here means the text
   refers to something the pipeline did not produce (or no longer produces).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPORT] Macro catalogue saved to MACROS.md
 
 [DOC] paper_ML_GNN.tex
 [OK] figure figures/01_nested_cv_algorithm_selection.png
@@ -15,7 +18,7 @@
 [OK] figure figures/04_augment_r2_comparison.png
 [OK] figure figures/07_docking_scatter.png
 [OK] figure figures/09_gnn_benchmark_comparison.png
-[CHECK] 41 files followed, 6 figures, 1377 project variables used, 0 undefined
+[CHECK] 44 files followed, 6 figures, 1602 project variables used, 0 undefined
 
 [DOC] paper_reading.tex
 [OK] figure figures/01_nested_cv_algorithm_selection.png
@@ -24,7 +27,7 @@
 [OK] figure figures/04_augment_r2_comparison.png
 [OK] figure figures/07_docking_scatter.png
 [OK] figure figures/09_gnn_benchmark_comparison.png
-[CHECK] 41 files followed, 6 figures, 1375 project variables used, 0 undefined
+[CHECK] 44 files followed, 6 figures, 1600 project variables used, 0 undefined
 
 [DOC] paper_springer.tex
 [OK] figure figures/01_nested_cv_algorithm_selection.png
@@ -33,7 +36,7 @@
 [OK] figure figures/04_augment_r2_comparison.png
 [OK] figure figures/07_docking_scatter.png
 [OK] figure figures/09_gnn_benchmark_comparison.png
-[CHECK] 41 files followed, 6 figures, 1375 project variables used, 0 undefined
+[CHECK] 44 files followed, 6 figures, 1600 project variables used, 0 undefined
 
 [DOC] supplementary_ML_GNN.tex
 [OK] figure figures/01_nested_cv_performance_summary.png
@@ -41,5 +44,8 @@
 [OK] figure figures/05_pIC50_candidates_comparison.png
 [OK] figure figures/05_pIC50_vs_LE_scatter.png
 [OK] figure figures/S1_nested_cv_selection_full_heatmap.png
-[CHECK] 29 files followed, 5 figures, 1374 project variables used, 0 undefined
+[CHECK] 33 files followed, 5 figures, 1599 project variables used, 0 undefined
 [OK] Every figure, included file, and variable used by the 4 document(s) is produced by the pipeline.
+
+=== END LOG: 11_check_manuscript.py [EXIT CODE: 0] ===
+

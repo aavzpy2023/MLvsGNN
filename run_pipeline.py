@@ -10,6 +10,7 @@ Usage (from any directory):
     python run_pipeline.py --only figures     # rebuild every figure and table from existing results (seconds)
     python run_pipeline.py --no-sensitivity   # skip the with-extreme-values re-run (steps S01, S02, 10)
     python run_pipeline.py --no-scaffold      # skip the scaffold-split re-run (steps SC01, SC09, 13)
+    python run_pipeline.py --no-generalization  # skip the MoleculeACE published-split run and summary (steps 21, 22)
     python run_pipeline.py --strict           # error (instead of silent skip) if ChemProp cannot load
 Environment variables (optional): MLGNN_PROFILE (laptop|workstation), MLGNN_N_JOBS,
     MLGNN_TF_PYTHON (python of the separate TensorFlow environment, needed only by the scripts/tf/ steps).
@@ -99,6 +100,16 @@ SCAFFOLD = [
     ("SC17", "scripts/tf/17_dnn_nested_cv.py", SCAFFOLD_ENV),
     ("SC19", "scripts/19_gnn_strong_baselines.py", {**SCAFFOLD_ENV, "MLGNN_K19_VARIANTS": "dmpnn_ens5,chemeleon"}),
     ("13", "scripts/13_scaffold_split.py", {}),
+]
+
+# Generalization over the twelve MoleculeACE targets. The cross-validated cohort (steps 01 and 09, and 12 on the targets
+# where the default D-MPNN loses most, under MLGNN_PROFILE=generalization) is driven target by target by
+# logs/run_generalization.sh, because each target needs its own data file and output folder and takes hours. What runs
+# here is the published-split comparison (21), writing to generalization_holdout/, and the summary of both (22).
+GEN_HOLDOUT_DIR = os.environ.get("MLGNN_GEN_HOLDOUT_DIR") or os.path.join(ROOT, "generalization_holdout")
+GENERALIZATION = [
+    ("21", "scripts/21_generalization_holdout.py", {"MLGNN_OUT_DIR": GEN_HOLDOUT_DIR}),
+    ("22", "scripts/22_generalization_summary.py", {}),
 ]
 
 # Import names always checked by --check, in addition to EVERY third-party module that
@@ -226,11 +237,12 @@ def check_tf_environment():
     return True
 
 
-def all_steps(include_sensitivity=True, include_scaffold=True):
+def all_steps(include_sensitivity=True, include_scaffold=True, include_generalization=True):
     """Ordered (step id, script, extra environment) triples: the main pipeline, then the sensitivity analysis."""
     figures = [(step_id(s), s, {}) for s in FIGURES]
     steps = [(step_id(s), s, {}) for s in PIPELINE + TF_PIPELINE + AUDIT]
-    return (steps + (SENSITIVITY if include_sensitivity else []) + (SCAFFOLD if include_scaffold else []) + figures)
+    return (steps + (SENSITIVITY if include_sensitivity else []) + (SCAFFOLD if include_scaffold else [])
+            + (GENERALIZATION if include_generalization else []) + figures)
 
 
 def is_tf_step(script_path):
@@ -278,7 +290,10 @@ def execute_and_log(script_path, master_log_path, extra_env=None):
 
 
 def select_steps(args):
-    steps = all_steps(include_sensitivity=not args.no_sensitivity, include_scaffold=not args.no_scaffold)
+    # A quick run has no cross-validated MoleculeACE cohort to summarize, so it leaves the generalization branch out
+    quick = os.environ.get("MLGNN_PROFILE") == "quick"
+    steps = all_steps(include_sensitivity=not args.no_sensitivity, include_scaffold=not args.no_scaffold,
+                      include_generalization=not (args.no_generalization or quick))
     ids = [sid for sid, _, _ in steps]
     if args.only:
         wanted = [i for w in args.only for i in ([step_id(s) for s in FIGURES] if w == "figures" else [w])]
@@ -390,6 +405,8 @@ def main():
                     help="skip the outlier sensitivity analysis (steps S01, S02, 10) in a full run")
     ap.add_argument("--no-scaffold", action="store_true",
                     help="skip the scaffold-split robustness analysis (steps SC01, SC09, 13) in a full run")
+    ap.add_argument("--no-generalization", action="store_true",
+                    help="skip the MoleculeACE published-split run and the cohort summary (steps 21, 22) in a full run")
     ap.add_argument("--strict", action="store_true",
                     help="fail instead of silently skipping a model whose libraries cannot be imported (step 09)")
     ap.add_argument("--quick", action="store_true",

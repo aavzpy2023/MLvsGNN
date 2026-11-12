@@ -39,6 +39,7 @@ SCRIPT_CONSTANTS = {
     "13_scaffold_split.py": {"SCAFFOLD_PAIRWISE_COLS": "scaffold_pairwise_table.tex",
                              "SCAFFOLD_COLS": "scaffold_table.tex"},
     "18_karimova_audit.py": {"LADDER_COLS": "leakage_ladder_table.tex"},
+    "22_generalization_summary.py": {"GEN_TABLE_COLS": "generalization_table.tex"},
     "19_gnn_strong_baselines.py": {"GNN_PAIRWISE_COLS": "gnn_pairwise_table.tex",
                                    "STRONG_PAIRWISE_COLS": "strong_pairwise_table.tex",
                                    "TUNED_CONFIG_COLS": "gnn_tuned_config_table.tex",

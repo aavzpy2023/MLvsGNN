@@ -3,7 +3,7 @@
 
 # Macro catalogue
 
-1430 values exported by the pipeline, of which 388 are cited by the manuscript and 1042 are available and not cited. A value that is not cited is not a gap: it is there so that an objection can be answered by looking it up instead of recomputing it.
+1598 values exported by the pipeline, of which 388 are cited by the manuscript and 1210 are available and not cited. A value that is not cited is not a gap: it is there so that an objection can be answered by looking it up instead of recomputing it.
 
 Every number in the manuscript is one of these macros, never a literal, so re-running a step updates the text and rewording a sentence cannot change a value. To propose one for the text, add a row to `macro_notes.csv`; the note then appears in the Note column.
 
@@ -14,6 +14,7 @@ Every number in the manuscript is one of these macros, never a literal, so re-ru
 | [Settings this run used](#settings-this-run-used) | RandomSeed, NTrees, Iqr*, Noise*, Holdout*, Clip*, Morgan*, Gnn* | 19 | 19 | 00.1 |
 | [Curation of the benchmark data](#curation-of-the-benchmark-data) | Data* | 8 | 6 | 00 |
 | [Docking and the consensus](#docking-and-the-consensus) | Dock* | 39 | 27 | 07 |
+| [Generalization across twelve MoleculeACE targets](#generalization-across-twelve-moleculeace-targets) | Gen* | 168 | 0 | 22 |
 | [Reproducibility of the neural benchmark](#reproducibility-of-the-neural-benchmark) | GnnRepeat* | 6 | 6 | 09.1 |
 | [Stronger neural baselines](#stronger-neural-baselines) | Chemeleon*, Dmpnn*, MlpEcfp*, ClassicalMorganFold* | 205 | 17 | 19 |
 | [Tuned D-MPNN](#tuned-d-mpnn) | GnnTuned* | 54 | 31 | 12 |
@@ -263,6 +264,183 @@ Binding energies of the candidates, and the agreement between the model's rankin
 | `\TrimethoprimMLpIC` | 5.6710 | — |  |
 | `\TrimetrexateDockScore` | -8.76 | 03Results.tex |  |
 | `\TrimetrexateMLpIC` | 7.9272 | 03Results.tex |  |
+
+## Generalization across twelve MoleculeACE targets
+
+The classical ensemble against the default D-MPNN on twelve external targets: per-target cross-validation (5x1), the across-target tests, the published split with its activity cliffs, and the tuned D-MPNN where it was run.
+
+`generalization_variables.tex`, written by `22_generalization_summary.py`. Regenerate with `python run_pipeline.py --only 22`. It reads the output of step(s) 20, so regenerating one of those means regenerating this family too.
+
+| Macro | Current value | Cited in | Note |
+| --- | --- | --- | --- |
+| `\GenAblOneAdvRTwo` | +0.049 | — |  |
+| `\GenAblOneCliffAdv` | +0.022 | — |  |
+| `\GenAblOneGnnRTwo` | 0.741 | — |  |
+| `\GenAblOneHoldoutAdv` | +0.086 | — |  |
+| `\GenAblOneMorganRTwo` | 0.790 | — |  |
+| `\GenAblOneN` | 794 | — |  |
+| `\GenAblOnePEquivRTwo` | 0.485 | — |  |
+| `\GenAblOnePHolmRTwo` | 0.261 | — |  |
+| `\GenArAdvRTwo` | +0.071 | — |  |
+| `\GenArCliffAdv` | -0.014 | — |  |
+| `\GenArGnnRTwo` | 0.570 | — |  |
+| `\GenArHoldoutAdv` | -0.010 | — |  |
+| `\GenArMorganRTwo` | 0.641 | — |  |
+| `\GenArN` | 659 | — |  |
+| `\GenArPEquivRTwo` | 0.638 | — |  |
+| `\GenArPHolmRTwo` | 0.314 | — |  |
+| `\GenCliffAdvCIHigh` | +0.251 | — |  |
+| `\GenCliffAdvCILow` | +0.028 | — |  |
+| `\GenCliffAdvMean` | +0.140 | — |  |
+| `\GenCliffAdvN` | 12 | — |  |
+| `\GenCliffAdvNClassical` | 10 | — |  |
+| `\GenCliffAdvNNeural` | 2 | — |  |
+| `\GenCliffAdvPT` | 0.0187 | — |  |
+| `\GenCliffAdvPWilcoxon` | 0.0049 | — |  |
+| `\GenCliffNTestMax` | 91 | — |  |
+| `\GenCliffNTestMin` | 13 | — |  |
+| `\GenCliffPctMax` | 48 | — |  |
+| `\GenCliffPctMin` | 7 | — |  |
+| `\GenClkFourAdvRTwo` | +0.209 | — |  |
+| `\GenClkFourCliffAdv` | +0.601 | — |  |
+| `\GenClkFourGnnRTwo` | 0.306 | — |  |
+| `\GenClkFourHoldoutAdv` | +0.244 | — |  |
+| `\GenClkFourMorganRTwo` | 0.515 | — |  |
+| `\GenClkFourN` | 731 | — |  |
+| `\GenClkFourPEquivRTwo` | 0.983 | — |  |
+| `\GenClkFourPHolmRTwo` | 0.029 | — |  |
+| `\GenClkFourTunedAdvRTwo` | +0.200 | — |  |
+| `\GenClkFourTunedPEquivRTwo` | 0.930 | — |  |
+| `\GenClkFourTunedPHolmRTwo` | 0.140 | — |  |
+| `\GenClkFourTunedRTwo` | 0.315 | — |  |
+| `\GenClkFourTuningGain` | 0.009 | — |  |
+| `\GenCvAdvCIHigh` | +0.127 | — |  |
+| `\GenCvAdvCILow` | +0.058 | — |  |
+| `\GenCvAdvMax` | +0.209 | — |  |
+| `\GenCvAdvMean` | +0.092 | — |  |
+| `\GenCvAdvMin` | +0.035 | — |  |
+| `\GenCvAdvN` | 12 | — |  |
+| `\GenCvAdvNClassical` | 12 | — |  |
+| `\GenCvAdvNNeural` | 0 | — |  |
+| `\GenCvAdvPT` | 0.0001 | — |  |
+| `\GenCvAdvPWilcoxon` | 0.0005 | — |  |
+| `\GenCvMaeAdvCIHigh` | +0.071 | — |  |
+| `\GenCvMaeAdvCILow` | +0.040 | — |  |
+| `\GenCvMaeAdvMean` | +0.056 | — |  |
+| `\GenCvMaeAdvN` | 12 | — |  |
+| `\GenCvMaeAdvNClassical` | 12 | — |  |
+| `\GenCvMaeAdvNNeural` | 0 | — |  |
+| `\GenCvMaeAdvPT` | < 0.0001 | — |  |
+| `\GenCvMaeAdvPWilcoxon` | 0.0005 | — |  |
+| `\GenCvNEquiv` | 0 | — |  |
+| `\GenCvNEquivMae` | 0 | — |  |
+| `\GenCvNHolm` | 3 | — |  |
+| `\GenCvNHolmMae` | 4 | — |  |
+| `\GenCvPEquivMin` | 0.287 | — |  |
+| `\GenFxrAdvRTwo` | +0.112 | — |  |
+| `\GenFxrCliffAdv` | +0.076 | — |  |
+| `\GenFxrGnnRTwo` | 0.509 | — |  |
+| `\GenFxrHoldoutAdv` | +0.157 | — |  |
+| `\GenFxrMorganRTwo` | 0.620 | — |  |
+| `\GenFxrN` | 631 | — |  |
+| `\GenFxrPEquivRTwo` | 0.818 | — |  |
+| `\GenFxrPHolmRTwo` | 0.276 | — |  |
+| `\GenGhsrAdvRTwo` | +0.111 | — |  |
+| `\GenGhsrCliffAdv` | +0.193 | — |  |
+| `\GenGhsrGnnRTwo` | 0.365 | — |  |
+| `\GenGhsrHoldoutAdv` | +0.123 | — |  |
+| `\GenGhsrMorganRTwo` | 0.476 | — |  |
+| `\GenGhsrN` | 682 | — |  |
+| `\GenGhsrPEquivRTwo` | 0.925 | — |  |
+| `\GenGhsrPHolmRTwo` | 0.031 | — |  |
+| `\GenGhsrTunedAdvRTwo` | +0.088 | — |  |
+| `\GenGhsrTunedPEquivRTwo` | 0.752 | — |  |
+| `\GenGhsrTunedPHolmRTwo` | 0.158 | — |  |
+| `\GenGhsrTunedRTwo` | 0.388 | — |  |
+| `\GenGhsrTuningGain` | 0.023 | — |  |
+| `\GenGrAdvRTwo` | +0.103 | — |  |
+| `\GenGrCliffAdv` | +0.017 | — |  |
+| `\GenGrGnnRTwo` | 0.546 | — |  |
+| `\GenGrHoldoutAdv` | +0.113 | — |  |
+| `\GenGrMorganRTwo` | 0.649 | — |  |
+| `\GenGrN` | 750 | — |  |
+| `\GenGrPEquivRTwo` | 0.914 | — |  |
+| `\GenGrPHolmRTwo` | 0.064 | — |  |
+| `\GenGskThreeAdvRTwo` | +0.179 | — |  |
+| `\GenGskThreeCliffAdv` | +0.268 | — |  |
+| `\GenGskThreeGnnRTwo` | 0.402 | — |  |
+| `\GenGskThreeHoldoutAdv` | +0.171 | — |  |
+| `\GenGskThreeMorganRTwo` | 0.581 | — |  |
+| `\GenGskThreeN` | 856 | — |  |
+| `\GenGskThreePEquivRTwo` | 0.965 | — |  |
+| `\GenGskThreePHolmRTwo` | 0.054 | — |  |
+| `\GenHoldoutAdvCIHigh` | +0.142 | — |  |
+| `\GenHoldoutAdvCILow` | +0.054 | — |  |
+| `\GenHoldoutAdvMean` | +0.098 | — |  |
+| `\GenHoldoutAdvN` | 12 | — |  |
+| `\GenHoldoutAdvNClassical` | 11 | — |  |
+| `\GenHoldoutAdvNNeural` | 1 | — |  |
+| `\GenHoldoutAdvPT` | 0.0005 | — |  |
+| `\GenHoldoutAdvPWilcoxon` | 0.0010 | — |  |
+| `\GenHoldoutNTestMax` | 197 | — |  |
+| `\GenHoldoutNTestMin` | 126 | — |  |
+| `\GenHrhOneAdvRTwo` | +0.035 | — |  |
+| `\GenHrhOneCliffAdv` | -0.029 | — |  |
+| `\GenHrhOneGnnRTwo` | 0.705 | — |  |
+| `\GenHrhOneHoldoutAdv` | +0.063 | — |  |
+| `\GenHrhOneMorganRTwo` | 0.740 | — |  |
+| `\GenHrhOneN` | 973 | — |  |
+| `\GenHrhOnePEquivRTwo` | 0.303 | — |  |
+| `\GenHrhOnePHolmRTwo` | 0.323 | — |  |
+| `\GenJakOneAdvRTwo` | +0.035 | — |  |
+| `\GenJakOneCliffAdv` | +0.101 | — |  |
+| `\GenJakOneGnnRTwo` | 0.772 | — |  |
+| `\GenJakOneHoldoutAdv` | +0.046 | — |  |
+| `\GenJakOneMorganRTwo` | 0.807 | — |  |
+| `\GenJakOneN` | 615 | — |  |
+| `\GenJakOnePEquivRTwo` | 0.287 | — |  |
+| `\GenJakOnePHolmRTwo` | 0.211 | — |  |
+| `\GenJakTwoAdvRTwo` | +0.060 | — |  |
+| `\GenJakTwoCliffAdv` | +0.259 | — |  |
+| `\GenJakTwoGnnRTwo` | 0.770 | — |  |
+| `\GenJakTwoHoldoutAdv` | +0.075 | — |  |
+| `\GenJakTwoMorganRTwo` | 0.830 | — |  |
+| `\GenJakTwoN` | 976 | — |  |
+| `\GenJakTwoPEquivRTwo` | 0.705 | — |  |
+| `\GenJakTwoPHolmRTwo` | 0.049 | — |  |
+| `\GenKorAdvRTwo` | +0.076 | — |  |
+| `\GenKorCliffAdv` | +0.123 | — |  |
+| `\GenKorGnnRTwo` | 0.596 | — |  |
+| `\GenKorHoldoutAdv` | +0.075 | — |  |
+| `\GenKorMorganRTwo` | 0.672 | — |  |
+| `\GenKorN` | 955 | — |  |
+| `\GenKorPEquivRTwo` | 0.778 | — |  |
+| `\GenKorPHolmRTwo` | 0.067 | — |  |
+| `\GenNEC` | 3 | — |  |
+| `\GenNKi` | 9 | — |  |
+| `\GenNMax` | 976 | — |  |
+| `\GenNMin` | 615 | — |  |
+| `\GenNMorganOverRdkit` | 10 | — |  |
+| `\GenNTargets` | 12 | — |  |
+| `\GenNTuned` | 2 | — |  |
+| `\GenNonCliffAdvCIHigh` | +0.145 | — |  |
+| `\GenNonCliffAdvCILow` | +0.049 | — |  |
+| `\GenNonCliffAdvMean` | +0.097 | — |  |
+| `\GenNonCliffAdvN` | 12 | — |  |
+| `\GenNonCliffAdvNClassical` | 11 | — |  |
+| `\GenNonCliffAdvNNeural` | 1 | — |  |
+| `\GenNonCliffAdvPT` | 0.0009 | — |  |
+| `\GenNonCliffAdvPWilcoxon` | 0.0010 | — |  |
+| `\GenPikThreeCaAdvRTwo` | +0.069 | — |  |
+| `\GenPikThreeCaCliffAdv` | +0.060 | — |  |
+| `\GenPikThreeCaGnnRTwo` | 0.604 | — |  |
+| `\GenPikThreeCaHoldoutAdv` | +0.031 | — |  |
+| `\GenPikThreeCaMorganRTwo` | 0.674 | — |  |
+| `\GenPikThreeCaN` | 960 | — |  |
+| `\GenPikThreeCaPEquivRTwo` | 0.788 | — |  |
+| `\GenPikThreeCaPHolmRTwo` | 0.068 | — |  |
+| `\GenTunedNEquiv` | 0 | — |  |
+| `\GenTunedNHolm` | 0 | — |  |
 
 ## Reproducibility of the neural benchmark
 
