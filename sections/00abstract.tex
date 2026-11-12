@@ -16,9 +16,12 @@ Small bioactivity data sets invite optimistic results: test molecules leak into 
 	\GnnTunedRTwoMean\ after a nested search, below the fingerprint ensembles, though only narrowly after
 	multiple-comparison correction. Only a network initialized from a pretrained foundation model caught up
 	(\ChemeleonRTwoMean, equivalent in $R^2$ and MAE), at \ChemeleonCostFactor\ times the cost; none exceeded it. Holding whole
-	scaffolds out cost every model between \ScaffoldDropMin\ and \ScaffoldDropMax\ units of $R^2$.
+	scaffolds out cost every model between \ScaffoldDropMin\ and \ScaffoldDropMax\ units of $R^2$. Repeated on
+	\GenNTargets\ external targets, the comparison held on every one of them (mean advantage \GenCvAdvMean\ $R^2$ for
+	the classical ensemble), and on their published activity cliffs that advantage was larger, not smaller.
 
 	On an FDA-approved library the deployed model placed only \ScreenNDomain\ of \ScreenNStructural\ scored
 	compounds inside its applicability domain, so its top-ranked compounds are hypotheses, not leads. On this
 	target, keeping the evaluation clean mattered more than making the model complex, and a fixed fingerprint
-	ensemble was enough. We claim no more than that: one target, one protocol.
+	ensemble was enough. The leak audit speaks for one implementation; the benchmark it motivated speaks for
+	\GenNTargets.
