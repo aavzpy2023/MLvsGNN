@@ -3,7 +3,7 @@
 
 # Macro catalogue
 
-1598 values exported by the pipeline, of which 388 are cited by the manuscript and 1210 are available and not cited. A value that is not cited is not a gap: it is there so that an objection can be answered by looking it up instead of recomputing it.
+1603 values exported by the pipeline, of which 409 are cited by the manuscript and 1194 are available and not cited. A value that is not cited is not a gap: it is there so that an objection can be answered by looking it up instead of recomputing it.
 
 Every number in the manuscript is one of these macros, never a literal, so re-running a step updates the text and rewording a sentence cannot change a value. To propose one for the text, add a row to `macro_notes.csv`; the note then appears in the Note column.
 
@@ -14,7 +14,7 @@ Every number in the manuscript is one of these macros, never a literal, so re-ru
 | [Settings this run used](#settings-this-run-used) | RandomSeed, NTrees, Iqr*, Noise*, Holdout*, Clip*, Morgan*, Gnn* | 19 | 19 | 00.1 |
 | [Curation of the benchmark data](#curation-of-the-benchmark-data) | Data* | 8 | 6 | 00 |
 | [Docking and the consensus](#docking-and-the-consensus) | Dock* | 39 | 27 | 07 |
-| [Generalization across twelve MoleculeACE targets](#generalization-across-twelve-moleculeace-targets) | Gen* | 168 | 0 | 22 |
+| [Generalization across twelve MoleculeACE targets](#generalization-across-twelve-moleculeace-targets) | Gen* | 173 | 21 | 22 |
 | [Reproducibility of the neural benchmark](#reproducibility-of-the-neural-benchmark) | GnnRepeat* | 6 | 6 | 09.1 |
 | [Stronger neural baselines](#stronger-neural-baselines) | Chemeleon*, Dmpnn*, MlpEcfp*, ClassicalMorganFold* | 205 | 17 | 19 |
 | [Tuned D-MPNN](#tuned-d-mpnn) | GnnTuned* | 54 | 31 | 12 |
@@ -297,11 +297,11 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenCliffAdvNNeural` | 2 | — |  |
 | `\GenCliffAdvPT` | 0.0187 | — |  |
 | `\GenCliffAdvPWilcoxon` | 0.0049 | — |  |
-| `\GenCliffNTestMax` | 91 | — |  |
-| `\GenCliffNTestMin` | 13 | — |  |
-| `\GenCliffPctMax` | 48 | — |  |
-| `\GenCliffPctMin` | 7 | — |  |
-| `\GenClkFourAdvRTwo` | +0.209 | — |  |
+| `\GenCliffNTestMax` | 91 | 02materials.tex |  |
+| `\GenCliffNTestMin` | 13 | 02materials.tex |  |
+| `\GenCliffPctMax` | 48 | 02materials.tex |  |
+| `\GenCliffPctMin` | 7 | 02materials.tex |  |
+| `\GenClkFourAdvRTwo` | +0.209 | 02materials.tex |  |
 | `\GenClkFourCliffAdv` | +0.601 | — |  |
 | `\GenClkFourGnnRTwo` | 0.306 | — |  |
 | `\GenClkFourHoldoutAdv` | +0.244 | — |  |
@@ -309,7 +309,7 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenClkFourN` | 731 | — |  |
 | `\GenClkFourPEquivRTwo` | 0.983 | — |  |
 | `\GenClkFourPHolmRTwo` | 0.029 | — |  |
-| `\GenClkFourTunedAdvRTwo` | +0.200 | — |  |
+| `\GenClkFourTunedAdvRTwo` | +0.200 | 02materials.tex |  |
 | `\GenClkFourTunedPEquivRTwo` | 0.930 | — |  |
 | `\GenClkFourTunedPHolmRTwo` | 0.140 | — |  |
 | `\GenClkFourTunedRTwo` | 0.315 | — |  |
@@ -345,7 +345,7 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenFxrN` | 631 | — |  |
 | `\GenFxrPEquivRTwo` | 0.818 | — |  |
 | `\GenFxrPHolmRTwo` | 0.276 | — |  |
-| `\GenGhsrAdvRTwo` | +0.111 | — |  |
+| `\GenGhsrAdvRTwo` | +0.111 | 02materials.tex |  |
 | `\GenGhsrCliffAdv` | +0.193 | — |  |
 | `\GenGhsrGnnRTwo` | 0.365 | — |  |
 | `\GenGhsrHoldoutAdv` | +0.123 | — |  |
@@ -353,7 +353,7 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenGhsrN` | 682 | — |  |
 | `\GenGhsrPEquivRTwo` | 0.925 | — |  |
 | `\GenGhsrPHolmRTwo` | 0.031 | — |  |
-| `\GenGhsrTunedAdvRTwo` | +0.088 | — |  |
+| `\GenGhsrTunedAdvRTwo` | +0.088 | 02materials.tex |  |
 | `\GenGhsrTunedPEquivRTwo` | 0.752 | — |  |
 | `\GenGhsrTunedPHolmRTwo` | 0.158 | — |  |
 | `\GenGhsrTunedRTwo` | 0.388 | — |  |
@@ -382,8 +382,8 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenHoldoutAdvNNeural` | 1 | — |  |
 | `\GenHoldoutAdvPT` | 0.0005 | — |  |
 | `\GenHoldoutAdvPWilcoxon` | 0.0010 | — |  |
-| `\GenHoldoutNTestMax` | 197 | — |  |
-| `\GenHoldoutNTestMin` | 126 | — |  |
+| `\GenHoldoutNTestMax` | 197 | 02materials.tex |  |
+| `\GenHoldoutNTestMin` | 126 | 02materials.tex |  |
 | `\GenHrhOneAdvRTwo` | +0.035 | — |  |
 | `\GenHrhOneCliffAdv` | -0.029 | — |  |
 | `\GenHrhOneGnnRTwo` | 0.705 | — |  |
@@ -416,13 +416,15 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenKorN` | 955 | — |  |
 | `\GenKorPEquivRTwo` | 0.778 | — |  |
 | `\GenKorPHolmRTwo` | 0.067 | — |  |
-| `\GenNEC` | 3 | — |  |
-| `\GenNKi` | 9 | — |  |
-| `\GenNMax` | 976 | — |  |
-| `\GenNMin` | 615 | — |  |
+| `\GenMaxCompounds` | 1000 | 02materials.tex |  |
+| `\GenNEC` | 3 | 02materials.tex |  |
+| `\GenNKi` | 9 | 02materials.tex |  |
+| `\GenNMax` | 976 | 02materials.tex |  |
+| `\GenNMin` | 615 | 02materials.tex |  |
 | `\GenNMorganOverRdkit` | 10 | — |  |
-| `\GenNTargets` | 12 | — |  |
-| `\GenNTuned` | 2 | — |  |
+| `\GenNRepresentations` | 2 | 02materials.tex |  |
+| `\GenNTargets` | 12 | 02materials.tex |  |
+| `\GenNTuned` | 2 | 02materials.tex |  |
 | `\GenNonCliffAdvCIHigh` | +0.145 | — |  |
 | `\GenNonCliffAdvCILow` | +0.049 | — |  |
 | `\GenNonCliffAdvMean` | +0.097 | — |  |
@@ -431,6 +433,8 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenNonCliffAdvNNeural` | 1 | — |  |
 | `\GenNonCliffAdvPT` | 0.0009 | — |  |
 | `\GenNonCliffAdvPWilcoxon` | 0.0010 | — |  |
+| `\GenOuterKFolds` | 5 | 02materials.tex |  |
+| `\GenOuterRepeats` | 1 | 02materials.tex |  |
 | `\GenPikThreeCaAdvRTwo` | +0.069 | — |  |
 | `\GenPikThreeCaCliffAdv` | +0.060 | — |  |
 | `\GenPikThreeCaGnnRTwo` | 0.604 | — |  |
@@ -439,6 +443,7 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenPikThreeCaN` | 960 | — |  |
 | `\GenPikThreeCaPEquivRTwo` | 0.788 | — |  |
 | `\GenPikThreeCaPHolmRTwo` | 0.068 | — |  |
+| `\GenTotalOuterFolds` | 5 | 02materials.tex |  |
 | `\GenTunedNEquiv` | 0 | — |  |
 | `\GenTunedNHolm` | 0 | — |  |
 
@@ -694,7 +699,7 @@ The variant whose hyperparameters are chosen by a hold-out search inside each ou
 | `\GnnTunedVsMorganCILowMae` | +0.011 | 03Results.tex |  |
 | `\GnnTunedVsMorganCILowRTwo` | -0.071 | 03Results.tex |  |
 | `\GnnTunedVsMorganDiffMae` | +0.036 | 03Results.tex |  |
-| `\GnnTunedVsMorganDiffRTwo` | -0.043 | 03Results.tex, 04Discussion.tex, 05Conclusions.tex |  |
+| `\GnnTunedVsMorganDiffRTwo` | -0.043 | 02materials.tex, 03Results.tex, 04Discussion.tex, 05Conclusions.tex |  |
 | `\GnnTunedVsMorganEquivPMae` | 0.182 | 03Results.tex |  |
 | `\GnnTunedVsMorganEquivPRTwo` | 0.330 | 03Results.tex |  |
 | `\GnnTunedVsMorganPMae` | 0.046 | — |  |
@@ -754,7 +759,7 @@ The graph network with Chemprop's default hyperparameters on the shared outer fo
 | `\GnnVsMorganCILowMae` | +0.014 | — |  |
 | `\GnnVsMorganCILowRTwo` | -0.074 | — |  |
 | `\GnnVsMorganDiffMae` | +0.040 | — |  |
-| `\GnnVsMorganDiffRTwo` | -0.044 | 03Results.tex, 04Discussion.tex |  |
+| `\GnnVsMorganDiffRTwo` | -0.044 | 02materials.tex, 03Results.tex, 04Discussion.tex |  |
 | `\GnnVsMorganEquivPMae` | 0.270 | — |  |
 | `\GnnVsMorganEquivPRTwo` | 0.367 | — |  |
 | `\GnnVsMorganPMae` | 0.031 | — |  |

@@ -242,8 +242,64 @@ contributes from what the protocol contributes, and places the original model on
 in this study.
 
 
+\subsection{External Replication Across Twelve Bioactivity Targets}
+\label{sec:materials_generalization}
+
+Everything described so far measures one target. A comparison between model families on \NCompounds\ molecules of
+TgDHFR supports a statement about TgDHFR, not about the regime of a few hundred labeled molecules in general, and the
+leak-by-leak audit of Section~\ref{sec:materials_audit} is tied to one published pipeline. The comparison was
+therefore repeated, unchanged, on an external collection: the MoleculeACE benchmark \citep{vantilborg2022}, which
+distributes curated bioactivity sets together with a published partition and a per-compound activity-cliff flag for
+each of them. Every target of at most \GenMaxCompounds\ compounds was taken, which gives \GenNTargets\ targets of
+\GenNMin\ to \GenNMax\ compounds (\GenNKi\ measured as $K_i$ and \GenNEC\ as EC$_{50}$) spanning kinases, nuclear
+receptors and G-protein-coupled receptors, with the fraction of compounds flagged as activity cliffs ranging from
+\GenCliffPctMin\,\% to \GenCliffPctMax\,\%. That cap is a deliberate restriction to the sample size this study is
+about rather than a random draw from the collection: its larger sets were left out, so these targets can confirm or
+refute the result in the small-sample regime and say nothing about where the balance moves with more data.
+
+Each target was run through the same two steps as the main benchmark, with the same code: the nested cross-validation
+of the classical ensembles over \GenNRepresentations\ representations (Morgan fingerprints and RDKit 2D descriptors)
+and the default D-MPNN, both on the same outer folds within each target, so that every comparison reported for a
+target is paired. The outer loop was \GenOuterKFolds-fold with \GenOuterRepeats\ repeat, \GenTotalOuterFolds\ outer
+folds per target, against the \OuterRepeats$\times$\OuterKFolds\ of the main analysis. The reduction is a cost
+decision: \GenNTargets\ targets at \OuterRepeats\ repeats would take weeks at the per-fold cost measured in
+Section~\ref{sec:cost_results}. What it costs is precision within a target, and the per-target intervals are
+correspondingly wider than those of the main benchmark; what it does not touch is the comparison across targets,
+whose replicates are the targets themselves rather than the folds.
+
+Each target was additionally scored once on the partition published with the collection, fitting both families on its
+training part and predicting its test part. This is the only comparison in this study that can be placed beside the
+numbers reported by the authors of the benchmark, because it uses their split and not ours. Those test parts hold
+\GenHoldoutNTestMin\ to \GenHoldoutNTestMax\ compounds, of which \GenCliffNTestMin\ to \GenCliffNTestMax\ carry the
+collection's activity-cliff flag, and the error was recorded three times: on the whole test part, on the flagged
+compounds alone, and on the remainder. The flags are the ones distributed with the benchmark and were not recomputed,
+so that subset is defined exactly as in the work that introduced it. The flagged subsets are small, the smallest of
+them \GenCliffNTestMin\ compounds, so a single target's cliff estimate is imprecise and only their summary across
+targets is interpreted.
+
+The two families do not receive the same search effort in this cohort: the classical side selects its architecture
+inside every outer training partition, while the D-MPNN runs at Chemprop's defaults. That asymmetry is the price of
+running \GenNTargets\ targets, and it is declared rather than argued away, together with the two measurements that
+bound it. On TgDHFR, the hold-out search of Section~\ref{sec:materials_gnn} moved the $R^2$ difference between the
+network and the Morgan ensemble from \GnnVsMorganDiffRTwo\ to \GnnTunedVsMorganDiffRTwo, leaving it essentially where
+it was. Within the cohort, that same search was run on the \GenNTuned\ targets where the default network falls
+furthest behind. Reporting differences as the classical value minus the neural one, so that a positive number always
+favours the classical model, the advantage moved from \GenClkFourAdvRTwo\ to \GenClkFourTunedAdvRTwo\ on CLK4 and
+from \GenGhsrAdvRTwo\ to \GenGhsrTunedAdvRTwo\ on GHSR. The remaining targets were not tuned, so what this cohort
+measures is a default graph network; the two that were tuned are those where tuning had the most room to change the
+conclusion.
+
+Within each target, the comparison between the two families is the paired procedure of
+Section~\ref{sec:materials_ncv}: the Nadeau--Bengio corrected $t$-test with Holm's adjustment, and the two one-sided
+equivalence tests against the same margins. Across targets the unit of analysis changes. Each target contributes one
+difference between the families, and those \GenNTargets\ differences were submitted to a two-sided one-sample
+$t$-test and to the exact Wilcoxon signed-rank test against zero, reported with a 95\,\% $t$ interval. The four
+summaries built this way, the cross-validated cohort and the published split on its whole test part, on its cliffs
+and on its remainder, are four views of the same \GenNTargets\ differences rather than independent tests; they are
+reported together without an adjustment for multiplicity and are to be read as one result rather than as four.
+
 % ==========================================
-% 2. SECTION 2.7
+% 2. SECTION 2.8
 % ==========================================
 \subsection{Application: Screening within the Applicability Domain}
 \label{sec:materials_screening}

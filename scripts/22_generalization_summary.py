@@ -10,6 +10,7 @@ Writes latex/generalization_variables.tex, latex/generalization_table.tex and re
 Every difference is exported as the advantage of the classical model (classical minus D-MPNN), so that a positive
 number always reads the same way; the per-target tests of steps 09 and 12 store the opposite sign.
 """
+import importlib.util
 import os
 import sys
 
@@ -57,6 +58,32 @@ def macro_token(abbreviation):
     if not parts:
         raise ValueError(f"Abbreviation {abbreviation!r} has no letters or digits")
     return "".join(parts)
+
+
+def size_cap():
+    """The compound-count cap that defines the cohort, read from step 20 rather than repeated here.
+
+    The value is not recoverable from the data on disk (the largest target included only shows that the cap is at
+    least that large), and it is a criterion the manuscript has to state, so it is taken from the step that applied
+    it. Importing executes that module's top level only, which just computes paths.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "20_moleculeace_prepare.py")
+    spec = importlib.util.spec_from_file_location("step20", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.MAX_COMPOUNDS
+
+
+def protocol_of(results_dir):
+    """Outer folds, repeats and representations one target was actually run with, read from its own output.
+
+    The manuscript states a single protocol for the cohort, so the caller checks that every target returns the same
+    triple rather than trusting the profile that was set when each one ran.
+    """
+    folds = pd.read_csv(os.path.join(results_dir, "09_gnn_fold_scores.csv"))["Fold"].nunique()
+    repeats = pd.read_csv(os.path.join(results_dir, "01_nested_cv_repeat_scores.csv"))["Repeat"].nunique()
+    modes = len(pd.read_csv(os.path.join(results_dir, "01_nested_cv_final_results.csv"))["Mode"].unique())
+    return folds, repeats, modes
 
 
 def cohort_test(advantage):
@@ -171,7 +198,21 @@ def main():
     print(summary[["abbreviation", "n", "morgan_r2", "gnn_r2", "adv_r2", "p_holm_r2", "p_equiv_r2",
                    "holdout_adv_all", "holdout_adv_cliff"]].round(3).to_string(index=False))
 
-    values = {"GenNTargets": len(summary), "GenNMin": int(summary["n"].min()), "GenNMax": int(summary["n"].max()),
+    protocols = {d: protocol_of(os.path.join(GEN_DIR, d, "results")) for d in index["dataset"]}
+    if len(set(protocols.values())) != 1:
+        print(f"[ERROR] The targets were not run with the same protocol: {protocols}")
+        sys.exit(1)
+    folds, repeats, modes = next(iter(protocols.values()))
+
+    cap = size_cap()
+    if summary["n"].max() > cap:
+        print(f"[ERROR] A target of {summary['n'].max()} compounds exceeds the cap of {cap} the cohort is defined by.")
+        sys.exit(1)
+
+    values = {"GenMaxCompounds": cap,
+              "GenOuterKFolds": folds, "GenOuterRepeats": repeats, "GenTotalOuterFolds": folds * repeats,
+              "GenNRepresentations": modes,
+              "GenNTargets": len(summary), "GenNMin": int(summary["n"].min()), "GenNMax": int(summary["n"].max()),
               "GenCliffPctMin": f"{summary['cliff_pct'].min():.0f}",
               "GenCliffPctMax": f"{summary['cliff_pct'].max():.0f}",
               "GenNKi": int((summary["endpoint"] == "Ki").sum()), "GenNEC": int((summary["endpoint"] == "EC50").sum())}
