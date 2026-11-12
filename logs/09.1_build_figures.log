@@ -1,4 +1,4 @@
-=== START LOG: 09.1_build_figures.py [2026-11-06 22:07:27] ===
+=== START LOG: 09.1_build_figures.py [2026-11-09 04:36:40] ===
 
 [-] Reading GNN benchmark results from: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/09_gnn_results.csv
 
@@ -14,6 +14,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [+] Enhanced GNN benchmark figure saved at: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/figures/09_gnn_benchmark_comparison.png
 [EXPORT] Cost table saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/cost_table.tex
+[EXPORT] Reproducibility variables (3 executions) saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/gnn_reproducibility_variables.tex
 
 === END LOG: 09.1_build_figures.py [EXIT CODE: 0] ===
 

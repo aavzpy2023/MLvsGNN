@@ -1,8 +1,8 @@
-=== START LOG: 05_virtual_screening.py [2026-11-06 14:13:17] ===
+=== START LOG: 05_virtual_screening.py [2026-11-08 21:24:42] ===
 
 ====================================================================================================
 VIRTUAL SCREENING PIPELINE — TgDHFR Inhibitor Search
-Timestamp: 2026-11-06 14:13:19
+Timestamp: 2026-11-08 21:24:44
 ====================================================================================================
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,14 +24,14 @@ Timestamp: 2026-11-06 14:13:19
 
 [1/5] ML ARCHITECTURE LOADING
   [-] Model path: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_best_model.joblib
-  [+] Ensembled model loaded successfully (0.17s)
+  [+] Ensembled model loaded successfully (0.21s)
   [-] Mask path: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/04_selected_features_mask.npy
   [+] Mask applied: 747 / 2048 features (36.47% retention)
 
 [2/5] APPLICABILITY DOMAIN CONFIGURATION (SIMILARITY TO THE TRAINING SET)
   [-] Training source: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/data/V2-combined_bd_chmbl_unique_dedup.csv
   [+] Training fingerprints generated: (859, 2048)
-  [+] Similarity domain fitted (k=5, z=0.5) in 1.18s: minimum mean similarity to the 5 nearest training molecules = 0.638 (training molecules, one against the others: median 0.695)
+  [+] Similarity domain fitted (k=5, z=0.5) in 1.60s: minimum mean similarity to the 5 nearest training molecules = 0.638 (training molecules, one against the others: median 0.695)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] Applicability Domain
@@ -51,7 +51,13 @@ Timestamp: 2026-11-06 14:13:19
   [+] Physical/Structural Filtering (MW < 1000.0, Allowed Atoms): 3056 candidates retained (90.5%)
   [+] Similarity to the training set of the 3056 candidates: median 0.170 (5th-95th percentile 0.109-0.257)
   [+] Inside the applicability domain: 14 compounds (0.5%); all are scored, none is excluded
-  [+] Total filtering time: 6.26s
+  [+] Total filtering time: 10.95s
+  [+] Threshold sensitivity (5 rules) saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/05_ad_sensitivity.csv:
+      mean               similarity >= 0.686 ->    13 compounds (0.4%)
+      mean + 0.5 SD      similarity >= 0.638 ->    14 compounds (0.5%)
+      mean + 1 SD        similarity >= 0.591 ->    18 compounds (0.6%)
+      95th percentile    similarity >= 0.521 ->    19 compounds (0.6%)
+      twice the mean     similarity >= 0.371 ->    32 compounds (1.1%)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [EXPLAIN] Reading the filter counts
@@ -63,8 +69,19 @@ Timestamp: 2026-11-06 14:13:19
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [4/5] ML INFERENCE - BIOACTIVITY PREDICTION (pIC50)
-  [+] Inferences completed in 1.064s
+  [+] Inferences completed in 2.002s
   [-] Prediction Statistics -> Mean: 5.0003 | Max: 7.9272 | Min: 3.7468
+  [+] Conformal calibration on the 129-compound hold-out of step 04 in 0.64s: +/-0.99 log units at 90% coverage (mean absolute residual 0.43)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[EXPLAIN] Reading the interval
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Every predicted potency is reported as pIC50 +/- 0.99. The interval comes from the absolute
+  errors this same model made on the 129 compounds held out in step 04, and covers the true value
+  of a new compound 90% of the time provided that compound resembles the held-out ones. For a drug
+  outside the applicability domain the coverage is not guaranteed, and the interval should be read
+  as a lower bound on the         uncertainty, not as its measure.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [5/5] PERFORMANCE REPORTS AND EXPORT
 
@@ -117,7 +134,7 @@ Rank  Compound Name                    pIC50     LE     BEI    LLE    SEI
 [SUCCESS] 17 candidates safely exported to:
         -> /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/results/05_FDA_Candidates_For_Docking.csv
         Logs saved in: /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/logs/05_virtual_screening.log
-        Total execution time: 11.92s
+        Total execution time: 27.97s
 ====================================================================================================
 
 === END LOG: 05_virtual_screening.py [EXIT CODE: 0] ===

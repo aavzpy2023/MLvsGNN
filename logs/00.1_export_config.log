@@ -1,0 +1,25 @@
+=== START LOG: 00.1_export_config.py [2026-11-09 11:03:13] ===
+
+[EXPORT] 19 configuration variables saved to /home/andrey/Projects/__GITHUB__aavzpy2023/analysispaperKarimova2025/latex/config_variables.tex
+  RandomSeed             42
+  InnerEvaluationsPerOuterFold 1025
+  NoiseLevelHigh         0.01
+  NoiseLevelLow          0.001
+  NTrees                 200
+  HoldoutPct             15
+  IqrFactor              1.5
+  ClipMargin             3
+  MorganRadius           2
+  GnnEpochs              100
+  GnnHiddenSize          300
+  GnnDepth               3
+  GnnDropoutWord         no dropout
+  GnnGridHiddenSizes     300 or 600
+  GnnGridDepths          3 or 5
+  GnnGridDropouts        0 or 0.2
+  GnnInnerValPct         20
+  GnnInnerTrainPct       80
+  DmpnnEnsembleSeeds     5
+
+=== END LOG: 00.1_export_config.py [EXIT CODE: 0] ===
+
