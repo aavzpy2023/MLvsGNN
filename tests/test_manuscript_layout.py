@@ -246,7 +246,12 @@ class TestSupplementCrossReferences:
                                f"{offenders}. Use \\ref{{S-<label>}} so they follow the supplement.")
 
     def test_every_referenced_label_exists_in_the_supplement(self):
-        defined = set(re.findall(r"\\label\{([^}]*)\}", COMMENT_RE.sub("", read(self.SUPPLEMENT))))
+        # A label can sit in the supplement itself or in a table it inputs: a table that breaks across pages is not a
+        # float, so its caption and label are inside the generated environment rather than written around the input.
+        sources = [self.SUPPLEMENT] + [os.path.join(ROOT, p) for p in inputs_of(self.SUPPLEMENT)]
+        defined = {label
+                   for path in sources if os.path.exists(path)
+                   for label in re.findall(r"\\label\{([^}]*)\}", COMMENT_RE.sub("", read(path)))}
         missing = {}
         for name in self.PROSE:
             for label in re.findall(r"\\ref\{S-([^}]*)\}", COMMENT_RE.sub("", read(os.path.join(SECTIONS_DIR, name)))):

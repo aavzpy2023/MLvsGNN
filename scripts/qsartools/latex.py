@@ -56,3 +56,31 @@ def tabular_close(colspec):
         colspec: the same specification passed to tabular_open; a different one closes the wrong environment.
     """
     return r"\end{tabularx}" if "X" in colspec else r"\end{tabular*}"
+
+
+# A table taller than one page cannot be a float: floats do not break. longtable breaks but cannot carry an X column,
+# so a full-width table that must wrap a prose column AND run over a page break is built as xltabular, which is
+# longtable with tabularx's measurement. It is typeset where it stands rather than floated, and its caption travels
+# inside the environment, so the caption text is passed in instead of being written around the \input.
+def breaking_table(colspec, caption, label, header, rows):
+    r"""All lines of a full-width table that repeats its header on every page it breaks onto.
+
+    Args:
+        colspec: column specification, as for tabular_open (an 'X' column absorbs the slack by wrapping).
+        caption: caption text, or a macro that expands to it, so the prose can stay in the hand-written document.
+        label: key for \label, without the command.
+        header: the header row, without its trailing row separator.
+        rows: body lines, each already ending in a row separator.
+    """
+    head = ["\\toprule", f"{header} \\\\", "\\midrule"]
+    return ["\\begin{xltabular}{\\textwidth}{" + colspec + "}",
+            f"\\caption{{{caption}}}\\label{{{label}}}\\\\",
+            *head, "\\endfirsthead",
+            # The continuation repeats the number and the header, never the caption prose: a caption of a few lines
+            # reprinted on every page costs more rows than it explains. The empty short caption keeps the
+            # continuation out of the list of tables.
+            "\\caption[]{(\\textit{continued})}\\\\",
+            *head, "\\endhead",
+            "\\bottomrule", "\\endlastfoot",
+            *rows,
+            "\\end{xltabular}"]

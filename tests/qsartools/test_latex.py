@@ -1,6 +1,6 @@
 import pytest
 
-from qsartools.latex import RAGGED_X, format_macros, newcommand, tabular_close, tabular_open
+from qsartools.latex import RAGGED_X, breaking_table, format_macros, newcommand, tabular_close, tabular_open
 
 
 def test_newcommand_format():
@@ -42,3 +42,40 @@ class TestFullWidthTables:
     @pytest.mark.parametrize("spec", ["llrcc", "l" + RAGGED_X + "rcc"])
     def test_the_target_width_is_always_the_text_width(self, spec):
         assert r"{\textwidth}" in tabular_open(spec)
+
+
+class TestTablesThatBreakAcrossPages:
+    """A table taller than a page cannot be a float, and longtable alone cannot carry an X column, so these are
+    xltabular with their caption inside the environment."""
+
+    SPEC = "l" + RAGGED_X + "rcc"
+
+    def build(self):
+        return breaking_table(self.SPEC, "\\TheCaption", "tab:thing", "A & B & C & D & E",
+                              ["1 & 2 & 3 & 4 & 5 \\\\", "6 & 7 & 8 & 9 & 10 \\\\"])
+
+    def test_it_measures_the_text_width_and_closes_what_it_opened(self):
+        lines = self.build()
+        assert lines[0] == r"\begin{xltabular}{\textwidth}{l>{\raggedright\arraybackslash}Xrcc}"
+        assert lines[-1] == r"\end{xltabular}"
+
+    def test_the_caption_and_label_travel_inside_the_environment(self):
+        # Written around the \input they would be lost: the environment is not a float, so there is nothing to wrap.
+        lines = self.build()
+        assert lines[1] == r"\caption{\TheCaption}\label{tab:thing}\\"
+
+    def test_the_header_is_declared_once_for_the_first_page_and_once_for_the_rest(self):
+        body = "\n".join(self.build())
+        assert body.count("A & B & C & D & E") == 2
+        for part in (r"\endfirsthead", r"\endhead", r"\endlastfoot"):
+            assert part in body
+
+    def test_the_continuation_does_not_reprint_the_caption_prose(self):
+        # A caption of several lines reprinted on every page costs more rows than it explains.
+        body = "\n".join(self.build())
+        assert body.count(r"\TheCaption") == 1
+        assert r"\caption[]{(\textit{continued})}\\" in body
+
+    def test_the_rows_come_last_and_unchanged(self):
+        lines = self.build()
+        assert lines[-3:-1] == ["1 & 2 & 3 & 4 & 5 \\\\", "6 & 7 & 8 & 9 & 10 \\\\"]

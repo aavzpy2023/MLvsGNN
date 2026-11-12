@@ -12,6 +12,7 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{tabularx}
+\usepackage{xltabular}
 \usepackage{float}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage[hidelinks]{hyperref}
@@ -105,6 +106,7 @@ analysis pipeline and read from the same files as the manuscript.
 		the held-out fold. It is the counterpart, for the network, of the stacking compositions in
 		Table~\ref{tab:selection}, and shows that the search did not settle on one configuration.}
 	\label{tab:gnn_tuned_config}
+	\footnotesize
 	\input{latex/gnn_tuned_config_table.tex}
 \end{table}
 
@@ -123,15 +125,17 @@ analysis pipeline and read from the same files as the manuscript.
 	\centering
 	\caption{Each additional neural model against each classical representation over the \TotalOuterFolds\ shared outer folds. Differences are the neural model minus the representation, so a negative value in $R^2$ means the neural model scored lower. $p_{\mathrm{Holm}}$ is adjusted within the four representations of each model and metric.}
 	\label{tab:strong_pairwise}
+	\scriptsize
 	\input{latex/strong_pairwise_table.tex}
 \end{table}
 
-\begin{table}[htbp]
-	\centering
-	\caption{Comparisons under scaffold-grouped folds: every neural model against every classical representation, and the classical representations against each other. The unadjusted $p$ is given beside the adjusted one because the 90\% intervals quoted in the manuscript are not corrected for multiplicity, which is why an interval can exclude zero while the adjusted $p$ is far from significance.}
-	\label{tab:scaffold_pairwise}
-	\input{latex/scaffold_pairwise_table.tex}
-\end{table}
+% This table is about fifty rows long, so it is not a float: it breaks across pages and repeats its header. Its
+% caption therefore has to live inside the environment, and the generated file reads it from here. The \clearpage is
+% what keeps it in order: a non-float is typeset where it stands, while the floats above it are still queued, so
+% without flushing them first a table numbered S9 would print before S2.
+\clearpage
+\newcommand{\ScaffoldPairwiseCaption}{Comparisons under scaffold-grouped folds: every neural model against every classical representation, and the classical representations against each other. The unadjusted $p$ is given beside the adjusted one because the 90\% intervals quoted in the manuscript are not corrected for multiplicity, which is why an interval can exclude zero while the adjusted $p$ is far from significance.}
+\input{latex/scaffold_pairwise_table.tex}
 
 
 

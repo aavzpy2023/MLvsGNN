@@ -291,14 +291,14 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenArPHolmRTwo` | 0.314 | — |  |
 | `\GenCliffAdvCIHigh` | +0.251 | 03Results.tex |  |
 | `\GenCliffAdvCILow` | +0.028 | 03Results.tex |  |
-| `\GenCliffAdvMean` | +0.140 | 03Results.tex |  |
+| `\GenCliffAdvMean` | +0.140 | 03Results.tex, 04Discussion.tex |  |
 | `\GenCliffAdvN` | 12 | — |  |
 | `\GenCliffAdvNClassical` | 10 | 03Results.tex |  |
 | `\GenCliffAdvNNeural` | 2 | — |  |
 | `\GenCliffAdvPT` | 0.0187 | — |  |
 | `\GenCliffAdvPWilcoxon` | 0.0049 | 03Results.tex |  |
-| `\GenCliffClassicalRTwo` | 0.453 | 03Results.tex |  |
-| `\GenCliffGnnRTwo` | 0.313 | 03Results.tex |  |
+| `\GenCliffClassicalRTwo` | 0.453 | 03Results.tex, 04Discussion.tex |  |
+| `\GenCliffGnnRTwo` | 0.313 | 03Results.tex, 04Discussion.tex |  |
 | `\GenCliffNTestMax` | 91 | 02materials.tex, 03Results.tex |  |
 | `\GenCliffNTestMin` | 13 | 02materials.tex, 03Results.tex |  |
 | `\GenCliffPctMax` | 48 | 02materials.tex |  |
@@ -316,10 +316,10 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenClkFourTunedPHolmRTwo` | 0.140 | — |  |
 | `\GenClkFourTunedRTwo` | 0.315 | — |  |
 | `\GenClkFourTuningGain` | 0.009 | 03Results.tex |  |
-| `\GenCvAdvCIHigh` | +0.127 | 03Results.tex |  |
-| `\GenCvAdvCILow` | +0.058 | 03Results.tex |  |
+| `\GenCvAdvCIHigh` | +0.127 | 03Results.tex, 05Conclusions.tex |  |
+| `\GenCvAdvCILow` | +0.058 | 03Results.tex, 05Conclusions.tex |  |
 | `\GenCvAdvMax` | +0.209 | 03Results.tex |  |
-| `\GenCvAdvMean` | +0.092 | 03Results.tex |  |
+| `\GenCvAdvMean` | +0.092 | 00abstract.tex, 03Results.tex, 05Conclusions.tex |  |
 | `\GenCvAdvMin` | +0.035 | 03Results.tex |  |
 | `\GenCvAdvN` | 12 | — |  |
 | `\GenCvAdvNClassical` | 12 | — |  |
@@ -382,7 +382,7 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenHoldoutAdvCILow` | +0.054 | 03Results.tex |  |
 | `\GenHoldoutAdvMean` | +0.098 | 03Results.tex |  |
 | `\GenHoldoutAdvN` | 12 | — |  |
-| `\GenHoldoutAdvNClassical` | 11 | 03Results.tex |  |
+| `\GenHoldoutAdvNClassical` | 11 | 03Results.tex, 04Discussion.tex, 05Conclusions.tex |  |
 | `\GenHoldoutAdvNNeural` | 1 | — |  |
 | `\GenHoldoutAdvPT` | 0.0005 | 03Results.tex |  |
 | `\GenHoldoutAdvPWilcoxon` | 0.0010 | 03Results.tex |  |
@@ -422,25 +422,25 @@ The classical ensemble against the default D-MPNN on twelve external targets: pe
 | `\GenKorN` | 955 | — |  |
 | `\GenKorPEquivRTwo` | 0.778 | — |  |
 | `\GenKorPHolmRTwo` | 0.067 | — |  |
-| `\GenMaxCompounds` | 1000 | 02materials.tex, 03Results.tex |  |
+| `\GenMaxCompounds` | 1000 | 02materials.tex, 03Results.tex, 04Discussion.tex, 05Conclusions.tex |  |
 | `\GenNEC` | 3 | 02materials.tex |  |
 | `\GenNKi` | 9 | 02materials.tex |  |
-| `\GenNMax` | 976 | 02materials.tex |  |
-| `\GenNMin` | 615 | 02materials.tex |  |
+| `\GenNMax` | 976 | 02materials.tex, 04Discussion.tex, 05Conclusions.tex |  |
+| `\GenNMin` | 615 | 02materials.tex, 04Discussion.tex, 05Conclusions.tex |  |
 | `\GenNMorganOverRdkit` | 10 | 03Results.tex |  |
 | `\GenNRepresentations` | 2 | 02materials.tex |  |
-| `\GenNTargets` | 12 | 02materials.tex, 03Results.tex |  |
+| `\GenNTargets` | 12 | 00abstract.tex, 02materials.tex, 03Results.tex, 04Discussion.tex, 05Conclusions.tex |  |
 | `\GenNTuned` | 2 | 02materials.tex, 03Results.tex |  |
 | `\GenNonCliffAdvCIHigh` | +0.145 | — |  |
 | `\GenNonCliffAdvCILow` | +0.049 | — |  |
-| `\GenNonCliffAdvMean` | +0.097 | 03Results.tex |  |
+| `\GenNonCliffAdvMean` | +0.097 | 03Results.tex, 04Discussion.tex |  |
 | `\GenNonCliffAdvN` | 12 | — |  |
 | `\GenNonCliffAdvNClassical` | 11 | — |  |
 | `\GenNonCliffAdvNNeural` | 1 | — |  |
 | `\GenNonCliffAdvPT` | 0.0009 | — |  |
 | `\GenNonCliffAdvPWilcoxon` | 0.0010 | — |  |
-| `\GenNonCliffClassicalRTwo` | 0.710 | 03Results.tex |  |
-| `\GenNonCliffGnnRTwo` | 0.613 | 03Results.tex |  |
+| `\GenNonCliffClassicalRTwo` | 0.710 | 03Results.tex, 04Discussion.tex |  |
+| `\GenNonCliffGnnRTwo` | 0.613 | 03Results.tex, 04Discussion.tex |  |
 | `\GenOuterKFolds` | 5 | 02materials.tex |  |
 | `\GenOuterRepeats` | 1 | 02materials.tex |  |
 | `\GenPikThreeCaAdvRTwo` | +0.069 | — |  |
@@ -941,7 +941,7 @@ The published pipeline reproduced and then repaired one leak at a time, with the
 | `\KarDeltaRungFourVsRungThreeCILow` | -0.026 | 03Results.tex |  |
 | `\KarDeltaRungFourVsRungThreeRTwo` | -0.011 | 03Results.tex |  |
 | `\KarDeltaRungFourVsRungThreeRTwoSd` | 0.035 | — |  |
-| `\KarDeltaRungFourVsRungZeroRTwo` | -0.113 | 03Results.tex |  |
+| `\KarDeltaRungFourVsRungZeroRTwo` | -0.113 | 03Results.tex, 04Discussion.tex |  |
 | `\KarDeltaRungFourVsRungZeroRTwoSd` | 0.023 | 03Results.tex |  |
 | `\KarDeltaRungOneVsRungZeroRTwo` | -0.028 | 03Results.tex |  |
 | `\KarDeltaRungOneVsRungZeroRTwoSd` | 0.007 | 03Results.tex |  |

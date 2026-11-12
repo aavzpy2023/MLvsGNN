@@ -1,4 +1,4 @@
-=== START LOG: 11_check_manuscript.py [2026-11-11 21:40:51] ===
+=== START LOG: 11_check_manuscript.py [2026-11-11 22:03:47] ===
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,7 +44,7 @@
 [OK] figure figures/05_pIC50_candidates_comparison.png
 [OK] figure figures/05_pIC50_vs_LE_scatter.png
 [OK] figure figures/S1_nested_cv_selection_full_heatmap.png
-[CHECK] 33 files followed, 5 figures, 1612 project variables used, 0 undefined
+[CHECK] 33 files followed, 5 figures, 1613 project variables used, 0 undefined
 [OK] Every figure, included file, and variable used by the 4 document(s) is produced by the pipeline.
 
 === END LOG: 11_check_manuscript.py [EXIT CODE: 0] ===

@@ -24,7 +24,12 @@ LATEX_DIR = os.path.join(ROOT, "latex")
 SCRIPTS_DIR = os.path.join(ROOT, "scripts")
 ROOTS = ["paper_reading.tex", "paper_ML_GNN.tex", "paper_springer.tex", "supplementary_ML_GNN.tex"]
 
-OPEN_RE = re.compile(r"\\begin\{(tabularx|tabular\*)\}\{\\textwidth\}\{(?:@\{\\extracolsep\{\\fill\}\})?(.*)\}")
+OPEN_RE = re.compile(r"\\begin\{(xltabular|tabularx|tabular\*)\}\{\\textwidth\}\{(?:@\{\\extracolsep\{\\fill\}\})?(.*)\}")
+
+# Tables too tall for one page, which therefore break across pages instead of floating. A float cannot break and
+# longtable cannot carry an X column, so these are xltabular: longtable with tabularx's measurement. They are the
+# exception to the rule below that an X column means tabularx.
+BREAKING = {"scaffold_pairwise_table.tex"}
 
 # The constant each generator script defines for a table, against the file that table is written to. A script whose
 # constant drifts from the file on disk means the next pipeline run would silently undo the conversion.
@@ -90,7 +95,20 @@ class TestTheGeneratedFiles:
         for name in tables:
             spec = colspec_of(name)
             env = OPEN_RE.search(read(os.path.join(LATEX_DIR, name))).group(1)
+            if name in BREAKING:
+                assert env == "xltabular", f"{name} must break across pages"
+                continue
             assert env == ("tabularx" if "X" in spec else "tabular*"), name
+
+    def test_every_breaking_table_repeats_its_header_and_carries_its_caption(self, tables):
+        # A broken table whose header does not repeat leaves unlabelled columns on the pages after the first, and its
+        # caption cannot be written around the \input because the environment is not a float.
+        for name in sorted(BREAKING & set(tables)):
+            text = read(os.path.join(LATEX_DIR, name))
+            for part in ("\\endfirsthead", "\\endhead", "\\endlastfoot", "\\caption"):
+                assert part in text, f"{name} has no {part}"
+            assert "\\label{" in text, f"{name} must carry its own label"
+            assert text.count("\\caption") == 2, f"{name} needs a first and a continuation caption"
 
     def test_no_table_is_wrapped_in_a_box(self, tables):
         # \resizebox is what sn-jnl rejects and what rescales the type away from the body size.
